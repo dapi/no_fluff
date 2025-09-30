@@ -45,6 +45,10 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  # Guard for automatic test running
+  gem "guard", require: false
+  gem "guard-minitest", require: false
 end
 
 gem "telegram-bot", "~> 0.16.7"
@@ -52,3 +56,5 @@ gem "telegram-bot", "~> 0.16.7"
 gem "ruby_llm", "~> 1.8"
 
 gem "minitest", "~> 5.25"
+
+gem "anyway_config", "~> 2.7"

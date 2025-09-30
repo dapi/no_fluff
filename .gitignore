@@ -35,3 +35,6 @@
 .claude-on-rails/sessions/
 .claude-swarm/
 claude-swarm.log
+
+/config/*.local.yml
+/config/credentials/local.*

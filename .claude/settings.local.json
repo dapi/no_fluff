@@ -6,7 +6,10 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:rubyllm.com)",
       "WebFetch(domain:www.rubydoc.info)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:medium.com)",
+      "Bash(bundle show:*)",
+      "Bash(awk:*)"
     ],
     "deny": [],
     "ask": []
