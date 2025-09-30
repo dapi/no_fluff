@@ -30,3 +30,8 @@
 
 # Ignore master key for decrypting credentials and more.
 /config/master.key
+
+# ClaudeOnRails
+.claude-on-rails/sessions/
+.claude-swarm/
+claude-swarm.log
