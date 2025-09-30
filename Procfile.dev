@@ -1,0 +1,3 @@
+jobs: ./bin/jobs
+bot: bundle exec rake telegram:bot:poller
+server: rails s 

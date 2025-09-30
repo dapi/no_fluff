@@ -4,13 +4,13 @@
 
 ---
 
-## 1. Модель AISession
+## 1. Модель Chat
 
 ```ruby
-# app/models/ai_session.rb
-class AISession < ApplicationRecord
+# app/models/chat.rb
+class Chat < ApplicationRecord
   belongs_to :user
-  has_many :ai_messages, dependent: :destroy
+  has_many :messages, dependent: :destroy
 
   # Интеграция с ruby_llm для автоматического сохранения истории
   acts_as_chat
@@ -51,12 +51,12 @@ class AISession < ApplicationRecord
 
   # Получить последние N сообщений для контекста
   def recent_messages(limit = 10)
-    ai_messages.order(created_at: :desc).limit(limit).reverse
+    messages.order(created_at: :desc).limit(limit).reverse
   end
 
   # Получить важные сообщения из истории (помеченные как important)
   def important_messages(limit = 5)
-    ai_messages
+    messages
       .where("metadata->>'importance' = 'high'")
       .order(created_at: :desc)
       .limit(limit)
@@ -81,8 +81,8 @@ class AISession < ApplicationRecord
 
   # Архивировать старые сообщения
   def archive_old_messages(older_than: 30.days.ago)
-    ai_messages.where("created_at < ?", older_than).destroy_all
-    update(messages_count: ai_messages.count)
+    messages.where("created_at < ?", older_than).destroy_all
+    update(messages_count: messages.count)
   end
 
   # Сжатие истории для long-running сессий
@@ -90,16 +90,16 @@ class AISession < ApplicationRecord
     return if messages_count < 100
 
     # Оставить только важные + последние N сообщений
-    messages_to_keep = ai_messages.order(created_at: :desc)
+    messages_to_keep = messages.order(created_at: :desc)
                         .limit(50)
                         .pluck(:id)
 
-    important_ids = ai_messages
+    important_ids = messages
                      .where("metadata->>'keep' = 'true'")
                      .pluck(:id)
 
-    ai_messages.where.not(id: messages_to_keep + important_ids).destroy_all
-    update(messages_count: ai_messages.count)
+    messages.where.not(id: messages_to_keep + important_ids).destroy_all
+    update(messages_count: messages.count)
   end
 
   # Получить chat instance с управляемым контекстом
@@ -146,9 +146,9 @@ class AISession < ApplicationRecord
 end
 
 # Миграция
-class CreateAISessions < ActiveRecord::Migration[8.0]
+class CreateChats < ActiveRecord::Migration[8.0]
   def change
-    create_table :ai_sessions do |t|
+    create_table :chats do |t|
       t.references :user, null: false, foreign_key: true, index: true
       t.integer :session_type, null: false, default: 0
       t.integer :status, null: false, default: 0
@@ -159,10 +159,10 @@ class CreateAISessions < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :ai_sessions, [:user_id, :session_type]
-    add_index :ai_sessions, :status
-    add_index :ai_sessions, :last_activity_at
-    add_index :ai_sessions, :context, using: :gin
+    add_index :chats, [:user_id, :session_type]
+    add_index :chats, :status
+    add_index :chats, :last_activity_at
+    add_index :chats, :context, using: :gin
   end
 end
 ```
@@ -179,7 +179,7 @@ class User < ApplicationRecord
   has_many :digests, dependent: :destroy
   has_many :feedbacks, dependent: :destroy
   has_one :user_preference, dependent: :destroy
-  has_many :ai_sessions, dependent: :destroy  # 🆕
+  has_many :chats, dependent: :destroy  # 🆕
 
   # Настройки
   enum delivery_frequency: {
@@ -211,8 +211,8 @@ class User < ApplicationRecord
   validates :telegram_id, presence: true, uniqueness: true
 
   # 🆕 Получить или создать активную сессию определенного типа
-  def ai_session_for(type)
-    ai_sessions.active.find_or_create_by!(session_type: type) do |session|
+  def chat_for(type)
+    chats.active.find_or_create_by!(session_type: type) do |session|
       session.context = build_initial_context
       session.last_activity_at = Time.current
     end
@@ -247,7 +247,7 @@ class User < ApplicationRecord
 
   # 🆕 Архивировать неактивные сессии
   def archive_inactive_sessions
-    ai_sessions.active
+    chats.active
       .where("last_activity_at < ?", 90.days.ago)
       .update_all(status: :archived)
   end
@@ -449,7 +449,7 @@ module AI
     private
 
     def find_or_create_session(type)
-      @user.ai_session_for(type)
+      @user.chat_for(type)
     end
 
     def build_chat_with_context
@@ -789,7 +789,7 @@ module Content
       PostClassification.create!(
         post: post,
         user: @user,
-        ai_session: @session_manager.session,
+        chat: @session_manager.session,
         importance_score: result.importance_score,
         is_relevant: result.importance_score >= relevance_threshold,
         reasoning: result.reasoning,
@@ -843,7 +843,7 @@ class Feedback < ApplicationRecord
   private
 
   def update_personalization_session
-    session = user.ai_session_for(:personalization)
+    session = user.chat_for(:personalization)
     session.add_feedback_example(post, self)
 
     # Асинхронно обновить модель персонализации
@@ -1119,7 +1119,7 @@ end
 
 Эти примеры демонстрируют:
 
-1. **AISession с acts_as_chat** - автоматическое сохранение истории
+1. **Chat с acts_as_chat** - автоматическое сохранение истории
 2. **Structured Output** - надежный парсинг ответов AI
 3. **Tools (Function Calling)** - более точная классификация
 4. **Context Management** - оптимизация использования токенов

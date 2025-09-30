@@ -136,36 +136,37 @@
 > **ВАЖНО:** Эта фаза должна быть выполнена ДО Phase 1.6 "AI фильтрация"
 > Она закладывает фундамент для персонализации и эффективной работы с AI.
 
-#### 1.4.1. AI Sessions Models
+#### 1.4.1. Chat Model Extension
 - [x] Установить ruby_llm Rails integration: `rails generate ruby_llm:install`
-- [ ] Создать миграцию для `ai_sessions` таблицы
-  - [ ] `user_id` (foreign key)
-  - [ ] `session_type` (enum: classification, summarization, personalization, digest_generation)
-  - [ ] `status` (enum: active, archived)
-  - [ ] `context` (jsonb для хранения контекста сессии)
-  - [ ] `last_activity_at` (timestamp для трекинга активности)
-  - [ ] `messages_count` (counter cache)
-- [ ] Создать модель `AISession` с `acts_as_chat`
+- [ ] Расширить существующую таблицу `chats`
+  - [ ] Добавить `user_id` (foreign key)
+  - [ ] Добавить `session_type` (enum: classification, summarization, personalization, digest_generation)
+  - [ ] Добавить `status` (enum: active, archived)
+  - [ ] Добавить `metadata` (jsonb для хранения контекста сессии)
+- [ ] Обновить модель `Chat` (уже использует `acts_as_chat`)
+  - [ ] Добавить связь `belongs_to :user`
+  - [ ] Добавить enum для session_type и status
+  - [ ] Добавить store_accessor для metadata
 - [ ] Добавить индексы:
-  - [ ] `index_ai_sessions_on_user_id_and_session_type`
-  - [ ] `index_ai_sessions_on_status`
-  - [ ] `index_ai_sessions_on_last_activity_at`
-- [ ] Написать unit тесты для AISession
+  - [ ] `index_chats_on_user_id_and_session_type_and_status`
+  - [ ] `index_chats_on_session_type`
+  - [ ] `index_chats_on_status`
+- [ ] Написать unit тесты для расширенной модели Chat
 
-#### 1.4.2. User Model Updates для AI Sessions
-- [ ] Добавить `has_many :ai_sessions` в User модель
-- [ ] Реализовать `ai_session_for(type)` - получить или создать сессию
+#### 1.4.2. User Model Updates для Chat
+- [ ] Добавить `has_many :chats` в User модель
+- [ ] Реализовать `chat_for(type)` - получить или создать чат
 - [ ] Реализовать `build_initial_context` - построить начальный контекст
 - [ ] Реализовать `recent_feedback_summary` - сводка последнего фидбека
 - [ ] Написать unit тесты для новых методов
 
-#### 1.4.3. AI Session Management Service
-- [ ] Создать `app/services/ai/session_manager.rb`
-- [ ] Реализовать `with_context` блок для работы с сессией
+#### 1.4.3. Chat Management Service
+- [ ] Создать `app/services/ai/chat_manager.rb`
+- [ ] Реализовать `with_context` блок для работы с чатом
 - [ ] Реализовать управление контекстным окном (sliding window)
 - [ ] Реализовать выбор важных сообщений из истории
 - [ ] Реализовать архивацию старых сообщений (> 90 дней)
-- [ ] Реализовать compacting истории для больших сессий (> 100 сообщений)
+- [ ] Реализовать compacting истории для больших чатов (> 100 сообщений)
 - [ ] Написать service тесты
 
 #### 1.4.4. Structured Output Schemas
@@ -207,7 +208,7 @@
 - [ ] Добавить JSONB поле `classification_data` в Post модель
 - [ ] Добавить массив `topics` (array of strings)
 - [ ] Добавить `classification_reasoning` (text)
-- [ ] Добавить `classified_by_session_id` (foreign key к AISession)
+- [ ] Добавить `classified_by_chat_id` (foreign key к Chat)
 - [ ] Добавить GIN индексы на JSONB и array поля
 - [ ] Обновить scopes для работы с JSONB:
   - [ ] `important` - использовать `classification_data->>'importance_score'`
@@ -215,11 +216,11 @@
   - [ ] `by_topic` - использовать `topics && ARRAY[?]`
 - [ ] Написать unit тесты
 
-#### 1.4.8. Cleanup Job для AI Sessions
-- [ ] Создать `app/jobs/ai/cleanup_sessions_job.rb`
-- [ ] Реализовать архивацию неактивных сессий (> 90 дней)
-- [ ] Реализовать удаление старых архивных сессий (> 180 дней)
-- [ ] Реализовать compacting больших активных сессий
+#### 1.4.8. Cleanup Job для Chats
+- [ ] Создать `app/jobs/ai/cleanup_chats_job.rb`
+- [ ] Реализовать архивацию неактивных чатов (> 90 дней)
+- [ ] Реализовать удаление старых архивных чатов (> 180 дней)
+- [ ] Реализовать compacting больших активных чатов
 - [ ] Настроить периодический запуск (раз в день)
 - [ ] Написать job тесты
 
@@ -259,15 +260,15 @@
 > **ВАЖНО:** Эта фаза использует инфраструктуру из Phase 1.4
 > Обеспечивает персонализированную классификацию с использованием истории
 
-#### 1.6.1. AI Classifier Service (с AI Sessions и Structured Output)
+#### 1.6.1. AI Classifier Service (с Chat и Structured Output)
 - [ ] Создать `app/services/content/ai_classifier.rb`
-- [ ] Инициализировать с user и получать AISession через SessionManager
+- [ ] Инициализировать с user и получать Chat через ChatManager
 - [ ] Использовать Structured Output (PostClassificationSchema)
-- [ ] Реализовать `classify(post)` с использованием AI Session
+- [ ] Реализовать `classify(post)` с использованием Chat
 - [ ] Реализовать построение системного промпта с контекстом пользователя
 - [ ] Добавить few-shot examples из истории фидбека (через ContextBuilder)
 - [ ] Сохранять structured результаты в `post.classification_data`
-- [ ] Сохранять связь с AISession через `classified_by_session_id`
+- [ ] Сохранять связь с Chat через `classified_by_chat_id`
 - [ ] Добавить кеширование с зависимостями (user + post версии)
 - [ ] Обработать ошибки AI API с retry логикой
 - [ ] Логировать токены, latency, model использования
@@ -277,7 +278,7 @@
 - [ ] Создать `app/services/content/batch_classifier.rb`
 - [ ] Реализовать классификацию нескольких постов одним AI запросом
 - [ ] Оптимизировать использование токенов (batch до 10 постов)
-- [ ] Использовать AISession для сохранения batch контекста
+- [ ] Использовать Chat для сохранения batch контекста
 - [ ] Добавить параллельную обработку с Async (опционально)
 - [ ] Написать service тесты
 
@@ -295,7 +296,7 @@
 - [ ] Создать `app/services/content/filter.rb`
 - [ ] Реализовать фильтрацию постов по importance_score из classification_data
 - [ ] Учитывать filter_strictness пользователя
-- [ ] Использовать персональный контекст из AISession
+- [ ] Использовать персональный контекст из Chat
 - [ ] Фильтровать рекламу и шелуху (is_ad, is_fluff)
 - [ ] Фильтровать по темам если настроены в UserPreference
 - [ ] Написать service тесты
@@ -306,7 +307,7 @@
 - [ ] Для каждого пользователя вызвать AIClassifier с его контекстом
 - [ ] Сохранить персональную классификацию в PostClassification
 - [ ] Сохранить общую классификацию в Post.classification_data
-- [ ] Сохранить связь с AISession
+- [ ] Сохранить связь с Chat
 - [ ] Добавить retry логику при ошибках AI API
 - [ ] Логировать метрики (tokens, latency, success rate)
 - [ ] Написать job тесты
@@ -321,7 +322,7 @@
 
 #### 1.6.7. PostClassification Model (персональная классификация)
 - [ ] Создать `app/models/post_classification.rb`
-- [ ] Добавить belongs_to :post, :user, :ai_session
+- [ ] Добавить belongs_to :post, :user, :chat
 - [ ] Добавить поля: importance_score, is_relevant, reasoning, confidence
 - [ ] Реализовать `for_user_with_context(user, post)` - классификация с контекстом
 - [ ] Добавить индексы на user_id + post_id
@@ -330,9 +331,9 @@
 #### 1.6.8. Integration Tests
 - [ ] Протестировать полный flow:
   - [ ] Новый пост → ProcessPostJob → ClassifyJob
-  - [ ] ClassifyJob использует AISession с контекстом пользователя
+  - [ ] ClassifyJob использует Chat с контекстом пользователя
   - [ ] Результаты сохраняются structured в БД
-  - [ ] Связь с AISession записывается
+  - [ ] Связь с Chat записывается
 - [ ] Протестировать персонализацию:
   - [ ] Два пользователя получают разные оценки для одного поста
   - [ ] Оценки учитывают их историю фидбека
@@ -483,10 +484,10 @@
 - [ ] Отправить подтверждение пользователю
 - [ ] Написать integration тесты
 
-#### 2.2.3. AISession Updates для фидбека
-- [ ] Добавить метод `add_feedback_example(post, feedback)` в AISession
-- [ ] Хранить последние 20 примеров фидбека в context['feedback_examples']
-- [ ] Обновлять last_activity_at при добавлении фидбека
+#### 2.2.3. Chat Updates для фидбека
+- [ ] Добавить метод `add_feedback_example(post, feedback)` в Chat
+- [ ] Хранить последние 20 примеров фидбека в metadata['feedback_examples']
+- [ ] Обновлять updated_at при добавлении фидбека
 - [ ] Написать unit тесты
 
 #### 2.2.4. Few-Shot Builder Service
@@ -498,15 +499,16 @@
 
 #### 2.2.5. Personalization Update Job
 - [ ] Создать `app/jobs/personalization_update_job.rb`
-- [ ] Получить AISession персонализации для пользователя
+- [ ] Получить Chat персонализации для пользователя
 - [ ] Проанализировать новый фидбек через AI
-- [ ] Обновить понимание предпочтений в истории сессии
+- [ ] Обновить понимание предпочтений в истории чата
 - [ ] Обновить UserPreference если нужно
 - [ ] Написать job тесты
 
 #### 2.2.6. UserPreference Model
 - [ ] Создать `app/models/user_preference.rb`
 - [ ] Добавить belongs_to :user
+- [ ] Добавить belongs_to :chat, optional: true (последний чат персонализации)
 - [ ] Добавить JSONB поле `preferences` для хранения:
   - [ ] `topic_weights` - персональные веса тем
   - [ ] `adjusted_threshold` - динамический порог важности
@@ -547,7 +549,7 @@
 #### 2.2.10. Integration Tests
 - [ ] Протестировать полный flow персонализации:
   - [ ] Пользователь дает фидбек (лайк/дизлайк)
-  - [ ] Feedback сохраняется и обновляет AISession
+  - [ ] Feedback сохраняется и обновляет Chat
   - [ ] PersonalizationUpdateJob обрабатывает фидбек
   - [ ] Следующая классификация учитывает фидбек
   - [ ] Оценки постов изменяются на основе истории

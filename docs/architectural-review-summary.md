@@ -99,14 +99,16 @@
 
 ## Архитектурные изменения
 
-### Новая модель: AISession
+### Расширение модели Chat
 
 ```ruby
-class AISession < ApplicationRecord
-  belongs_to :user
-  has_many :ai_messages
+class Chat < ApplicationRecord
+  acts_as_chat  # 🔥 Уже реализовано в проекте!
 
-  acts_as_chat  # 🔥 Ключевая возможность ruby_llm!
+  # Добавляем связи для NoFluff
+  belongs_to :user, optional: true
+  belongs_to :model
+  has_many :messages, dependent: :destroy
 
   enum session_type: {
     classification: 0,
@@ -115,11 +117,29 @@ class AISession < ApplicationRecord
     digest_generation: 3
   }
 
+  enum status: {
+    active: 0,
+    archived: 1
+  }
+
   # Контекст сессии (JSON)
-  store_accessor :context,
+  store_accessor :metadata,
     :user_preferences,
     :recent_feedback,
     :feedback_examples
+
+  # Методы для работы с контекстом
+  def add_feedback_example(post, feedback)
+    examples = feedback_examples || []
+    examples << {
+      post_text: post.text,
+      user_liked: feedback.like?,
+      importance_score: post.importance_score,
+      timestamp: feedback.created_at
+    }
+    self.feedback_examples = examples.last(20)
+    save
+  end
 end
 ```
 
@@ -137,7 +157,8 @@ class PostClassificationSchema < RubyLLM::Schema
 end
 
 # Использование
-chat = session.chat_instance.with_schema(PostClassificationSchema)
+chat = user.chats.find_or_create_by!(session_type: :classification)
+chat = chat.with_schema(PostClassificationSchema)
 result = chat.ask("Классифицируй: #{post.text}")
 # result.importance_score => 85 (не строка!)
 ```
@@ -146,14 +167,15 @@ result = chat.ask("Классифицируй: #{post.text}")
 
 ```ruby
 # Система автоматически учится на предпочтениях
-session = user.ai_session_for(:classification)
+chat = user.chats.find_or_create_by!(session_type: :classification)
 
 # Добавить примеры из фидбека в контекст
 few_shot_examples = build_examples_from_feedback(user)
-session.context['feedback_examples'] = few_shot_examples
+chat.metadata['feedback_examples'] = few_shot_examples
+chat.save
 
 # Классификация с учетом истории!
-result = session.ask("Классифицируй: #{post.text}")
+result = chat.ask("Классифицируй: #{post.text}")
 ```
 
 ---

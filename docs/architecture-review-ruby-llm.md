@@ -245,12 +245,12 @@ cached_result = Rails.cache.read(cache_key)
 return cached_result if cached_result.present?
 
 # 2. Если нет в кеше — делаем AI-запрос С СОХРАНЕНИЕМ ИСТОРИИ
-ai_session = user.ai_sessions.find_or_create_by(
+chat = user.chats.find_or_create_by(
   session_type: 'content_classification',
-  active: true
+  status: 'active'
 )
 
-result = ai_session.ask("Classify this post: #{post.text}")
+result = chat.ask("Classify this post: #{post.text}")
 
 # 3. Сохраняем в кеш для других пользователей (если классификация глобальная)
 Rails.cache.write(cache_key, result, expires_in: 24.hours)
@@ -269,19 +269,19 @@ Rails.cache.write(cache_key, result, expires_in: 24.hours)
 
 ```ruby
 ├── models/
-│   ├── ai_session.rb              # NEW: AI-сессия (chat instance)
-│   ├── ai_message.rb              # NEW: Сообщение в сессии (автоматически)
-│   ├── post_classification.rb     # ИЗМЕНИТЬ: добавить ai_session_id
-│   ├── user_preference.rb         # ИЗМЕНИТЬ: добавить ai_session_id
+│   ├── chat.rb                    # ИЗМЕНИТЬ: расширить для NoFluff
+│   ├── message.rb                 # ИЗМЕНИТЬ: добавить связь с post
+│   ├── post_classification.rb     # ИЗМЕНИТЬ: добавить chat_id
+│   ├── user_preference.rb         # ИЗМЕНИТЬ: добавить chat_id
 ```
 
-#### Структура AiSession
+#### Структура Chat
 
 ```ruby
-# db/migrate/XXXXXX_create_ai_sessions.rb
-class CreateAiSessions < ActiveRecord::Migration[8.0]
+# db/migrate/XXXXXX_create_chats.rb
+class CreateChats < ActiveRecord::Migration[8.0]
   def change
-    create_table :ai_sessions do |t|
+    create_table :chats do |t|
       t.references :user, null: false, foreign_key: true
 
       # Тип сессии: classification, summarization, personalization, etc.
@@ -303,17 +303,17 @@ class CreateAiSessions < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :ai_sessions, [:user_id, :session_type, :active]
-    add_index :ai_sessions, :started_at
+    add_index :chats, [:user_id, :session_type, :active]
+    add_index :chats, :started_at
   end
 end
 ```
 
-#### Модель AiSession
+#### Модель Chat
 
 ```ruby
-# app/models/ai_session.rb
-class AiSession < ApplicationRecord
+# app/models/chat.rb
+class Chat < ApplicationRecord
   # ruby_llm интеграция
   acts_as_chat
 
@@ -363,7 +363,7 @@ class AiSession < ApplicationRecord
     result
   rescue => e
     # Логирование ошибок
-    Rails.logger.error("AiSession#ask failed: #{e.message}")
+    Rails.logger.error("Chat#ask failed: #{e.message}")
     metadata['last_error'] = {
       message: e.message,
       timestamp: Time.current.iso8601
@@ -377,10 +377,10 @@ end
 #### Обновленная модель PostClassification
 
 ```ruby
-# db/migrate/XXXXXX_add_ai_session_to_post_classifications.rb
-class AddAiSessionToPostClassifications < ActiveRecord::Migration[8.0]
+# db/migrate/XXXXXX_add_chat_to_post_classifications.rb
+class AddChatToPostClassifications < ActiveRecord::Migration[8.0]
   def change
-    add_reference :post_classifications, :ai_session, foreign_key: true
+    add_reference :post_classifications, :chat, foreign_key: true
 
     # Добавляем reasoning — объяснение от AI
     add_column :post_classifications, :reasoning, :text
@@ -388,7 +388,7 @@ class AddAiSessionToPostClassifications < ActiveRecord::Migration[8.0]
     # Токены использованные для классификации
     add_column :post_classifications, :tokens_used, :integer
 
-    add_index :post_classifications, [:ai_session_id, :created_at]
+    add_index :post_classifications, [:chat_id, :created_at]
   end
 end
 ```
@@ -398,7 +398,7 @@ end
 class PostClassification < ApplicationRecord
   belongs_to :post
   belongs_to :user
-  belongs_to :ai_session, optional: true
+  belongs_to :chat, optional: true
 
   # Персональная классификация для пользователя
   # importance_score, is_relevant, reasoning
@@ -410,7 +410,7 @@ class PostClassification < ApplicationRecord
 
   # Scope для анализа
   scope :with_reasoning, -> { where.not(reasoning: nil) }
-  scope :for_session, ->(session) { where(ai_session_id: session.id) }
+  scope :for_session, ->(session) { where(chat_id: session.id) }
 end
 ```
 
@@ -418,7 +418,7 @@ end
 
 ### 2.2. Сервисы для работы с AI
 
-#### Сервис: AiSessionManager
+#### Сервис: ChatManager
 
 ```ruby
 # app/services/ai/session_manager.rb
@@ -430,7 +430,7 @@ module Ai
 
     # Получить или создать активную сессию для типа
     def get_or_create_session(type:, metadata: {})
-      session = @user.ai_sessions
+      session = @user.chats
                      .active
                      .by_type(type)
                      .order(started_at: :desc)
@@ -442,7 +442,7 @@ module Ai
         session = nil
       end
 
-      session ||= @user.ai_sessions.create!(
+      session ||= @user.chats.create!(
         session_type: type,
         started_at: Time.current,
         metadata: metadata
@@ -453,12 +453,12 @@ module Ai
 
     # Закрыть все активные сессии пользователя
     def close_all_sessions!
-      @user.ai_sessions.active.find_each(&:close!)
+      @user.chats.active.find_each(&:close!)
     end
 
     # Получить статистику по AI usage
     def usage_stats(period: 7.days)
-      sessions = @user.ai_sessions
+      sessions = @user.chats
                       .where('started_at > ?', period.ago)
 
       {
@@ -505,7 +505,7 @@ module Ai
         classification = PostClassification.create!(
           post: post,
           user: @user,
-          ai_session: session,
+          chat: session,
           importance_score: result[:score],
           is_relevant: result[:relevant],
           reasoning: result[:reasoning],
@@ -640,7 +640,7 @@ sequenceDiagram
     participant User
     participant ProcessPostJob
     participant SessionManager
-    participant AiSession
+    participant Chat
     participant RubyLLM
     participant DB
 
@@ -650,22 +650,22 @@ sequenceDiagram
     alt Session exists (< 24h old)
         DB-->>SessionManager: Return existing session
     else No active session
-        SessionManager->>DB: Create new AiSession
+        SessionManager->>DB: Create new Chat
         DB-->>SessionManager: Return new session
     end
 
-    SessionManager-->>ProcessPostJob: AiSession
-    ProcessPostJob->>AiSession: ask(personalized_prompt)
+    SessionManager-->>ProcessPostJob: Chat
+    ProcessPostJob->>Chat: ask(personalized_prompt)
 
-    Note over AiSession: acts_as_chat отправляет<br/>ВСЮ историю сессии
+    Note over Chat: acts_as_chat отправляет<br/>ВСЮ историю сессии
 
-    AiSession->>RubyLLM: Complete with context
-    RubyLLM-->>AiSession: Response + reasoning
+    Chat->>RubyLLM: Complete with context
+    RubyLLM-->>Chat: Response + reasoning
 
-    AiSession->>DB: Save message (automatic)
-    AiSession-->>ProcessPostJob: Classification result
+    Chat->>DB: Save message (automatic)
+    Chat-->>ProcessPostJob: Classification result
 
-    ProcessPostJob->>DB: Save PostClassification<br/>(with ai_session_id)
+    ProcessPostJob->>DB: Save PostClassification<br/>(with chat_id)
 ```
 
 **Преимущества:**
@@ -698,7 +698,7 @@ sequenceDiagram
   - [ ] Проверить сгенерированный initializer
   - [ ] Настроить API ключи через credentials
   - [ ] Проверить миграции для chats/messages
-- [ ] Создать модель `AiSession` с `acts_as_chat`
+- [ ] Создать модель `Chat` с `acts_as_chat`
 - [ ] Создать сервис `Ai::SessionManager`
 - [ ] Создать два типа классификаторов:
   - [ ] `Ai::Stateless::QuickClassifier` — без истории (для кеша)
@@ -715,8 +715,8 @@ sequenceDiagram
 **Добавить после DigestItem Model:**
 
 ```markdown
-#### 1.2.7. AiSession Model
-- [ ] Создать `app/models/ai_session.rb`
+#### 1.2.7. Chat Model
+- [ ] Создать `app/models/chat.rb`
 - [ ] Добавить `acts_as_chat` (ruby_llm integration)
 - [ ] Добавить enum для `session_type`
 - [ ] Добавить associations (belongs_to :user, has_many :post_classifications)
@@ -730,10 +730,10 @@ sequenceDiagram
 - [ ] Написать unit тесты
 
 #### 1.2.8. Update PostClassification Model
-- [ ] Добавить `ai_session_id` (foreign key)
+- [ ] Добавить `chat_id` (foreign key)
 - [ ] Добавить `reasoning` (text) — объяснение от AI
 - [ ] Добавить `tokens_used` (integer)
-- [ ] Обновить association `belongs_to :ai_session, optional: true`
+- [ ] Обновить association `belongs_to :chat, optional: true`
 - [ ] Обновить тесты
 ```
 
@@ -771,7 +771,7 @@ sequenceDiagram
 
 #### 1.5.3. Stateful AI Classifier (Personalized)
 - [ ] Создать `app/services/ai/stateful/personalized_classifier.rb`
-- [ ] Реализовать классификацию С контекстом (через AiSession)
+- [ ] Реализовать классификацию С контекстом (через Chat)
 - [ ] Использовать acts_as_chat для сохранения истории
 - [ ] Формировать персонализированные промпты
 - [ ] Сохранять reasoning от AI
@@ -804,12 +804,12 @@ sequenceDiagram
 - [ ] Создать `Feedback Model` (user_id, post_id, sentiment) — ✅ УЖЕ В ROADMAP
 - [ ] Создать `FeedbackController` (👍/👎 inline кнопки)
 - [ ] Создать `Ai::Stateful::FeedbackLearner` service
-  - [ ] Использовать AiSession для обучения
+  - [ ] Использовать Chat для обучения
   - [ ] Анализировать историю классификаций vs фидбек
   - [ ] Извлекать паттерны из liked/disliked постов
   - [ ] Обновлять user_preference через AI reasoning
 - [ ] Обновить `UserPreference Model`:
-  - [ ] Добавить `ai_session_id` для последней сессии обучения
+  - [ ] Добавить `chat_id` для последней сессии обучения
   - [ ] Добавить `learned_at` timestamp
   - [ ] Добавить `confidence_score` — уверенность в предпочтениях
 - [ ] Интегрировать с `PersonalizedClassifier`:
@@ -855,7 +855,7 @@ sequenceDiagram
 В `docs/Architecture/c4-model.md` после строки 135 добавить:
 
 ```markdown
-Component(ai_session_manager, "AI Session Manager", "Service Object", "Управляет AI-сессиями, создание/закрытие/статистика")
+Component(chat_manager, "AI Session Manager", "Service Object", "Управляет AI-сессиями, создание/закрытие/статистика")
 
 Component(stateless_classifier, "Stateless Classifier", "Service Object", "Быстрая классификация без истории (с кешем)")
 
@@ -867,12 +867,12 @@ Component(feedback_learner, "Feedback Learner", "Service Object", "Обучае�
 И добавить связи:
 
 ```markdown
-Rel(workers, ai_session_manager, "Использует для создания сессий")
-Rel(ai_session_manager, models, "Создает AiSession")
+Rel(workers, chat_manager, "Использует для создания сессий")
+Rel(chat_manager, models, "Создает Chat")
 Rel(stateless_classifier, cache, "Кеширует результаты")
-Rel(stateful_classifier, ai_session_manager, "Получает/создает сессии")
+Rel(stateful_classifier, chat_manager, "Получает/создает сессии")
 Rel(stateful_classifier, models, "Сохраняет classifications + reasoning")
-Rel(feedback_learner, ai_session_manager, "Создает learning session")
+Rel(feedback_learner, chat_manager, "Создает learning session")
 Rel(personalization, feedback_learner, "Использует для обучения")
 ```
 
@@ -884,13 +884,13 @@ Rel(personalization, feedback_learner, "Использует для обучен
 │   ├── channel.rb
 │   ├── subscription.rb
 │   ├── post.rb
-│   ├── post_classification.rb          # ИЗМЕНЕНО: + ai_session_id, reasoning
+│   ├── post_classification.rb          # ИЗМЕНЕНО: + chat_id, reasoning
 │   ├── digest.rb
 │   ├── digest_item.rb
 │   ├── feedback.rb
-│   ├── user_preference.rb              # ИЗМЕНЕНО: + ai_session_id, confidence
+│   ├── user_preference.rb              # ИЗМЕНЕНО: + chat_id, confidence
 │   ├── channel_recommendation.rb
-│   ├── ai_session.rb                   # NEW
+│   ├── chat.rb                   # NEW
 │   └── ai_message.rb                   # NEW (автоматически через ruby_llm)
 ```
 
@@ -953,13 +953,13 @@ Rel(personalization, feedback_learner, "Использует для обучен
 ```ruby
 # ❌ Плохо: каждый раз новая сессия = нет контекста = 0 токенов на input
 Post.find_each do |post|
-  session = AiSession.create!(user: user, type: :classification)
+  session = Chat.create!(user: user, type: :classification)
   session.ask("Classify: #{post.text}")
 end
 # Total tokens: 10 постов × 100 tokens each = 1000 tokens
 
 # ✅ Хорошо: одна сессия = контекст растет, но batch эффективнее
-session = AiSession.find_or_create_active(user: user, type: :classification)
+session = Chat.find_or_create_active(user: user, type: :classification)
 Post.find_each do |post|
   session.ask("Classify: #{post.text}")
 end
@@ -990,7 +990,7 @@ end
 ```ruby
 # Найти сессию, где был классифицирован пост
 classification = PostClassification.find(123)
-session = classification.ai_session
+session = classification.chat
 
 # Посмотреть всю историю диалога
 session.messages.each do |msg|
@@ -1023,13 +1023,13 @@ rails generate ruby_llm:install
 rails db:migrate
 ```
 
-### Шаг 2: Создать AiSession модель (1 час)
+### Шаг 2: Создать Chat модель (1 час)
 - Добавить модель
 - Добавить тесты
 - Не трогать существующий код
 
 ### Шаг 3: Обновить PostClassification (0.5 часа)
-- Добавить ai_session_id, reasoning
+- Добавить chat_id, reasoning
 - Миграция
 - Обновить тесты
 
@@ -1095,14 +1095,14 @@ rails db:migrate
 
 ### Must Have (Phase 1 — MVP)
 1. ✅ Установить ruby_llm с генераторами
-2. ✅ Создать AiSession модель с acts_as_chat
+2. ✅ Создать Chat модель с acts_as_chat
 3. ✅ Создать SessionManager
 4. ✅ Создать Stateless::QuickClassifier (для кеша)
 5. ✅ Обновить ROADMAP
 
 ### Should Have (Phase 1 — до запуска)
 6. ✅ Создать Stateful::PersonalizedClassifier
-7. ✅ Обновить PostClassification (reasoning, ai_session_id)
+7. ✅ Обновить PostClassification (reasoning, chat_id)
 8. ✅ Добавить мониторинг (rake tasks)
 9. ✅ Написать тесты для всех сервисов
 
@@ -1124,7 +1124,7 @@ rails db:migrate
 
 ### До Phase 1.1 (инфраструктура)
 - [ ] Запустить `rails generate ruby_llm:install`
-- [ ] Создать AiSession миграцию и модель
+- [ ] Создать Chat миграцию и модель
 - [ ] Создать SessionManager сервис
 
 ### До Phase 1.5 (AI фильтрация)
