@@ -47,3 +47,7 @@ group :development, :test do
 end
 
 gem "telegram-bot", "~> 0.16.7"
+
+gem "ruby_llm", "~> 1.8"
+
+gem "minitest", "~> 5.25"

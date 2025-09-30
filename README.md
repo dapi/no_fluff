@@ -1,24 +1,18 @@
-# README
+# Телеграм бот "Без шелухи" @bez_sheluhi_bot
+
+Бот написан Ruby On Rails с учетом best practices и SOLID принципов.
+
+Этот бот принимает от пользователя набор телеграм каналов, которые пользователю
+интересны. Следит за ними, и выдает пользователю ТОЛЬКО важную информацию из
+каналов. Без рекламы. Без шелухи.
+
+Полный список функциональных возможностей доступен в [документации](./docs/Product/features.md).
+
+Таким образом:
+
+1. Пользователь получает контент без шелухи.
+2. Создается социальная сеть через которую продвигаются интересные каналы на
+   схожую тематику.
 
 This README would normally document whatever steps are necessary to get the
 application up and running.
-
-Things you may want to cover:
-
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
