@@ -1,0 +1,35 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  channel: one
+  telegram_message_id: 
+  text: MyText
+  media_urls: 
+  published_at: 2025-10-01 14:39:29
+  is_important: false
+  importance_score: 1.5
+  is_ad: false
+  is_fluff: false
+  is_duplicate_of: 
+  topics: 
+  classification_reasoning: MyText
+  confidence: 1.5
+  classification_data: 
+  classified_by_session_id: 
+
+two:
+  channel: two
+  telegram_message_id: 
+  text: MyText
+  media_urls: 
+  published_at: 2025-10-01 14:39:29
+  is_important: false
+  importance_score: 1.5
+  is_ad: false
+  is_fluff: false
+  is_duplicate_of: 
+  topics: 
+  classification_reasoning: MyText
+  confidence: 1.5
+  classification_data: 
+  classified_by_session_id: 

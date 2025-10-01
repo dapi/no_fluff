@@ -1,0 +1,25 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  telegram_user: one
+  status: 1
+  scheduled_for: 2025-10-01 14:39:50
+  sent_at: 2025-10-01 14:39:50
+  posts_analyzed_count: 1
+  posts_included_count: 1
+  content: MyText
+  format_settings: 
+  telegram_message_id: MyString
+  error_message: MyText
+
+two:
+  telegram_user: two
+  status: 1
+  scheduled_for: 2025-10-01 14:39:50
+  sent_at: 2025-10-01 14:39:50
+  posts_analyzed_count: 1
+  posts_included_count: 1
+  content: MyText
+  format_settings: 
+  telegram_message_id: MyString
+  error_message: MyText

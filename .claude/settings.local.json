@@ -9,7 +9,11 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:medium.com)",
       "Bash(bundle show:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(rails g:*)",
+      "Bash(bin/rails g model:*)",
+      "Bash(./bin/rails g model:*)",
+      "Bash(./bin/rails:*)"
     ],
     "deny": [],
     "ask": []

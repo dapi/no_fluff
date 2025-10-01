@@ -1,0 +1,21 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  post: one
+  telegram_user: one
+  chat: one
+  importance_score: 1.5
+  is_relevant: false
+  reasoning: MyText
+  confidence: 1.5
+  classification_data: 
+
+two:
+  post: two
+  telegram_user: two
+  chat: two
+  importance_score: 1.5
+  is_relevant: false
+  reasoning: MyText
+  confidence: 1.5
+  classification_data: 

@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  telegram_user: one
+  post: one
+  sentiment: 1
+  comment: MyText
+  metadata: 
+
+two:
+  telegram_user: two
+  post: two
+  sentiment: 1
+  comment: MyText
+  metadata: 
