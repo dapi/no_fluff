@@ -1,3 +1,9 @@
+GIT
+  remote: https://github.com/haf/semver.git
+  revision: 515fc5c6ccec6eee1bdd7b7e94e7ff505cecf935
+  specs:
+    semver2 (3.4.2)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -496,6 +502,7 @@ DEPENDENCIES
   rails (~> 8.0.3)
   rubocop-rails-omakase
   ruby_llm (~> 1.8)
+  semver2!
   solid_cable
   solid_cache
   solid_queue
