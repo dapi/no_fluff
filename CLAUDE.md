@@ -46,4 +46,6 @@
 
 Перед тем как что-то делать или планировать делать с кодом изучай файлы в ./docs/Architecture
 
+При создании тестов изучай ./docs/Testing
+
 /file:.claude-on-rails/context.md
