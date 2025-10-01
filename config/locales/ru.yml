@@ -70,3 +70,38 @@ ru:
         /digest — показать дайджест сейчас
         /stats — статистика
         /help — помощь
+
+    channels:
+      add:
+        prompt: |
+          📢 Отправь мне ссылку или username канала.
+
+          Можешь отправить:
+          • Username: @channelname
+          • Ссылку: t.me/channelname или https://t.me/channelname
+          • Несколько каналов (каждый с новой строки)
+
+          Например:
+          @habr_com
+          t.me/dev_channel
+          https://t.me/tech_news
+        success: "✅ Канал %{channel} добавлен!\n\nВсего каналов: %{count}"
+        already_subscribed: "ℹ️ Ты уже подписан на канал %{channel}"
+        not_found: "❌ Канал %{channel} не найден или недоступен"
+        invalid_format: "❌ Неверный формат. Отправь username канала (@channelname) или ссылку (t.me/channelname)"
+        error: "❌ Ошибка при добавлении канала: %{error}"
+        limit_reached: "❌ Достигнут лимит каналов (%{limit}). Обновись до Premium для безлимита!"
+
+      list:
+        title: "📋 Мои подписки"
+        empty: "У тебя пока нет подписок. Используй /add чтобы добавить каналы."
+        total: "Всего каналов: %{count}"
+        channel_info: "• %{channel} (приоритет: %{priority})"
+        buttons:
+          remove: "🗑️"
+          priority_up: "⬆️"
+          priority_down: "⬇️"
+          settings: "⚙️"
+        confirm_remove: "Удалить %{channel} из подписок?"
+        priority_updated: "Приоритет %{channel} изменён на %{priority}"
+        remove_success: "Канал %{channel} удалён из подписок"

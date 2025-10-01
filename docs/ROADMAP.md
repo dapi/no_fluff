@@ -108,10 +108,10 @@
 - [ ] Написать integration тесты
 
 #### 1.3.3. List Channels Command
-- [ ] Реализовать `/list` команду в `ChannelController`
-- [ ] Показать список подписок с приоритетами
-- [ ] Добавить inline кнопки для управления (удалить, изменить приоритет)
-- [ ] Написать integration тесты
+- [x] Реализовать `/list` команду в `TelegramWebhookController` через `SubscriptionCommands` concern
+- [x] Показать список подписок с приоритетами
+- [x] Добавить inline кнопки для управления (удалить, изменить приоритет)
+- [x] Написать integration тесты
 
 #### 1.3.4. Remove Channel Command
 - [ ] Реализовать `/remove @channelname` команду

@@ -2,6 +2,7 @@
 # Документация: https://github.com/telegram-bot-rb/telegram-bot
 class TelegramWebhookController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::CallbackQueryContext
+  include Telegram::SubscriptionCommands
 
   # Обработка ошибок
   rescue_from StandardError do |exception|
@@ -25,6 +26,21 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   # Команда /help - список доступных команд
   def help!(*)
     respond_with :message, text: I18n.t('telegram_bot.help.commands')
+  end
+
+  
+  # Команда /add - добавление канала
+  def add!(*args)
+    find_or_create_user
+
+    # Если передан username канала сразу в команде: /add @channelname
+    if args.any?
+      channel_input = args.join(' ')
+      add_channel(channel_input)
+    else
+      # Показываем инструкцию
+      respond_with :message, text: I18n.t('telegram_bot.channels.add.prompt')
+    end
   end
 
   # Callback query: начать онбординг
@@ -55,25 +71,28 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   # Обработка обычных текстовых сообщений
   def message(message)
     text = message['text']
-    respond_with :message, text: "Вы написали: #{text}"
+
+    # Если пользователь отправил текст, пробуем интерпретировать как канал
+    # (только если текст начинается с @ или содержит t.me/)
+    if text.start_with?('@') || text.include?('t.me/')
+      find_or_create_user
+      add_channel(text)
+    else
+      respond_with :message, text: "Вы написали: #{text}"
+    end
   end
 
   private
 
-  # Находит или создаёт пользователя в БД
-  def find_or_create_user
-    user_data = from
-    # Используем username если есть, иначе используем id в качестве username
-    username = user_data['username'] || "user_#{user_data['id']}"
+  # Добавляет канал для текущего пользователя
+  def add_channel(channel_input)
+    service = Telegram::ChannelService.new(bot)
+    result = service.add_channel_for_user(current_user, channel_input)
 
-    @current_user ||= TelegramUser.find_or_create_by(username: username) do |user|
-      user.first_name = user_data['first_name']
-      user.last_name = user_data['last_name']
-      user.language_code = user_data['language_code'] || 'ru'
-      user.is_premium = user_data['is_premium'] || false
-    end
+    respond_with :message, text: result[:message]
   end
 
+  
   # Inline клавиатура для команды /start
   def start_keyboard
     kb = [
@@ -121,10 +140,5 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
       ]
     ]
     Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: kb)
-  end
-
-  # Возвращает текущего пользователя
-  def current_user
-    @current_user
   end
 end

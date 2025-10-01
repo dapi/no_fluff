@@ -241,4 +241,612 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     assert_includes edit_params[:text], 'No Fluff Bot'
     assert_includes edit_params[:text], 'Начнём?'
   end
+
+  # Тесты команды /add
+
+  test "add command without arguments shows prompt" do
+    user_data = {
+      'id' => 123456,
+      'username' => 'testuser',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 7,
+      'message' => {
+        'message_id' => 13,
+        'from' => user_data,
+        'chat' => { 'id' => 123456, 'type' => 'private' },
+        'text' => '/add'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    method, params = @bot.requests.first
+    params = params.first
+
+    assert_equal :sendMessage, method
+    assert_includes params[:text], 'Отправь мне ссылку'
+    assert_includes params[:text], '@channelname'
+  end
+
+  test "add command with invalid format returns error" do
+    user_data = {
+      'id' => 123456,
+      'username' => 'testuser',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 8,
+      'message' => {
+        'message_id' => 14,
+        'from' => user_data,
+        'chat' => { 'id' => 123456, 'type' => 'private' },
+        'text' => '/add invalid!'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    method, params = @bot.requests.first
+    params = params.first
+
+    assert_equal :sendMessage, method
+    assert_includes params[:text], 'Неверный формат'
+  end
+
+  test "message with @username triggers add channel" do
+    user_data = {
+      'id' => 123456,
+      'username' => 'testuser',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 9,
+      'message' => {
+        'message_id' => 15,
+        'from' => user_data,
+        'chat' => { 'id' => 123456, 'type' => 'private' },
+        'text' => '@testchannel'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    # Должен попытаться добавить канал (может быть несколько запросов)
+    assert_operator @bot.requests.size, :>=, 1
+
+    # Проверяем что был хотя бы один sendMessage или getChat
+    has_requests = @bot.requests[:sendMessage].present? || @bot.requests[:getChat].present?
+    assert has_requests, "Expected at least one sendMessage or getChat request"
+  end
+
+  test "message with t.me link triggers add channel" do
+    user_data = {
+      'id' => 123456,
+      'username' => 'testuser',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 10,
+      'message' => {
+        'message_id' => 16,
+        'from' => user_data,
+        'chat' => { 'id' => 123456, 'type' => 'private' },
+        'text' => 'https://t.me/testchannel'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    # Должен попытаться добавить канал (может быть несколько запросов)
+    assert_operator @bot.requests.size, :>=, 1
+
+    # Проверяем что был хотя бы один sendMessage
+    send_message_requests = @bot.requests[:sendMessage]
+    assert send_message_requests.present?, "Expected at least one sendMessage request"
+  end
+
+  test "message without @ or t.me does not trigger add channel" do
+    user_data = {
+      'id' => 123456,
+      'username' => 'testuser',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 11,
+      'message' => {
+        'message_id' => 17,
+        'from' => user_data,
+        'chat' => { 'id' => 123456, 'type' => 'private' },
+        'text' => 'Hello world'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    method, params = @bot.requests.first
+    params = params.first
+
+    assert_equal :sendMessage, method
+    assert_includes params[:text], 'Вы написали'
+  end
+
+  # Тесты команды /list
+
+  test "list command with no subscriptions shows empty message" do
+    user_data = {
+      'id' => 123456,
+      'username' => 'testuser',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 12,
+      'message' => {
+        'message_id' => 18,
+        'from' => user_data,
+        'chat' => { 'id' => 123456, 'type' => 'private' },
+        'text' => '/list'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    method, params = @bot.requests.first
+    params = params.first
+
+    assert_equal :sendMessage, method
+    assert_includes params[:text], 'У тебя пока нет подписок'
+    assert_includes params[:text], '/add'
+  end
+
+  test "list command with subscriptions shows list with buttons" do
+    # Создаем тестового пользователя
+    user = TelegramUser.create!(
+      username: 'testuser_list',
+      first_name: 'Test',
+      language_code: 'ru',
+      timezone: 'UTC'
+    )
+
+    # Создаем тестовые каналы
+    channel1 = Channel.create!(
+      telegram_id: 1001,
+      username: 'testchannel1',
+      title: 'Test Channel 1'
+    )
+
+    channel2 = Channel.create!(
+      telegram_id: 1002,
+      username: 'testchannel2',
+      title: 'Test Channel 2'
+    )
+
+    # Создаем подписки
+    Subscription.create!(
+      telegram_user: user,
+      channel: channel1,
+      priority: 5,
+      active: true
+    )
+
+    Subscription.create!(
+      telegram_user: user,
+      channel: channel2,
+      priority: 8,
+      active: true
+    )
+
+    user_data = {
+      'id' => 123457,
+      'username' => 'testuser_list',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 13,
+      'message' => {
+        'message_id' => 19,
+        'from' => user_data,
+        'chat' => { 'id' => 123457, 'type' => 'private' },
+        'text' => '/list'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    method, params = @bot.requests.first
+    params = params.first
+
+    assert_equal :sendMessage, method
+    assert_includes params[:text], 'Мои подписки'
+    assert_includes params[:text], 'Всего каналов: 2'
+    assert_includes params[:text], 'Test Channel 1'
+    assert_includes params[:text], 'Test Channel 2'
+    assert_includes params[:text], 'приоритет: 5'
+    assert_includes params[:text], 'приоритет: 8'
+
+    # Проверяем наличие inline клавиатуры
+    assert_not_nil params[:reply_markup]
+    assert params[:reply_markup].is_a?(Telegram::Bot::Types::InlineKeyboardMarkup)
+
+    # Проверяем наличие кнопок управления
+    keyboard = params[:reply_markup].inline_keyboard
+    assert_equal 2, keyboard.length  # Две строки для двух каналов
+
+    # Проверяем кнопки для первого канала
+    first_row = keyboard.first
+    assert_equal 3, first_row.length  # Три кнопки: вверх, вниз, удалить
+    assert_equal '⬆️', first_row[0].text
+    assert_equal '⬇️', first_row[1].text
+    assert_equal '🗑️', first_row[2].text
+    assert_includes first_row[0].callback_data, 'priority_up:'
+    assert_includes first_row[1].callback_data, 'priority_down:'
+    assert_includes first_row[2].callback_data, 'remove_channel:'
+  end
+
+  test "callback query my_subscriptions triggers list command" do
+    user = TelegramUser.create!(
+      username: 'testuser',
+      first_name: 'Test',
+      language_code: 'ru',
+      timezone: 'UTC'
+    )
+
+    user_data = {
+      'id' => 123456,
+      'username' => 'testuser',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 14,
+      'callback_query' => {
+        'id' => 'callback_list_1',
+        'from' => user_data,
+        'message' => {
+          'message_id' => 20,
+          'chat' => { 'id' => 123456, 'type' => 'private' },
+          'text' => 'Previous text'
+        },
+        'data' => 'my_subscriptions:'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    # Проверяем answerCallbackQuery
+    answer_request = @bot.requests.find { |method, _| method == :answerCallbackQuery }
+    assert_not_nil answer_request
+
+    # Проверяем editMessageText с сообщением о подписках
+    edit_request = @bot.requests.find { |method, _| method == :editMessageText }
+    assert_not_nil edit_request
+
+    _, edit_params = edit_request
+    edit_params = edit_params.first
+    assert_includes edit_params[:text], 'У тебя пока нет подписок'
+  end
+
+  test "callback query remove_channel shows confirmation" do
+    # Создаем тестовые данные
+    user = TelegramUser.create!(
+      username: 'testuser_remove',
+      first_name: 'Test',
+      language_code: 'ru',
+      timezone: 'UTC'
+    )
+
+    channel = Channel.create!(
+      telegram_id: 1003,
+      username: 'testchannel_remove',
+      title: 'Test Channel Remove'
+    )
+
+    subscription = Subscription.create!(
+      telegram_user: user,
+      channel: channel,
+      priority: 5,
+      active: true
+    )
+
+    user_data = {
+      'id' => 123458,
+      'username' => 'testuser_remove',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 15,
+      'callback_query' => {
+        'id' => 'callback_remove_1',
+        'from' => user_data,
+        'message' => {
+          'message_id' => 21,
+          'chat' => { 'id' => 123458, 'type' => 'private' },
+          'text' => 'Previous text'
+        },
+        'data' => "remove_channel:#{channel.id}"
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    # Проверяем answerCallbackQuery
+    answer_request = @bot.requests.find { |method, _| method == :answerCallbackQuery }
+    assert_not_nil answer_request
+
+    # Проверяем editMessageText с подтверждением
+    edit_request = @bot.requests.find { |method, _| method == :editMessageText }
+    assert_not_nil edit_request
+
+    _, edit_params = edit_request
+    edit_params = edit_params.first
+    assert_includes edit_params[:text], 'Удалить @testchannel_remove из подписок?'
+
+    # Проверяем наличие кнопок подтверждения
+    assert_not_nil edit_params[:reply_markup]
+    keyboard = edit_params[:reply_markup].inline_keyboard
+    assert_equal 1, keyboard.length
+
+    first_row = keyboard.first
+    assert_equal 2, first_row.length
+    assert_equal '🗑️', first_row[0].text
+    assert_equal 'Отмена', first_row[1].text
+    assert_includes first_row[0].callback_data, 'confirm_remove:'
+    assert_equal 'my_subscriptions:', first_row[1].callback_data
+  end
+
+  test "callback query confirm_remove deactivates subscription" do
+    # Создаем тестовые данные
+    user = TelegramUser.create!(
+      username: 'testuser_confirm',
+      first_name: 'Test',
+      language_code: 'ru',
+      timezone: 'UTC'
+    )
+
+    channel = Channel.create!(
+      telegram_id: 1004,
+      username: 'testchannel_confirm',
+      title: 'Test Channel Confirm'
+    )
+
+    subscription = Subscription.create!(
+      telegram_user: user,
+      channel: channel,
+      priority: 5,
+      active: true
+    )
+
+    user_data = {
+      'id' => 123459,
+      'username' => 'testuser_confirm',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 16,
+      'callback_query' => {
+        'id' => 'callback_confirm_1',
+        'from' => user_data,
+        'message' => {
+          'message_id' => 22,
+          'chat' => { 'id' => 123459, 'type' => 'private' },
+          'text' => 'Previous text'
+        },
+        'data' => "confirm_remove:#{channel.id}"
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    # Проверяем что подписка деактивирована
+    subscription.reload
+    assert_not subscription.active
+
+    # Проверяем answerCallbackQuery
+    answer_request = @bot.requests.find { |method, _| method == :answerCallbackQuery }
+    assert_not_nil answer_request
+
+    # Проверяем editMessageText с сообщением об успехе
+    edit_request = @bot.requests.find { |method, _| method == :editMessageText }
+    assert_not_nil edit_request
+
+    _, edit_params = edit_request
+    edit_params = edit_params.first
+    assert_includes edit_params[:text], 'Канал @testchannel_confirm удалён из подписок'
+  end
+
+  test "callback query priority_up increases priority" do
+    # Создаем тестовые данные
+    user = TelegramUser.create!(
+      username: 'testuser_priority_up',
+      first_name: 'Test',
+      language_code: 'ru',
+      timezone: 'UTC'
+    )
+
+    channel = Channel.create!(
+      telegram_id: 1005,
+      username: 'testchannel_priority',
+      title: 'Test Channel Priority'
+    )
+
+    subscription = Subscription.create!(
+      telegram_user: user,
+      channel: channel,
+      priority: 5,
+      active: true
+    )
+
+    # Добавим еще одну подписку чтобы список не был пустым
+    channel2 = Channel.create!(
+      telegram_id: 1007,
+      username: 'testchannel_priority_extra',
+      title: 'Test Channel Priority Extra'
+    )
+
+    Subscription.create!(
+      telegram_user: user,
+      channel: channel2,
+      priority: 3,
+      active: true
+    )
+
+    user_data = {
+      'id' => 123460,
+      'username' => 'testuser_priority_up',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 17,
+      'callback_query' => {
+        'id' => 'callback_priority_up_1',
+        'from' => user_data,
+        'message' => {
+          'message_id' => 23,
+          'chat' => { 'id' => 123460, 'type' => 'private' },
+          'text' => 'Previous text'
+        },
+        'data' => "priority_up:#{channel.id}"
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    # Проверяем что приоритет увеличен
+    subscription.reload
+    assert_equal 6, subscription.priority
+
+    # Проверяем что был вызван answerCallbackQuery (пустой ответ)
+    answer_request = @bot.requests.find { |method, _| method == :answerCallbackQuery }
+    assert_not_nil answer_request
+
+    # Проверяем что был вызван editMessageText с обновленным списком
+    edit_request = @bot.requests.find { |method, _| method == :editMessageText }
+    assert_not_nil edit_request
+
+    _, edit_params = edit_request
+    edit_params = edit_params.first
+    assert_includes edit_params[:text], 'Мои подписки'
+  end
+
+  test "callback query priority_down decreases priority" do
+    # Создаем тестовые данные
+    user = TelegramUser.create!(
+      username: 'testuser_priority_down',
+      first_name: 'Test',
+      language_code: 'ru',
+      timezone: 'UTC'
+    )
+
+    channel = Channel.create!(
+      telegram_id: 1006,
+      username: 'testchannel_priority2',
+      title: 'Test Channel Priority 2'
+    )
+
+    subscription = Subscription.create!(
+      telegram_user: user,
+      channel: channel,
+      priority: 5,
+      active: true
+    )
+
+    # Добавим еще одну подписку чтобы список не был пустым
+    channel2 = Channel.create!(
+      telegram_id: 1008,
+      username: 'testchannel_priority2_extra',
+      title: 'Test Channel Priority 2 Extra'
+    )
+
+    Subscription.create!(
+      telegram_user: user,
+      channel: channel2,
+      priority: 3,
+      active: true
+    )
+
+    user_data = {
+      'id' => 123461,
+      'username' => 'testuser_priority_down',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 18,
+      'callback_query' => {
+        'id' => 'callback_priority_down_1',
+        'from' => user_data,
+        'message' => {
+          'message_id' => 24,
+          'chat' => { 'id' => 123461, 'type' => 'private' },
+          'text' => 'Previous text'
+        },
+        'data' => "priority_down:#{channel.id}"
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    # Проверяем что приоритет уменьшен
+    subscription.reload
+    assert_equal 4, subscription.priority
+
+    # Проверяем что был вызван answerCallbackQuery (пустой ответ)
+    answer_request = @bot.requests.find { |method, _| method == :answerCallbackQuery }
+    assert_not_nil answer_request
+
+    # Проверяем что был вызван editMessageText с обновленным списком
+    edit_request = @bot.requests.find { |method, _| method == :editMessageText }
+    assert_not_nil edit_request
+
+    _, edit_params = edit_request
+    edit_params = edit_params.first
+    assert_includes edit_params[:text], 'Мои подписки'
+  end
 end

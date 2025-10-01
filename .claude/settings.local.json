@@ -19,7 +19,11 @@
       "Bash(./bin/rake)",
       "Bash(./bin/rake -T)",
       "Bash(RAILS_ENV=development ./bin/rails routes)",
-      "Bash(bundle install:*)"
+      "Bash(bundle install:*)",
+      "Bash(priority:*)",
+      "Bash(remove_channel)",
+      "Bash(confirm_remove)",
+      "Bash(my_subscriptions/)"
     ],
     "deny": [],
     "ask": []
