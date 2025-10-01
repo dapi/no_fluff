@@ -1048,4 +1048,412 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     subscription.reload
     assert_not subscription.active
   end
+
+  # Тесты команды /settings
+
+  test "settings command shows current settings" do
+    user_data = {
+      'id' => 123456,
+      'username' => 'testuser_settings',
+      'first_name' => 'Test',
+      'last_name' => 'User',
+      'language_code' => 'ru',
+      'is_premium' => false
+    }
+
+    update = {
+      'update_id' => 24,
+      'message' => {
+        'message_id' => 30,
+        'from' => user_data,
+        'chat' => { 'id' => 123456, 'type' => 'private' },
+        'text' => '/settings'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    # Проверяем, что пользователь был создан
+    user = TelegramUser.find_by(username: 'testuser_settings')
+    assert_not_nil user
+
+    # Проверяем, что бот отправил сообщение
+    assert_equal 1, @bot.requests.size
+
+    method, params = @bot.requests.first
+    params = params.first
+
+    assert_equal :sendMessage, method
+    assert_equal 123456, params[:chat_id]
+    assert_includes params[:text], '⚙️ Настройки'
+    assert_includes params[:text], '📋 Текущие настройки'
+    assert_includes params[:text], '⏰ Частота доставки'
+    assert_includes params[:text], '📝 Формат контента'
+    assert_includes params[:text], '🎯 Строгость фильтрации'
+
+    # Проверяем наличие inline клавиатуры
+    assert_not_nil params[:reply_markup]
+    assert params[:reply_markup].is_a?(Telegram::Bot::Types::InlineKeyboardMarkup)
+  end
+
+  test "callback query settings shows settings menu" do
+    user_data = {
+      'id' => 123456,
+      'username' => 'testuser_settings',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 25,
+      'callback_query' => {
+        'id' => 'callback_settings_1',
+        'from' => user_data,
+        'message' => {
+          'message_id' => 31,
+          'chat' => { 'id' => 123456, 'type' => 'private' },
+          'text' => 'Previous text'
+        },
+        'data' => 'settings:'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    # Проверяем answerCallbackQuery
+    answer_request = @bot.requests.find { |method, _| method == :answerCallbackQuery }
+    assert_not_nil answer_request
+
+    # Проверяем editMessageText с настройками
+    edit_request = @bot.requests.find { |method, _| method == :editMessageText }
+    assert_not_nil edit_request
+
+    _, edit_params = edit_request
+    edit_params = edit_params.first
+    assert_includes edit_params[:text], '⚙️ Настройки'
+    assert_includes edit_params[:text], '📋 Текущие настройки'
+  end
+
+  test "callback query delivery_frequency shows frequency options" do
+    user_data = {
+      'id' => 123456,
+      'username' => 'testuser_settings',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 26,
+      'callback_query' => {
+        'id' => 'callback_frequency_1',
+        'from' => user_data,
+        'message' => {
+          'message_id' => 32,
+          'chat' => { 'id' => 123456, 'type' => 'private' },
+          'text' => 'Previous text'
+        },
+        'data' => 'delivery_frequency:'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    # Проверяем answerCallbackQuery
+    answer_request = @bot.requests.find { |method, _| method == :answerCallbackQuery }
+    assert_not_nil answer_request
+
+    # Проверяем editMessageText с опциями частоты
+    edit_request = @bot.requests.find { |method, _| method == :editMessageText }
+    assert_not_nil edit_request
+
+    _, edit_params = edit_request
+    edit_params = edit_params.first
+    assert_includes edit_params[:text], '⏰ Частота доставки'
+    assert_includes edit_params[:text], 'Реальное время'
+    assert_includes edit_params[:text], 'Раз в день'
+    assert_includes edit_params[:text], '← Назад'
+
+    # Проверяем наличие inline клавиатуры с опциями
+    assert_not_nil edit_params[:reply_markup]
+    assert edit_params[:reply_markup].is_a?(Telegram::Bot::Types::InlineKeyboardMarkup)
+  end
+
+  test "callback query content_format shows format options" do
+    user_data = {
+      'id' => 123456,
+      'username' => 'testuser_settings',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 27,
+      'callback_query' => {
+        'id' => 'callback_format_1',
+        'from' => user_data,
+        'message' => {
+          'message_id' => 33,
+          'chat' => { 'id' => 123456, 'type' => 'private' },
+          'text' => 'Previous text'
+        },
+        'data' => 'content_format:'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    # Проверяем editMessageText с опциями формата
+    edit_request = @bot.requests.find { |method, _| method == :editMessageText }
+    assert_not_nil edit_request
+
+    _, edit_params = edit_request
+    edit_params = edit_params.first
+    assert_includes edit_params[:text], '📝 Формат контента'
+    assert_includes edit_params[:text], 'Оригинальные посты'
+    assert_includes edit_params[:text], 'Саммари'
+    assert_includes edit_params[:text], '← Назад'
+  end
+
+  test "callback query filter_strictness shows strictness options" do
+    user_data = {
+      'id' => 123456,
+      'username' => 'testuser_settings',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 28,
+      'callback_query' => {
+        'id' => 'callback_strictness_1',
+        'from' => user_data,
+        'message' => {
+          'message_id' => 34,
+          'chat' => { 'id' => 123456, 'type' => 'private' },
+          'text' => 'Previous text'
+        },
+        'data' => 'filter_strictness:'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    # Проверяем editMessageText с опциями строгости
+    edit_request = @bot.requests.find { |method, _| method == :editMessageText }
+    assert_not_nil edit_request
+
+    _, edit_params = edit_request
+    edit_params = edit_params.first
+    assert_includes edit_params[:text], '🎯 Строгость фильтрации'
+    assert_includes edit_params[:text], 'Ультра'
+    assert_includes edit_params[:text], 'Высокая'
+    assert_includes edit_params[:text], '← Назад'
+  end
+
+  test "callback query set_delivery_frequency updates user setting" do
+    user = TelegramUser.create!(
+      username: 'testuser_freq_change',
+      first_name: 'Test',
+      language_code: 'ru',
+      timezone: 'UTC',
+      delivery_frequency: 'once_daily'
+    )
+
+    user_data = {
+      'id' => 123456,
+      'username' => 'testuser_freq_change',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 29,
+      'callback_query' => {
+        'id' => 'callback_set_freq_1',
+        'from' => user_data,
+        'message' => {
+          'message_id' => 35,
+          'chat' => { 'id' => 123456, 'type' => 'private' },
+          'text' => 'Previous text'
+        },
+        'data' => 'set_delivery_frequency:weekly'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    # Проверяем, что настройка была обновлена
+    user.reload
+    assert_equal 'weekly', user.delivery_frequency
+
+    # Проверяем answerCallbackQuery
+    answer_request = @bot.requests.find { |method, _| method == :answerCallbackQuery }
+    assert_not_nil answer_request
+
+    # Проверяем editMessageText с сообщением об успехе
+    edit_request = @bot.requests.find { |method, _| method == :editMessageText }
+    assert_not_nil edit_request
+
+    _, edit_params = edit_request
+    edit_params = edit_params.first
+    assert_includes edit_params[:text], '✅ Частота доставки изменена на'
+    assert_includes edit_params[:text], 'Раз в неделю'
+  end
+
+  test "callback query set_content_format updates user setting" do
+    user = TelegramUser.create!(
+      username: 'testuser_format_change',
+      first_name: 'Test',
+      language_code: 'ru',
+      timezone: 'UTC',
+      content_format: 'original'
+    )
+
+    user_data = {
+      'id' => 123456,
+      'username' => 'testuser_format_change',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 30,
+      'callback_query' => {
+        'id' => 'callback_set_format_1',
+        'from' => user_data,
+        'message' => {
+          'message_id' => 36,
+          'chat' => { 'id' => 123456, 'type' => 'private' },
+          'text' => 'Previous text'
+        },
+        'data' => 'set_content_format:summaries'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    # Проверяем, что настройка была обновлена
+    user.reload
+    assert_equal 'summaries', user.content_format
+
+    # Проверяем editMessageText с сообщением об успехе
+    edit_request = @bot.requests.find { |method, _| method == :editMessageText }
+    assert_not_nil edit_request
+
+    _, edit_params = edit_request
+    edit_params = edit_params.first
+    assert_includes edit_params[:text], '✅ Формат контента изменён на'
+    assert_includes edit_params[:text], 'Саммари'
+  end
+
+  test "callback query set_filter_strictness updates user setting" do
+    user = TelegramUser.create!(
+      username: 'testuser_strictness_change',
+      first_name: 'Test',
+      language_code: 'ru',
+      timezone: 'UTC',
+      filter_strictness: 'medium'
+    )
+
+    user_data = {
+      'id' => 123456,
+      'username' => 'testuser_strictness_change',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 31,
+      'callback_query' => {
+        'id' => 'callback_set_strictness_1',
+        'from' => user_data,
+        'message' => {
+          'message_id' => 37,
+          'chat' => { 'id' => 123456, 'type' => 'private' },
+          'text' => 'Previous text'
+        },
+        'data' => 'set_filter_strictness:high'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    # Проверяем, что настройка была обновлена
+    user.reload
+    assert_equal 'high', user.filter_strictness
+
+    # Проверяем editMessageText с сообщением об успехе
+    edit_request = @bot.requests.find { |method, _| method == :editMessageText }
+    assert_not_nil edit_request
+
+    _, edit_params = edit_request
+    edit_params = edit_params.first
+    assert_includes edit_params[:text], '✅ Строгость фильтрации изменена на'
+    assert_includes edit_params[:text], 'Высокая'
+  end
+
+  test "callback query with same value returns to settings without update" do
+    user = TelegramUser.create!(
+      username: 'testuser_same_value',
+      first_name: 'Test',
+      language_code: 'ru',
+      timezone: 'UTC',
+      delivery_frequency: 'real_time'
+    )
+
+    user_data = {
+      'id' => 123456,
+      'username' => 'testuser_same_value',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 32,
+      'callback_query' => {
+        'id' => 'callback_same_value_1',
+        'from' => user_data,
+        'message' => {
+          'message_id' => 38,
+          'chat' => { 'id' => 123456, 'type' => 'private' },
+          'text' => 'Previous text'
+        },
+        'data' => 'set_delivery_frequency:real_time'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    # Проверяем, что настройка не изменилась
+    user.reload
+    assert_equal 'real_time', user.delivery_frequency
+
+    # Проверяем editMessageText с возвратом к настройкам
+    edit_request = @bot.requests.find { |method, _| method == :editMessageText }
+    assert_not_nil edit_request
+
+    _, edit_params = edit_request
+    edit_params = edit_params.first
+    assert_includes edit_params[:text], '⚙️ Настройки'
+    assert_includes edit_params[:text], '📋 Текущие настройки'
+  end
 end

@@ -124,3 +124,42 @@ ru:
         confirm_remove: "Удалить %{channel} из подписок?"
         priority_updated: "Приоритет %{channel} изменён на %{priority}"
         remove_success: "Канал %{channel} удалён из подписок"
+
+    settings:
+      title: "⚙️ Настройки"
+      current_settings: "📋 Текущие настройки:"
+      delivery_frequency:
+        title: "⏰ Частота доставки"
+        label: "⏰ Частота доставки: "
+        button: "⏰ Частота доставки"
+        success: "✅ Частота доставки изменена на: %{value}"
+        options:
+          real_time: "Реальное время"
+          three_times_daily: "3 раза в день"
+          twice_daily: "2 раза в день"
+          once_daily: "Раз в день"
+          every_few_days: "Раз в несколько дней"
+          weekly: "Раз в неделю"
+          on_demand: "По запросу"
+      content_format:
+        title: "📝 Формат контента"
+        label: "📝 Формат контента: "
+        button: "📝 Формат контента"
+        success: "✅ Формат контента изменён на: %{value}"
+        options:
+          original: "Оригинальные посты"
+          summaries: "Саммари"
+          unified_digest: "Единый дайджест"
+          combo: "Комбо"
+          headlines: "Заголовки"
+      filter_strictness:
+        title: "🎯 Строгость фильтрации"
+        label: "🎯 Строгость фильтрации: "
+        button: "🎯 Строгость фильтрации"
+        success: "✅ Строгость фильтрации изменена на: %{value}"
+        options:
+          ultra: "Ультра"
+          high: "Высокая"
+          medium: "Средняя"
+          low: "Низкая"
+          smart: "Умная"

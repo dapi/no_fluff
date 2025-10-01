@@ -3,6 +3,7 @@
 class TelegramWebhookController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::CallbackQueryContext
   include Telegram::SubscriptionCommands
+  include Telegram::SettingsCommands
 
   # Обработка ошибок
   rescue_from StandardError do |exception|
@@ -166,6 +167,12 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
         Telegram::Bot::Types::InlineKeyboardButton.new(
           text: I18n.t('telegram_bot.start.button_more_info'),
           callback_data: 'more_info:'
+        )
+      ],
+      [
+        Telegram::Bot::Types::InlineKeyboardButton.new(
+          text: '⚙️ Настройки',
+          callback_data: 'settings:'
         )
       ]
     ]

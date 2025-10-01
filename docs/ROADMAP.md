@@ -120,15 +120,15 @@
 - [x] Написать integration тесты
 
 #### 1.3.5. Settings Command
-- [ ] Создать `app/controllers/telegram/commands/settings_controller.rb`
-- [ ] Реализовать `/settings` команду
-- [ ] Показать текущие настройки
-- [ ] Добавить inline меню для изменения:
-  - [ ] Частоты доставки (delivery_frequency)
-  - [ ] Формата контента (content_format)
-  - [ ] Строгости фильтрации (filter_strictness)
-- [ ] Сохранять изменения в БД
-- [ ] Написать integration тесты
+- [x] Создать `app/controllers/telegram/commands/settings_controller.rb`
+- [x] Реализовать `/settings` команду
+- [x] Показать текущие настройки
+- [x] Добавить inline меню для изменения:
+  - [x] Частоты доставки (delivery_frequency)
+  - [x] Формата контента (content_format)
+  - [x] Строгости фильтрации (filter_strictness)
+- [x] Сохранять изменения в БД
+- [x] Написать integration тесты
 
 ### 1.4. AI Sessions Infrastructure (НОВОЕ - КРИТИЧЕСКИ ВАЖНО)
 
