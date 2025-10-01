@@ -31,7 +31,7 @@ class Content::ProcessPostJob < ApplicationJob
     # Для каждого подписчика запускаем задачу доставки поста
     subscribers.each do |user|
       begin
-        Content::DeliverPostsJob.perform_later(user.id, [post.id])
+        Content::DeliverPostsJob.perform_later(user.id, [ post.id ])
 
         Rails.logger.debug "Scheduled delivery for post #{post.id} to user #{user.username}"
       rescue StandardError => e

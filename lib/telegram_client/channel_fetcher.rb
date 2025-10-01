@@ -127,7 +127,7 @@ module TelegramClient
       # Фото
       if message["photo"]
         # Берем самое большое фото
-        photo_sizes = message["photo"].is_a?(Array) ? message["photo"] : [message["photo"]]
+        photo_sizes = message["photo"].is_a?(Array) ? message["photo"] : [ message["photo"] ]
         largest_photo = photo_sizes.max_by { |p| p["file_size"] || 0 }
         if largest_photo
           urls << "photo:#{largest_photo["file_id"]}"
@@ -169,13 +169,13 @@ module TelegramClient
         "🔒 Важные новости о кибербезопасности: Новый вирус обнаружен в популярных приложениях..."
       ]
 
-      [{
+      [ {
         telegram_message_id: rand(1000000..9999999),
         text: demo_texts.sample,
         media_urls: [],
         published_at: Time.current,
         has_media: false
-      }]
+      } ]
     end
   end
 end
