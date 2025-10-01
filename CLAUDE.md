@@ -51,3 +51,4 @@
 Если делаешь обещания - записывай их в .claude/promises.md
 
 /file:.claude-on-rails/context.md
+/file:.claude/promises.md
