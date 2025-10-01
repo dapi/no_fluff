@@ -116,9 +116,9 @@ C4Component
     ContainerDb_Ext(db, "PostgreSQL")
     ContainerDb_Ext(cache, "Cache")
 
-    Component(webhook_controller, "Webhook Controller", "Telegram::Bot::UpdatesController", "Принимает обновления от Telegram")
+    Component(webhook_controller, "Telegram Webhook Controller", "Telegram::Bot::UpdatesController", "Принимает обновления от Telegram и обрабатывает команды")
 
-    Component(bot_commands, "Bot Command Controllers", "Rails Controllers", "Обрабатывает команды: /start, /add, /settings, /digest, /stats")
+    Component(bot_concerns, "Bot Command Concerns", "Rails Concerns", "Группы команд: SubscriptionCommands, SettingsCommands, DigestCommands")
 
     Component(user_service, "User Service", "Service Object", "Управление пользователями и онбордингом")
     Component(channel_service, "Channel Management Service", "Service Object", "Управление подписками на каналы")
@@ -135,12 +135,12 @@ C4Component
     Component(models, "Active Record Models", "Models", "TelegramUser, Channel, Post, Subscription, Digest, Feedback")
 
     Rel(telegram, webhook_controller, "Webhook updates", "HTTPS")
-    Rel(webhook_controller, bot_commands, "Маршрутизирует команды")
+    Rel(webhook_controller, bot_concerns, "Использует concern'и для команд")
 
-    Rel(bot_commands, user_service, "Использует")
-    Rel(bot_commands, channel_service, "Использует")
-    Rel(bot_commands, settings_service, "Использует")
-    Rel(bot_commands, analytics, "Использует")
+    Rel(bot_concerns, user_service, "Использует")
+    Rel(bot_concerns, channel_service, "Использует")
+    Rel(bot_concerns, settings_service, "Использует")
+    Rel(bot_concerns, analytics, "Использует")
 
     Rel(user_service, models, "Использует")
     Rel(channel_service, models, "Использует")
@@ -163,18 +163,24 @@ C4Component
 
 #### 1. Bot Interface Layer
 
-**Webhook Controller**
+**Telegram Webhook Controller**
+- Основной контроллер, наследуется от Telegram::Bot::UpdatesController
 - Принимает обновления от Telegram (webhook или polling)
-- Маршрутизирует к соответствующим контроллерам команд
+- Обрабатывает базовые команды (/start, /help, /add)
+- Использует built-in маршрутизацию telegram-bot-rb gem
 
-**Bot Command Controllers**
-- `StartController` - онбординг (/start)
-- `ChannelController` - управление каналами (/add, /list, /remove)
-- `SettingsController` - настройки (/settings)
-- `DigestController` - ручной запрос дайджеста (/digest)
-- `FeedbackController` - лайки/дизлайки (/like, /dislike)
-- `StatsController` - статистика (/stats)
-- `DiscoverController` - рекомендации (/discover)
+**Bot Command Concerns**
+- `SubscriptionCommands` - управление подписками (/list, callback'и для удаления/приоритета)
+- `SettingsCommands` - настройки фильтрации и доставки (планируется)
+- `DigestCommands` - запрос и управление дайджестами (планируется)
+- `FeedbackCommands` - лайки/дизлайки контента (планируется)
+- `StatsCommands` - статистика использования (планируется)
+- `DiscoverCommands` - рекомендации каналов (планируется)
+
+**Паттерн организации кода**
+- Основной контроллер включает необходимые concerns
+- Каждый concern содержит группу связанных команд
+- Callback query обработчики находятся в соответствующих concerns
 
 #### 2. User Management Layer
 
@@ -259,17 +265,16 @@ C4Component
 ```
 app/
 ├── controllers/
-│   ├── telegram/
-│   │   ├── webhook_controller.rb
-│   │   └── commands/
-│   │       ├── start_controller.rb
-│   │       ├── channel_controller.rb
-│   │       ├── settings_controller.rb
-│   │       ├── digest_controller.rb
-│   │       ├── feedback_controller.rb
-│   │       ├── stats_controller.rb
-│   │       └── discover_controller.rb
-│   └── application_controller.rb
+│   ├── telegram_webhook_controller.rb
+│   ├── application_controller.rb
+│   └── concerns/
+│       └── telegram/
+│           ├── subscription_commands.rb
+│           ├── settings_commands.rb
+│           ├── digest_commands.rb
+│           ├── feedback_commands.rb
+│           ├── stats_commands.rb
+│           └── discover_commands.rb
 ├── services/
 │   ├── user/
 │   │   ├── creator.rb
