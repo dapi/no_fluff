@@ -52,3 +52,4 @@
 
 /file:.claude-on-rails/context.md
 /file:.claude/promises.md
+- Когда работаешь с фоновыми задачами учитывай config/queue.yml

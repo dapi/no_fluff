@@ -44,4 +44,7 @@ class TelegramUser < ApplicationRecord
   scope :by_delivery_time, ->(time) { where(delivery_frequency: time) }
   scope :premium, -> { where(is_premium: true) }
   scope :non_bots, -> { where(is_bot: false) }
+
+  # Используем ID записи как telegram_id для Telegram API
+  alias_attribute :telegram_id, :id
 end

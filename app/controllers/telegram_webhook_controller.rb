@@ -106,7 +106,10 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
       user.last_name = user_data["last_name"]
       user.language_code = user_data["language_code"] || "ru"
       user.is_premium = user_data["is_premium"] || false
+      user.is_bot = user_data["is_bot"] || false
     end
+
+    # Ничего дополнительно обновлять не нужно - telegram_id будет браться из ID записи
   end
 
   # Возвращает текущего пользователя
