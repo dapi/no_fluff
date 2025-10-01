@@ -58,13 +58,13 @@ end
 **Что это дает:**
 ```ruby
 # Модель с acts_as_chat
-class UserChat < ApplicationRecord
+class UserAISession < ApplicationRecord
   belongs_to :user
   acts_as_chat
 end
 
 # Использование
-session = user.chats.find_or_create_by(session_type: 'classification')
+session = user.ai_sessions.find_or_create_by(session_type: 'classification')
 session.ask "Оцени важность поста: #{post.text}"
 session.ask "А теперь этого: #{another_post.text}" # История сохранена!
 
@@ -250,7 +250,7 @@ telegram.edit_message(message_id, accumulated_text)
 ✅ Post
 ✅ Digest
 ✅ DigestItem
-❌ Chat - НЕТ ПЕРСОНАЛИЗАЦИИ!
+❌ Chat / AISession - НЕТ!
 ❌ ChatMessage - НЕТ!
 ```
 
@@ -438,7 +438,7 @@ class Feedback < ApplicationRecord
   private
 
   def update_personalization_session
-    session = user.chat_for(:personalization)
+    session = user.ai_session_for(:personalization)
     session.add_feedback_example(post, self)
 
     # Асинхронно обновить модель персонализации
@@ -456,7 +456,7 @@ end
 class Content::AIClassifier
   def initialize(user)
     @user = user
-    @session = user.chat_for(:classification)
+    @session = user.ai_session_for(:classification)
   end
 
   def classify(post)
@@ -510,7 +510,7 @@ end
 class Digest::Builder
   def initialize(user)
     @user = user
-    @session = user.chat_for(:digest_generation)
+    @session = user.ai_session_for(:digest_generation)
   end
 
   def build_digest(posts)
@@ -537,7 +537,7 @@ class PersonalizationUpdateJob < ApplicationJob
     user = User.find(user_id)
     feedback = Feedback.find(feedback_id)
 
-    session = user.chat_for(:personalization)
+    session = user.ai_session_for(:personalization)
 
     # Обновить модель понимания предпочтений
     session.ask(
@@ -576,7 +576,7 @@ end
 **Решение:**
 
 ```ruby
-class Chat < ApplicationRecord
+class AISession < ApplicationRecord
   acts_as_chat
 
   # Стратегия управления контекстом
@@ -633,7 +633,7 @@ end
 # 1. Batch-обработка
 class Content::BatchClassifier
   def classify_batch(posts, user)
-    session = user.chat_for(:classification)
+    session = user.ai_session_for(:classification)
 
     # Одним запросом классифицировать несколько постов
     result = session.ask(
@@ -683,7 +683,7 @@ end
 
 ```ruby
 # Стратегия управления жизненным циклом данных
-class Chat < ApplicationRecord
+class AISession < ApplicationRecord
   # Автоматическая очистка старых данных
   def self.cleanup_old_sessions
     # Архивировать неактивные сессии старше 90 дней
@@ -713,14 +713,14 @@ class Chat < ApplicationRecord
 end
 
 # Запланировать периодическую очистку
-class CleanupChatsJob < ApplicationJob
+class CleanupAISessionsJob < ApplicationJob
   def perform
-    Chat.cleanup_old_sessions
+    AISession.cleanup_old_sessions
 
     # Сжать большие сессии
-    Chat.active.having("COUNT(ai_messages.id) > 100")
+    AISession.active.having("COUNT(ai_messages.id) > 100")
       .joins(:ai_messages)
-      .group("chats.id")
+      .group("ai_sessions.id")
       .find_each(&:compact_history)
   end
 end
@@ -883,7 +883,7 @@ class Content::AIClassifier
   private
 
   def perform_classification(post)
-    session = @user.chat_for(:classification)
+    session = @user.ai_session_for(:classification)
     # ... AI classification
   end
 end
@@ -905,17 +905,17 @@ end
 **Приоритет:** 🔴 **КРИТИЧЕСКИЙ**
 
 **Действия:**
-1. Создать модель `Chat` с `acts_as_chat`
+1. Создать модель `AISession` с `acts_as_chat`
 2. Добавить связи с `User`, `Post`, `Feedback`
 3. Реализовать управление контекстом
 4. Добавить стратегии архивации
 
 **Миграции:**
 ```ruby
-# db/migrate/XXXXXX_create_chats.rb
-class AddNofluffFieldsToChats < ActiveRecord::Migration[8.0]
+# db/migrate/XXXXXX_create_ai_sessions.rb
+class CreateAISessions < ActiveRecord::Migration[8.0]
   def change
-    create_table :chats do |t|
+    create_table :ai_sessions do |t|
       t.references :user, null: false, foreign_key: true
       t.integer :session_type, null: false, default: 0
       t.integer :status, null: false, default: 0
@@ -925,9 +925,9 @@ class AddNofluffFieldsToChats < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :chats, [:user_id, :session_type]
-    add_index :chats, :status
-    add_index :chats, :last_activity_at
+    add_index :ai_sessions, [:user_id, :session_type]
+    add_index :ai_sessions, :status
+    add_index :ai_sessions, :last_activity_at
   end
 end
 
@@ -951,7 +951,7 @@ class AddStructuredClassificationToPosts < ActiveRecord::Migration[8.0]
 
     add_index :posts, :topics, using: :gin
     add_index :posts, :classification_data, using: :gin
-    add_foreign_key :posts, :chats, column: :classified_by_session_id
+    add_foreign_key :posts, :ai_sessions, column: :classified_by_session_id
   end
 end
 ```
@@ -961,7 +961,7 @@ end
 class Post < ApplicationRecord
   belongs_to :channel
   belongs_to :classified_by_session,
-             class_name: 'Chat',
+             class_name: 'AISession',
              optional: true
 
   has_many :feedbacks
@@ -984,11 +984,11 @@ end
 **Сделать персональной для пользователя:**
 
 ```ruby
-# db/migrate/XXXXXX_add_chat_to_post_classifications.rb
-class AddChatToPostClassifications < ActiveRecord::Migration[8.0]
+# db/migrate/XXXXXX_add_ai_session_to_post_classifications.rb
+class AddAISessionToPostClassifications < ActiveRecord::Migration[8.0]
   def change
     add_reference :post_classifications,
-                  :chat,
+                  :ai_session,
                   foreign_key: true
 
     add_column :post_classifications, :reasoning, :text
@@ -999,11 +999,11 @@ end
 class PostClassification < ApplicationRecord
   belongs_to :post
   belongs_to :user
-  belongs_to :chat, optional: true
+  belongs_to :ai_session, optional: true
 
   # Персональная классификация с учетом истории взаимодействий
   def self.for_user_with_context(user, post)
-    session = user.chat_for(:classification)
+    session = user.ai_session_for(:classification)
 
     # Классифицировать с учетом истории пользователя
     classifier = Content::AIClassifier.new(user)
@@ -1012,7 +1012,7 @@ class PostClassification < ApplicationRecord
     create!(
       post: post,
       user: user,
-      chat: session,
+      ai_session: session,
       importance_score: result.importance_score,
       is_relevant: result.importance_score > user.relevance_threshold,
       reasoning: result.reasoning,
@@ -1035,17 +1035,17 @@ end
 
 #### 1.4.1. AI Sessions Models
 - [ ] Установить ruby_llm Rails integration: `rails generate ruby_llm:install`
-- [ ] Создать миграцию для `chats` таблицы
-- [ ] Создать модель `Chat` с `acts_as_chat`
+- [ ] Создать миграцию для `ai_sessions` таблицы
+- [ ] Создать модель `AISession` с `acts_as_chat`
 - [ ] Добавить enum для `session_type` (classification, summarization, personalization, digest_generation)
 - [ ] Добавить enum для `status` (active, archived)
 - [ ] Добавить JSONB поле `context` для хранения контекста сессии
 - [ ] Добавить `last_activity_at` для трекинга активности
-- [ ] Написать unit тесты для Chat
+- [ ] Написать unit тесты для AISession
 
 #### 1.4.2. AI Sessions Management
 - [ ] Добавить методы в User модель для управления AI-сессиями
-  - [ ] `chat_for(type)` - получить или создать сессию
+  - [ ] `ai_session_for(type)` - получить или создать сессию
   - [ ] `build_initial_context` - построить начальный контекст
   - [ ] `recent_feedback_summary` - сводка последнего фидбека
 - [ ] Создать `app/services/ai/session_manager.rb`
@@ -1088,7 +1088,7 @@ end
 
 #### 1.5.1. AI Classifier Service (с использованием AI Sessions)
 - [ ] Создать `app/services/content/ai_classifier.rb`
-- [ ] Реализовать классификацию с использованием Chat
+- [ ] Реализовать классификацию с использованием AISession
 - [ ] Использовать Structured Output (PostClassificationSchema)
 - [ ] Использовать Tools (ClassifyPostTool) для надежной классификации
 - [ ] Добавить построение системного промпта с контекстом пользователя
@@ -1108,7 +1108,7 @@ end
 - [ ] Создать `app/services/content/filter.rb`
 - [ ] Реализовать фильтрацию постов по importance_score
 - [ ] Учитывать filter_strictness пользователя
-- [ ] Учитывать персональный контекст из Chat
+- [ ] Учитывать персональный контекст из AISession
 - [ ] Фильтровать рекламу и шелуху
 - [ ] Написать service тесты
 
@@ -1116,7 +1116,7 @@ end
 - [ ] Создать `app/jobs/content/classify_job.rb`
 - [ ] Вызвать AIClassifier для поста с контекстом пользователя
 - [ ] Сохранить structured результаты в БД
-- [ ] Сохранить связь с Chat
+- [ ] Сохранить связь с AISession
 - [ ] Добавить retry логику при ошибках
 - [ ] Добавить логирование токенов и latency
 - [ ] Написать job тесты
@@ -1134,14 +1134,14 @@ end
 ### 2.2. Персонализация через фидбек (ОБНОВЛЕНО)
 
 #### 2.2.1. Feedback Integration with AI Sessions
-- [ ] Обновить Feedback модель для интеграции с Chat
+- [ ] Обновить Feedback модель для интеграции с AISession
 - [ ] Добавить `after_create` callback для обновления сессии персонализации
-- [ ] Реализовать `add_feedback_example` в Chat
+- [ ] Реализовать `add_feedback_example` в AISession
 - [ ] Добавить хранение последних N примеров фидбека в контексте
 
 #### 2.2.2. Personalization Service
 - [ ] Создать `app/services/personalization/feedback_processor.rb`
-- [ ] Использовать Chat для обучения на фидбеке
+- [ ] Использовать AISession для обучения на фидбеке
 - [ ] Реализовать анализ паттернов предпочтений пользователя
 - [ ] Обновлять веса важности на основе фидбека
 - [ ] Написать service тесты
@@ -1149,7 +1149,7 @@ end
 #### 2.2.3. Personalization Update Job
 - [ ] Создать `app/jobs/personalization_update_job.rb`
 - [ ] Асинхронно обновлять модель персонализации при новом фидбеке
-- [ ] Использовать Chat для накопления знаний о пользователе
+- [ ] Использовать AISession для накопления знаний о пользователе
 - [ ] Обновлять UserPreference на основе анализа
 - [ ] Написать job тесты
 
@@ -1186,7 +1186,7 @@ module AI
     private
 
     def find_or_create_session(type)
-      @user.chats.active.find_or_create_by!(session_type: type) do |s|
+      @user.ai_sessions.active.find_or_create_by!(session_type: type) do |s|
         s.context = @user.build_initial_context
       end
     end
@@ -1468,7 +1468,7 @@ def classify_with_few_shot(post)
   few_shot_builder = Personalization::FewShotBuilder.new(@user)
   examples = few_shot_builder.build_examples
 
-  session = @user.chat_for(:classification)
+  session = @user.ai_session_for(:classification)
   chat = session.chat_instance
 
   # Добавить few-shot примеры в контекст
@@ -1651,7 +1651,7 @@ end
 **Приоритет 1:** Внедрить AI Sessions с acts_as_chat
 
 - [ ] Установить ruby_llm Rails integration
-- [ ] Создать модель Chat с acts_as_chat
+- [ ] Создать модель AISession с acts_as_chat
 - [ ] Обновить User модель для управления сессиями
 - [ ] Создать SessionManager сервис
 
@@ -1663,7 +1663,7 @@ end
 
 **Приоритет 3:** Внедрить персонализацию через историю
 
-- [ ] Связать Feedback с Chat
+- [ ] Связать Feedback с AISession
 - [ ] Реализовать Few-Shot Builder
 - [ ] Создать Context Builder для построения персонального контекста
 - [ ] Обновить AIClassifier для использования контекста из истории
