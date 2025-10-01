@@ -6,18 +6,18 @@
 
 #### 1.1.1. Database Setup
 - [ ] Создать миграции для основных таблиц
-  - [ ] `users` (telegram_id, username, delivery_frequency, content_format, filter_strictness, timezone)
+  - [ ] `telegram_users` (id, username, delivery_frequency, content_format, filter_strictness, timezone)
   - [ ] `channels` (telegram_id, username, title, description, subscribers_count)
-  - [ ] `subscriptions` (user_id, channel_id, priority, active)
+  - [ ] `subscriptions` (telegram_user_id, channel_id, priority, active)
   - [ ] `posts` (channel_id, telegram_message_id, text, media_urls, published_at, is_important, importance_score, is_ad, is_duplicate_of)
-  - [ ] `digests` (user_id, status, scheduled_for, sent_at, posts_analyzed_count, posts_included_count)
+  - [ ] `digests` (telegram_user_id, status, scheduled_for, sent_at, posts_analyzed_count, posts_included_count)
   - [ ] `digest_items` (digest_id, post_id, position)
 - [ ] Добавить индексы
-  - [ ] `index_users_on_telegram_id` (unique)
+  - [ ] `index_telegram_users_on_username` (unique)
   - [ ] `index_channels_on_telegram_id` (unique)
   - [ ] `index_posts_on_channel_id_and_published_at`
   - [ ] `index_posts_on_is_important`
-  - [ ] `index_subscriptions_on_user_id_and_channel_id` (unique)
+  - [ ] `index_subscriptions_on_telegram_user_id_and_channel_id` (unique)
 - [ ] Запустить миграции
 
 #### 1.1.2. Telegram Bot Setup
@@ -43,14 +43,14 @@
 
 ### 1.2. Модели и базовая валидация
 
-#### 1.2.1. User Model
-- [ ] Создать `app/models/user.rb`
+#### 1.2.1. TelegramUser Model
+- [ ] Создать `app/models/telegram_user.rb`
 - [ ] Добавить enum для `delivery_frequency`
 - [ ] Добавить enum для `content_format`
 - [ ] Добавить enum для `filter_strictness`
 - [ ] Добавить associations (has_many :subscriptions, :digests)
 - [ ] Добавить validations
-- [ ] Добавить scopes (active_users, by_delivery_time)
+- [ ] Добавить scopes (active_telegram_users, by_delivery_time)
 - [ ] Написать unit тесты
 
 #### 1.2.2. Channel Model
@@ -139,22 +139,22 @@
 #### 1.4.1. Chat Model Extension
 - [x] Установить ruby_llm Rails integration: `rails generate ruby_llm:install`
 - [ ] Расширить существующую таблицу `chats`
-  - [ ] Добавить `user_id` (foreign key)
+  - [ ] Добавить `telegram_user_id` (foreign key)
   - [ ] Добавить `session_type` (enum: classification, summarization, personalization, digest_generation)
   - [ ] Добавить `status` (enum: active, archived)
   - [ ] Добавить `metadata` (jsonb для хранения контекста сессии)
 - [ ] Обновить модель `Chat` (уже использует `acts_as_chat`)
-  - [ ] Добавить связь `belongs_to :user`
+  - [ ] Добавить связь `belongs_to :telegram_user`
   - [ ] Добавить enum для session_type и status
   - [ ] Добавить store_accessor для metadata
 - [ ] Добавить индексы:
-  - [ ] `index_chats_on_user_id_and_session_type_and_status`
+  - [ ] `index_chats_on_telegram_user_id_and_session_type_and_status`
   - [ ] `index_chats_on_session_type`
   - [ ] `index_chats_on_status`
 - [ ] Написать unit тесты для расширенной модели Chat
 
-#### 1.4.2. User Model Updates для Chat
-- [ ] Добавить `has_many :chats` в User модель
+#### 1.4.2. TelegramUser Model Updates для Chat
+- [ ] Добавить `has_many :chats` в TelegramUser модель
 - [ ] Реализовать `chat_for(type)` - получить или создать чат
 - [ ] Реализовать `build_initial_context` - построить начальный контекст
 - [ ] Реализовать `recent_feedback_summary` - сводка последнего фидбека
@@ -322,10 +322,10 @@
 
 #### 1.6.7. PostClassification Model (персональная классификация)
 - [ ] Создать `app/models/post_classification.rb`
-- [ ] Добавить belongs_to :post, :user, :chat
+- [ ] Добавить belongs_to :post, :telegram_user, :chat
 - [ ] Добавить поля: importance_score, is_relevant, reasoning, confidence
-- [ ] Реализовать `for_user_with_context(user, post)` - классификация с контекстом
-- [ ] Добавить индексы на user_id + post_id
+- [ ] Реализовать `for_telegram_user_with_context(telegram_user, post)` - классификация с контекстом
+- [ ] Добавить индексы на telegram_user_id + post_id
 - [ ] Написать unit тесты
 
 #### 1.6.8. Integration Tests
@@ -468,11 +468,11 @@
 
 #### 2.2.1. Feedback Model
 - [ ] Создать `app/models/feedback.rb`
-- [ ] Добавить belongs_to :user, :post
+- [ ] Добавить belongs_to :telegram_user, :post
 - [ ] Добавить enum sentiment: { dislike: -1, neutral: 0, like: 1 }
 - [ ] Добавить after_create callback для обновления AI Session
 - [ ] Реализовать метод `update_personalization_session`
-- [ ] Добавить индексы на user_id, post_id, created_at
+- [ ] Добавить индексы на telegram_user_id, post_id, created_at
 - [ ] Написать unit тесты
 
 #### 2.2.2. Feedback Controller (Telegram Bot)

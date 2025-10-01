@@ -1282,7 +1282,7 @@ module Telegram
 
     def current_user
       @current_user ||= TelegramUser.find_or_create_by(
-        telegram_id: from['id']
+        id: from['id']
       ) do |user|
         user.username = from['username']
         user.first_name = from['first_name']

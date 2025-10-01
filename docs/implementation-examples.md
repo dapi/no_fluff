@@ -9,7 +9,7 @@
 ```ruby
 # app/models/chat.rb
 class Chat < ApplicationRecord
-  belongs_to :user
+  belongs_to :telegram_user
   has_many :messages, dependent: :destroy
 
   # Интеграция с ruby_llm для автоматического сохранения истории
@@ -149,7 +149,7 @@ end
 class CreateChats < ActiveRecord::Migration[8.0]
   def change
     create_table :chats do |t|
-      t.references :user, null: false, foreign_key: true, index: true
+      t.references :telegram_user, null: false, foreign_key: true, index: true
       t.integer :session_type, null: false, default: 0
       t.integer :status, null: false, default: 0
       t.jsonb :context, default: {}
@@ -159,7 +159,7 @@ class CreateChats < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :chats, [:user_id, :session_type]
+    add_index :chats, [:telegram_user_id, :session_type]
     add_index :chats, :status
     add_index :chats, :last_activity_at
     add_index :chats, :context, using: :gin
@@ -169,11 +169,11 @@ end
 
 ---
 
-## 2. Обновленная модель User
+## 2. Обновленная модель TelegramUser
 
 ```ruby
-# app/models/user.rb
-class User < ApplicationRecord
+# app/models/telegram_user.rb
+class TelegramUser < ApplicationRecord
   has_many :subscriptions, dependent: :destroy
   has_many :channels, through: :subscriptions
   has_many :digests, dependent: :destroy
@@ -208,7 +208,7 @@ class User < ApplicationRecord
     adaptive: 4
   }
 
-  validates :telegram_id, presence: true, uniqueness: true
+  validates :username, uniqueness: { allow_blank: true }
 
   # 🆕 Получить или создать активную сессию определенного типа
   def chat_for(type)
@@ -824,7 +824,7 @@ end
 ```ruby
 # app/models/feedback.rb
 class Feedback < ApplicationRecord
-  belongs_to :user
+  belongs_to :telegram_user
   belongs_to :post
 
   enum sentiment: { dislike: -1, neutral: 0, like: 1 }
@@ -856,7 +856,7 @@ class PersonalizationUpdateJob < ApplicationJob
   queue_as :default
 
   def perform(user_id, feedback_id)
-    user = User.find(user_id)
+    user = TelegramUser.find(user_id)
     feedback = Feedback.find(feedback_id)
 
     session_manager = AI::SessionManager.new(user, :personalization)
@@ -1017,7 +1017,7 @@ end
 # Использование в Telegram Bot
 def send_digest_with_progress(user, posts)
   message_id = telegram.send_message(
-    user.telegram_id,
+    user.id,
     "Генерирую дайджест из #{posts.count} постов..."
   )
 
@@ -1029,12 +1029,12 @@ def send_digest_with_progress(user, posts)
 
     # Обновлять сообщение каждые 10 чанков
     if update_counter % 10 == 0
-      telegram.edit_message(user.telegram_id, message_id, partial_text)
+      telegram.edit_message(user.id, message_id, partial_text)
     end
   end
 
   # Финальное обновление
-  telegram.edit_message(user.telegram_id, message_id, digest_text)
+  telegram.edit_message(user.id, message_id, digest_text)
 end
 ```
 

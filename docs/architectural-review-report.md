@@ -384,7 +384,7 @@ end
 #### 2.2.3. Обновление модели User
 
 ```ruby
-class User < ApplicationRecord
+class TelegramUser < ApplicationRecord
   has_many :chats, dependent: :destroy  # Используем существующие модели
   has_many :messages, through: :chats
   has_many :feedbacks, dependent: :destroy
@@ -534,7 +534,7 @@ end
 # app/jobs/personalization_update_job.rb
 class PersonalizationUpdateJob < ApplicationJob
   def perform(user_id, feedback_id)
-    user = User.find(user_id)
+    user = TelegramUser.find(user_id)
     feedback = Feedback.find(feedback_id)
 
     session = user.chat_for(:personalization)
@@ -889,7 +889,7 @@ class Content::AIClassifier
 end
 
 # При обновлении настроек пользователя - автоматически инвалидируется кеш
-class User < ApplicationRecord
+class TelegramUser < ApplicationRecord
   after_update :touch  # Обновляет updated_at, что меняет cache_key_with_version
 end
 ```
@@ -1611,11 +1611,11 @@ module Personalization
         .flatten
         .tally
 
-      similar_users = User.joins(feedbacks: :post)
+      similar_users = TelegramUser.joins(feedbacks: :post)
         .where.not(id: @user.id)
-        .select('users.*, COUNT(*) as similarity_score')
+        .select('telegram_users.*, COUNT(*) as similarity_score')
         .where('posts.topics && ARRAY[?]::varchar[]', user_topic_preferences.keys)
-        .group('users.id')
+        .group('telegram_users.id')
         .order('similarity_score DESC')
         .limit(10)
 

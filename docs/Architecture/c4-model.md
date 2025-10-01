@@ -132,7 +132,7 @@ C4Component
     Component(analytics, "Analytics Service", "Service Object", "Собирает статистику и метрики")
     Component(personalization, "Personalization Service", "Service Object", "Обучается на лайках/дизлайках пользователя")
 
-    Component(models, "Active Record Models", "Models", "User, Channel, Post, Subscription, Digest, Feedback")
+    Component(models, "Active Record Models", "Models", "TelegramUser, Channel, Post, Subscription, Digest, Feedback")
 
     Rel(telegram, webhook_controller, "Webhook updates", "HTTPS")
     Rel(webhook_controller, bot_commands, "Маршрутизирует команды")
@@ -318,7 +318,7 @@ app/
 │   └── analytics/
 │       └── collect_metrics_job.rb
 ├── models/
-│   ├── user.rb
+│   ├── telegram_user.rb
 │   ├── channel.rb
 │   ├── subscription.rb
 │   ├── post.rb
@@ -340,14 +340,15 @@ app/
 
 ### Ключевые модели данных:
 
-#### User
+#### TelegramUser
 ```ruby
-class User < ApplicationRecord
+class TelegramUser < ApplicationRecord
   has_many :subscriptions, dependent: :destroy
   has_many :channels, through: :subscriptions
-  has_many :digests
-  has_many :feedbacks
-  has_one :user_preference
+  has_many :digests, dependent: :destroy
+  has_many :feedbacks, dependent: :destroy
+  has_one :user_preference, dependent: :destroy
+  has_many :chats, dependent: :destroy
 
   # Настройки
   enum delivery_frequency: {
@@ -375,6 +376,10 @@ class User < ApplicationRecord
     low: 3,
     adaptive: 4
   }
+
+  # Валидации
+  validates :username, uniqueness: { allow_blank: true }
+  validates :language_code, presence: true
 end
 ```
 
@@ -382,7 +387,7 @@ end
 ```ruby
 class Channel < ApplicationRecord
   has_many :subscriptions
-  has_many :users, through: :subscriptions
+  has_many :telegram_users, through: :subscriptions
   has_many :posts
 
   validates :telegram_id, presence: true, uniqueness: true
@@ -393,7 +398,7 @@ end
 #### Subscription
 ```ruby
 class Subscription < ApplicationRecord
-  belongs_to :user
+  belongs_to :telegram_user
   belongs_to :channel
 
   # Приоритет канала для пользователя
@@ -425,7 +430,7 @@ end
 ```ruby
 class PostClassification < ApplicationRecord
   belongs_to :post
-  belongs_to :user
+  belongs_to :telegram_user
 
   # Персональная классификация для пользователя
   # importance_score, is_relevant, classification_reason
@@ -435,7 +440,7 @@ end
 #### Digest
 ```ruby
 class Digest < ApplicationRecord
-  belongs_to :user
+  belongs_to :telegram_user
   has_many :digest_items
   has_many :posts, through: :digest_items
 
@@ -448,7 +453,7 @@ end
 #### Feedback
 ```ruby
 class Feedback < ApplicationRecord
-  belongs_to :user
+  belongs_to :telegram_user
   belongs_to :post
 
   enum sentiment: { dislike: -1, neutral: 0, like: 1 }
