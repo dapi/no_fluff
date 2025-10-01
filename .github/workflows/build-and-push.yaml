@@ -1,0 +1,122 @@
+name: Build And Push Image
+on:
+  pull_request:
+    branches: '*'
+
+  release:
+    types: [ published ]
+
+  # Вызвал пользователь
+  workflow_dispatch:
+    inputs:
+      registry:
+        type: string
+      image-name:
+        type: string
+      dockerfile:
+        type: string
+        default: Dockerfile
+
+  # Вызвали из другого пайплайна
+  workflow_call:
+    inputs:
+      registry:
+        type: string
+      image-name:
+        type: string
+      dockerfile:
+        type: string
+        default: Dockerfile
+
+env:
+  PIPELINE_VERSION: v0.1
+  DEFAULT_REGISTRY: ghcr.io
+  INFRA_REPO: git@github.com:brandymint/infra.git
+  WORKFLOW: deploy-app.yml
+  STAGE: default
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build And Push Docker Image
+    outputs:
+      version: ${{ steps.version.outputs.tag }}
+    permissions:
+      deployments: write
+      id-token: write
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+      - name: Setup vars
+        id: vars
+        shell: bash
+        run: |
+          echo registry=${{ inputs.registry || env.DEFAULT_REGISTRY }} >> $GITHUB_OUTPUT
+          echo image-name=${{ inputs.image-name || github.repository }} | tr . - >> $GITHUB_OUTPUT
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ steps.vars.outputs.registry }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.vars.outputs.registry }}/${{ steps.vars.outputs.image-name }}
+          flavor: |
+            latest=auto
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
+
+      - name: Build and push Docker production image
+        uses: docker/build-push-action@v6
+        id: build
+        with:
+          context: .
+          file: ${{ inputs.dockerfile }}
+          # Пока всегда пушаем
+          push: true # ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          build-args: |
+            PIPELINE_VERSION=${{ github.ref_name }}-${{ github.sha }}
+
+      - name: Expose image version
+        id: version
+        run: echo "tag=$DOCKER_METADATA_OUTPUT_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Scan for vulnerabilities
+        uses: crazy-max/ghaction-container-scan@v3
+        id: scan
+        with:
+          image: ${{ steps.build.outputs.imageid }}
+          dockerfile: ${{ inputs.dockerfile || 'Dockerfile' }}
+
+          # Не включаем пока не поправят все уязвимости. После того как включим пеервести на build, scan, push
+          # https://github.com/crazy-max/ghaction-container-scan?tab=readme-ov-file#build-scan-and-push-your-image
+          # severity_threshold: HIGH
+          annotations: true
+
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v5
+      - run: |
+          gh --repo ${{ env.INFRA_REPO }} workflow run ${{ env.WORKFLOW }} -F tag=${{ needs.build.outputs.version }} -F app=${{ github.event.repository.name }} -F stage=${{ env.STAGE }}
+          runId=$(gh --repo ${{ env.INFRA_REPO }} run list --workflow=${{ env.WORKFLOW }} --limit 1 --json databaseId -q '.[].databaseId')
+          gh --repo ${{ env.INFRA_REPO }} run watch --exit-status ${runId}
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
