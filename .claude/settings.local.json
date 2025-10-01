@@ -24,7 +24,9 @@
       "Bash(remove_channel)",
       "Bash(confirm_remove)",
       "Bash(my_subscriptions/)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(ruby:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

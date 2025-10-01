@@ -849,4 +849,203 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     edit_params = edit_params.first
     assert_includes edit_params[:text], 'Мои подписки'
   end
+
+  # Тесты команды /remove
+
+  test "remove command without arguments shows prompt" do
+    user_data = {
+      'id' => 123456,
+      'username' => 'testuser',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 19,
+      'message' => {
+        'message_id' => 25,
+        'from' => user_data,
+        'chat' => { 'id' => 123456, 'type' => 'private' },
+        'text' => '/remove'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    method, params = @bot.requests.first
+    params = params.first
+
+    assert_equal :sendMessage, method
+    assert_includes params[:text], 'Отправь мне username или ссылку'
+    assert_includes params[:text], 'для удаления'
+  end
+
+  test "remove command with invalid format returns error" do
+    user_data = {
+      'id' => 123456,
+      'username' => 'testuser',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 20,
+      'message' => {
+        'message_id' => 26,
+        'from' => user_data,
+        'chat' => { 'id' => 123456, 'type' => 'private' },
+        'text' => '/remove invalid!'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    method, params = @bot.requests.first
+    params = params.first
+
+    assert_equal :sendMessage, method
+    assert_includes params[:text], 'Неверный формат'
+  end
+
+  test "remove command with non-existent channel returns error" do
+    user_data = {
+      'id' => 123456,
+      'username' => 'testuser',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 21,
+      'message' => {
+        'message_id' => 27,
+        'from' => user_data,
+        'chat' => { 'id' => 123456, 'type' => 'private' },
+        'text' => '/remove @nonexistentchannel'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    method, params = @bot.requests.first
+    params = params.first
+
+    assert_equal :sendMessage, method
+    assert_includes params[:text], 'не найден в твоих подписках'
+  end
+
+  test "remove command with subscribed channel successfully removes it" do
+    # Создаем тестового пользователя и подписку
+    user = TelegramUser.create!(
+      username: 'testuser_remove_cmd',
+      first_name: 'Test',
+      language_code: 'ru',
+      timezone: 'UTC'
+    )
+
+    channel = Channel.create!(
+      telegram_id: 2001,
+      username: 'testchannel_remove_cmd',
+      title: 'Test Channel Remove Cmd'
+    )
+
+    subscription = Subscription.create!(
+      telegram_user: user,
+      channel: channel,
+      priority: 5,
+      active: true
+    )
+
+    user_data = {
+      'id' => 123462,
+      'username' => 'testuser_remove_cmd',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 22,
+      'message' => {
+        'message_id' => 28,
+        'from' => user_data,
+        'chat' => { 'id' => 123462, 'type' => 'private' },
+        'text' => '/remove @testchannel_remove_cmd'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    method, params = @bot.requests.first
+    params = params.first
+
+    assert_equal :sendMessage, method
+    assert_includes params[:text], 'Канал @testchannel_remove_cmd удалён'
+    assert_includes params[:text], 'Всего каналов: 0'
+
+    # Проверяем что подписка деактивирована
+    subscription.reload
+    assert_not subscription.active
+  end
+
+  test "remove command with t.me link successfully removes channel" do
+    # Создаем тестового пользователя и подписку
+    user = TelegramUser.create!(
+      username: 'testuser_remove_link',
+      first_name: 'Test',
+      language_code: 'ru',
+      timezone: 'UTC'
+    )
+
+    channel = Channel.create!(
+      telegram_id: 2002,
+      username: 'testchannel_remove_link',
+      title: 'Test Channel Remove Link'
+    )
+
+    subscription = Subscription.create!(
+      telegram_user: user,
+      channel: channel,
+      priority: 5,
+      active: true
+    )
+
+    user_data = {
+      'id' => 123463,
+      'username' => 'testuser_remove_link',
+      'first_name' => 'Test'
+    }
+
+    update = {
+      'update_id' => 23,
+      'message' => {
+        'message_id' => 29,
+        'from' => user_data,
+        'chat' => { 'id' => 123463, 'type' => 'private' },
+        'text' => '/remove t.me/testchannel_remove_link'
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+
+    assert_response :success
+
+    method, params = @bot.requests.first
+    params = params.first
+
+    assert_equal :sendMessage, method
+    assert_includes params[:text], 'Канал @testchannel_remove_link удалён'
+
+    # Проверяем что подписка деактивирована
+    subscription.reload
+    assert_not subscription.active
+  end
 end

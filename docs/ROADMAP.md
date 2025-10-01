@@ -114,10 +114,10 @@
 - [x] Написать integration тесты
 
 #### 1.3.4. Remove Channel Command
-- [ ] Реализовать `/remove @channelname` команду
-- [ ] Удалить подписку из БД
-- [ ] Добавить подтверждение действия
-- [ ] Написать integration тесты
+- [x] Реализовать `/remove @channelname` команду
+- [x] Удалить подписку из БД
+- [x] Добавить подтверждение действия (реализовано через callback queries)
+- [x] Написать integration тесты
 
 #### 1.3.5. Settings Command
 - [ ] Создать `app/controllers/telegram/commands/settings_controller.rb`

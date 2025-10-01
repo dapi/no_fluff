@@ -123,4 +123,99 @@ class Telegram::ChannelServiceTest < ActiveSupport::TestCase
     # Ошибка будет, но не из-за лимита
     assert_not_includes result[:message], 'лимит' if result[:message]
   end
+
+  # Тесты remove_channel_for_user
+
+  test "remove_channel_for_user returns error for invalid format" do
+    result = @service.remove_channel_for_user(@user, 'invalid!')
+
+    assert_not result[:success]
+    assert_includes result[:message], 'Неверный формат'
+  end
+
+  test "remove_channel_for_user returns error for non-existent channel" do
+    result = @service.remove_channel_for_user(@user, '@nonexistent')
+
+    assert_not result[:success]
+    assert_includes result[:message], 'не найден в твоих подписках'
+  end
+
+  test "remove_channel_for_user returns error for non-subscribed channel" do
+    # Создаем канал, но не подписываем пользователя
+    channel = Channel.create!(
+      telegram_id: 3001,
+      username: 'testchannel_not_subscribed',
+      title: 'Test Channel Not Subscribed'
+    )
+
+    result = @service.remove_channel_for_user(@user, '@testchannel_not_subscribed')
+
+    assert_not result[:success]
+    assert_includes result[:message], 'не подписан на канал'
+  end
+
+  test "remove_channel_for_user successfully removes subscribed channel" do
+    # Создаем канал и подписку
+    channel = Channel.create!(
+      telegram_id: 3002,
+      username: 'testchannel_subscribed',
+      title: 'Test Channel Subscribed'
+    )
+
+    subscription = Subscription.create!(
+      telegram_user: @user,
+      channel: channel,
+      priority: 5,
+      active: true
+    )
+
+    result = @service.remove_channel_for_user(@user, '@testchannel_subscribed')
+
+    assert result[:success]
+    assert_includes result[:message], 'Канал @testchannel_subscribed удалён'
+    assert_includes result[:message], 'Всего каналов: 0'
+    assert_equal channel, result[:channel]
+
+    # Проверяем что подписка деактивирована
+    subscription.reload
+    assert_not subscription.active
+  end
+
+  test "remove_channel_for_user works with different username formats" do
+    # Создаем канал и подписку
+    channel = Channel.create!(
+      telegram_id: 3003,
+      username: 'testchannel_formats',
+      title: 'Test Channel Formats'
+    )
+
+    subscription = Subscription.create!(
+      telegram_user: @user,
+      channel: channel,
+      priority: 5,
+      active: true
+    )
+
+    # Тестируем разные форматы
+    formats = ['@testchannel_formats', 'testchannel_formats', 't.me/testchannel_formats', 'https://t.me/testchannel_formats']
+
+    formats.each_with_index do |format, i|
+      # Создаем новую подписку для каждого формата
+      subscription = Subscription.create!(
+        telegram_user: @user,
+        channel: channel,
+        priority: 5,
+        active: true
+      )
+
+      result = @service.remove_channel_for_user(@user, format)
+
+      assert result[:success], "Failed for format: #{format}"
+      assert_includes result[:message], '@testchannel_formats удалён'
+
+      # Проверяем деактивацию
+      subscription.reload
+      assert_not subscription.active
+    end
+  end
 end

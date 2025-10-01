@@ -43,6 +43,20 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
     end
   end
 
+  # Команда /remove - удаление канала
+  def remove!(*args)
+    find_or_create_user
+
+    # Если передан username канала сразу в команде: /remove @channelname
+    if args.any?
+      channel_input = args.join(' ')
+      remove_channel(channel_input)
+    else
+      # Показываем инструкцию
+      respond_with :message, text: I18n.t('telegram_bot.channels.remove.prompt')
+    end
+  end
+
   # Callback query: начать онбординг
   def start_onboarding_callback_query(*)
     answer_callback_query('')
@@ -92,7 +106,55 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
     respond_with :message, text: result[:message]
   end
 
-  
+  # Удаляет канал для текущего пользователя
+  def remove_channel(channel_input)
+    # Парсим username канала
+    username = channel_input.to_s.strip
+
+    # Убираем @ в начале если есть
+    username = username[1..-1] if username.start_with?('@')
+
+    # Извлекаем username из URL если нужно
+    if username.match?(%r{^https?://t\.me/})
+      username = username.match(%r{^https?://t\.me/([a-zA-Z0-9_]+)})&.[](1)
+    elsif username.match?(%r{^t\.me/})
+      username = username.match(%r{^t\.me/([a-zA-Z0-9_]+)})&.[](1)
+    end
+
+    if username.blank? || !username.match?(/\A[a-zA-Z0-9_]{5,32}\z/)
+      respond_with :message, text: I18n.t('telegram_bot.channels.remove.invalid_format')
+      return
+    end
+
+    # Ищем канал в БД
+    channel = Channel.find_by("username ILIKE ?", username)
+
+    unless channel
+      respond_with :message, text: I18n.t('telegram_bot.channels.remove.not_found', channel: "@#{username}")
+      return
+    end
+
+    # Ищем активную подписку
+    subscription = current_user.subscriptions.active.find_by(channel: channel)
+
+    unless subscription
+      respond_with :message, text: I18n.t('telegram_bot.channels.remove.not_subscribed', channel: "@#{channel.username}")
+      return
+    end
+
+    # Деактивируем подписку
+    subscription.deactivate!
+
+    respond_with :message, text: I18n.t('telegram_bot.channels.remove.success',
+                                           channel: "@#{channel.username}",
+                                           count: current_user.subscriptions.active.count)
+  rescue StandardError => e
+    Rails.logger.error "Error removing channel: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+    respond_with :message, text: I18n.t('telegram_bot.channels.remove.error', error: e.message)
+  end
+
+
   # Inline клавиатура для команды /start
   def start_keyboard
     kb = [

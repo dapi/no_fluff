@@ -65,6 +65,7 @@ ru:
 
         /start — начать заново
         /add — добавить каналы
+        /remove — удалить каналы
         /list — мои каналы
         /settings — настройки
         /digest — показать дайджест сейчас
@@ -91,6 +92,24 @@ ru:
         invalid_format: "❌ Неверный формат. Отправь username канала (@channelname) или ссылку (t.me/channelname)"
         error: "❌ Ошибка при добавлении канала: %{error}"
         limit_reached: "❌ Достигнут лимит каналов (%{limit}). Обновись до Premium для безлимита!"
+
+      remove:
+        prompt: |
+          📢 Отправь мне username или ссылку на канал для удаления.
+
+          Можешь отправить:
+          • Username: @channelname
+          • Ссылку: t.me/channelname или https://t.me/channelname
+
+          Например:
+          @habr_com
+          t.me/dev_channel
+          https://t.me/tech_news
+        success: "✅ Канал %{channel} удалён!\n\nВсего каналов: %{count}"
+        not_found: "❌ Канал %{channel} не найден в твоих подписках"
+        not_subscribed: "ℹ️ Ты не подписан на канал %{channel}"
+        invalid_format: "❌ Неверный формат. Отправь username канала (@channelname) или ссылку (t.me/channelname)"
+        error: "❌ Ошибка при удалении канала: %{error}"
 
       list:
         title: "📋 Мои подписки"
