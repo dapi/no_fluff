@@ -17,7 +17,20 @@ default: &default
   encoding: unicode
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+  <% if ENV.key?('NO_FLUFF_DATABASE_HOST') %>
+  host: <%= ENV.fetch('NO_FLUFF_DATABASE_HOST') %>
+  <% end %>
+  <% if ENV.key?('NO_FLUFF_DATABASE_PORT') %>
+  port: <%= ENV['NO_FLUFF_DATABASE_PORT'] %>
+  <% end %>
+  <% if ENV.key?('NO_FLUFF_DATABASE_URL') %>
+  url: <%= ENV['NO_FLUFF_DATABASE_URL'] %>
+  <% end %>
+  <% if ENV.key?('NO_FLUFF_DATABASE_USERNAME') %>
+  username: <%= ENV['NO_FLUFF_DATABASE_USERNAME'] %>
+  <% end %>
 
 
 development:
