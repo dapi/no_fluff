@@ -17,7 +17,9 @@
       "Bash(./bin/rake test:models)",
       "Bash(RAILS_ENV=test ./bin/rails db:migrate:status)",
       "Bash(./bin/rake)",
-      "Bash(./bin/rake -T)"
+      "Bash(./bin/rake -T)",
+      "Bash(RAILS_ENV=development ./bin/rails routes)",
+      "Bash(bundle install:*)"
     ],
     "deny": [],
     "ask": []

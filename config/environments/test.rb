@@ -51,3 +51,8 @@ Rails.application.configure do
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
 end
+
+# Конфигурация Telegram Bot для тестов
+# Важно: выполнить ДО определения маршрутов!
+Telegram.reset_bots
+Telegram::Bot::ClientStub.stub_all!

@@ -44,60 +44,60 @@
 
 #### 1.2.1. TelegramUser Model
 - [x] Создать `app/models/telegram_user.rb`
-- [ ] Добавить enum для `delivery_frequency`
-- [ ] Добавить enum для `content_format`
-- [ ] Добавить enum для `filter_strictness`
-- [ ] Добавить associations (has_many :subscriptions, :user_digests)
-- [ ] Добавить validations
-- [ ] Добавить scopes (active_telegram_users, by_delivery_time)
-- [ ] Написать unit тесты
+- [x] Добавить enum для `delivery_frequency`
+- [x] Добавить enum для `content_format`
+- [x] Добавить enum для `filter_strictness`
+- [x] Добавить associations (has_many :subscriptions, :user_digests)
+- [x] Добавить validations
+- [x] Добавить scopes (active_telegram_users, by_delivery_time)
+- [x] Написать unit тесты
 
 #### 1.2.2. Channel Model
 - [x] Создать `app/models/channel.rb`
-- [ ] Добавить associations (has_many :subscriptions, :posts)
-- [ ] Добавить validations (telegram_id uniqueness)
-- [ ] Добавить scopes (active_channels, by_subscribers)
-- [ ] Добавить методы для работы с Telegram API
-- [ ] Написать unit тесты
+- [x] Добавить associations (has_many :subscriptions, :posts)
+- [x] Добавить validations (telegram_id uniqueness)
+- [x] Добавить scopes (active_channels, by_subscribers)
+- [x] Добавить методы для работы с Telegram API
+- [x] Написать unit тесты
 
 #### 1.2.3. Subscription Model
 - [x] Создать `app/models/subscription.rb`
 - [x] Добавить associations (belongs_to :telegram_user, :channel)
-- [ ] Добавить validations (uniqueness, priority range)
-- [ ] Добавить scopes (active, by_priority)
-- [ ] Написать unit тесты
+- [x] Добавить validations (uniqueness, priority range)
+- [x] Добавить scopes (active, by_priority)
+- [x] Написать unit тесты
 
 #### 1.2.4. Post Model
 - [x] Создать `app/models/post.rb`
 - [x] Добавить associations (belongs_to :channel)
-- [ ] Добавить validations
-- [ ] Добавить scopes (important, not_ads, unique, recent)
-- [ ] Добавить методы для работы с метаданными
-- [ ] Написать unit тесты
+- [x] Добавить validations
+- [x] Добавить scopes (important, not_ads, unique, recent)
+- [x] Добавить методы для работы с метаданными
+- [x] Написать unit тесты
 
 #### 1.2.5. UserDigest Model (renamed from Digest)
 - [x] Создать `app/models/user_digest.rb`
-- [ ] Добавить enum для `status`
-- [ ] Добавить associations (belongs_to :telegram_user, has_many :user_digest_items, has_many :posts through: :user_digest_items)
-- [ ] Добавить validations
-- [ ] Добавить scopes (pending, sent, failed)
-- [ ] Написать unit тесты
+- [x] Добавить enum для `status`
+- [x] Добавить associations (belongs_to :telegram_user, has_many :user_digest_items, has_many :posts through: :user_digest_items)
+- [x] Добавить validations
+- [x] Добавить scopes (pending, sent, failed)
+- [x] Написать unit тесты
 
 #### 1.2.6. UserDigestItem Model (renamed from DigestItem)
 - [x] Создать `app/models/user_digest_item.rb`
-- [ ] Добавить associations (belongs_to :user_digest, :post)
-- [ ] Добавить validations
-- [ ] Написать unit тесты
+- [x] Добавить associations (belongs_to :user_digest, :post)
+- [x] Добавить validations
+- [x] Написать unit тесты
 
 ### 1.3. Базовый онбординг (Bot Commands)
 
 #### 1.3.1. Start Command
-- [ ] Создать `app/controllers/telegram/commands/start_controller.rb`
-- [ ] Реализовать приветственное сообщение
-- [ ] Реализовать создание пользователя в БД
-- [ ] Добавить краткую инструкцию по использованию
-- [ ] Добавить inline кнопки для быстрого старта
-- [ ] Написать integration тесты
+- [x] Создать `app/controllers/telegram_webhook_controller.rb` (используем единый контроллер вместо отдельных)
+- [x] Реализовать приветственное сообщение
+- [x] Реализовать создание пользователя в БД
+- [x] Добавить краткую инструкцию по использованию
+- [x] Добавить inline кнопки для быстрого старта
+- [x] Написать integration тесты
 
 #### 1.3.2. Add Channel Command
 - [ ] Создать `app/controllers/telegram/commands/channel_controller.rb`
