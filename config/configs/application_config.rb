@@ -10,7 +10,46 @@ class ApplicationConfig < Anyway::Config
               :openai_api_key,
               :deepseek_api_key
 
-  attr_config llm_default_model: "deepseek-chat"
+  attr_config llm_default_model: "deepseek-chat",
+    host: "localhost",
+    protocol: "https",
+    public_port: "443"
+
+  def home_url
+    if home_subdomain.present?
+      "#{protocol}://#{home_subdomain}.#{host}:#{port_suffix}"
+    else
+      "#{protocol}://#{host}#{port_suffix}"
+    end
+  end
+
+  def port_suffix
+    return if public_port.blank?
+    return if public_port.to_s == "80" && protocol == "http"
+    return if public_port.to_s == "443" && protocol == "https"
+
+    ":#{public_port}"
+  end
+
+  def telegram_bot_url
+    TELEGRAM_LINK_PREFIX + telegram_bot_username
+  end
+
+  def telegram_bot_id
+    telegram_bot_token.split(":").first
+  end
+
+  def default_url_options
+    options = { host:, protocol: }
+    unless (public_port.to_s == "80" && protocol == "http") || (public_port.to_s == "443" && protocol == "https")
+      options.merge! port: public_port
+    end
+    options
+  end
+
+  def telegram_bot_link
+    "https://t.me/#{bot_username}"
+  end
 
   class << self
     # Make it possible to access a singleton config instance
