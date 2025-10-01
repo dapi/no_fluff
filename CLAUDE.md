@@ -6,6 +6,8 @@
 При добавлении текстов в ответ бота сохраняй их в `./config/locales` и используй
 от туда через `I18n.t`
 
+Мы не используем переменные окружения напрямую (ENV), доставай значения через ApplicationConfig
+
 Перед тем как отвечать на вопросы касающиеся продукта изучи ./docs/Product
 
 ## Структура документации
@@ -26,11 +28,6 @@
 - ./docs/Other - прочая документация
 - ./docs/Hidden - скрытая документация
 - ./docs/ROADMAP.md - дорожная карта проекта
-- ./docs/architectural-review-report.md - отчет по архитектурному ревью
-- ./docs/architecture-review-merged.md - объединенный архитектурный ревью
-- ./docs/implementation-examples.md - примеры реализации
-- ./docs/documentation-correction-plan.md - план корректировки документации
-- ./docs/documentation-correction-summary.md - итоги корректировки документации
 
 Модели и новые таблицы создаем через `rails g model` а не через прямое создание
 миграций.

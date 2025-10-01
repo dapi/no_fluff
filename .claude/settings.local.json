@@ -16,7 +16,8 @@
       "Bash(./bin/rails:*)",
       "Bash(./bin/rake test:models)",
       "Bash(RAILS_ENV=test ./bin/rails db:migrate:status)",
-      "Bash(./bin/rake)"
+      "Bash(./bin/rake)",
+      "Bash(./bin/rake -T)"
     ],
     "deny": [],
     "ask": []

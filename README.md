@@ -14,5 +14,47 @@
 2. Создается социальная сеть через которую продвигаются интересные каналы на
    схожую тематику.
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+## Переменные окружения
+
+Все переменные окружения имеют префикс `NO_FLUFF_`.
+
+### Telegram Bot
+
+| Переменная | Описание | Обязательная | Пример |
+|------------|----------|--------------|--------|
+| `NO_FLUFF_TELEGRAM_BOT_TOKEN` | API токен Telegram бота от [@BotFather](https://t.me/botfather) | ✅ | `1234567890:ABCdefGHIjklMNOpqrsTUVwxyz` |
+| `NO_FLUFF_TELEGRAM_BOT_USERNAME` | Username бота (без @) | ✅ | `bez_sheluhi_bot` |
+
+### AI / LLM
+
+| Переменная | Описание | Обязательная | Пример |
+|------------|----------|--------------|--------|
+| `NO_FLUFF_OPENAI_API_KEY` | API ключ OpenAI | ❌ | `sk-...` |
+| `NO_FLUFF_DEEPSEEK_API_KEY` | API ключ DeepSeek | ❌* | `sk-...` |
+| `NO_FLUFF_LLM_DEFAULT_MODEL` | Модель по умолчанию для LLM | ❌ | `deepseek-chat` (по умолчанию) |
+
+*Требуется хотя бы один из AI провайдеров (OpenAI или DeepSeek)
+
+### Background Jobs (Solid Queue)
+
+Настройки количества процессов для разных типов очередей. Подробнее в [документации по фоновым задачам](./docs/background-jobs-queues.md).
+
+| Переменная | Описание | По умолчанию |
+|------------|----------|--------------|
+| `REALTIME_CONCURRENCY` | Количество процессов для срочных задач (realtime очередь) | `2` |
+| `DIGEST_CONCURRENCY` | Количество процессов для дайджестов (digest, default очереди) | `3` |
+| `CONTENT_CONCURRENCY` | Количество процессов для обработки контента (content, channels очереди) | `2` |
+| `BACKGROUND_CONCURRENCY` | Количество процессов для фоновых задач (ai, low_priority очереди) | `1` |
+
+### Другое
+
+| Переменная | Описание | Обязательная | Пример |
+|------------|----------|--------------|--------|
+| `DATABASE_URL` | URL подключения к PostgreSQL | ✅ | `postgresql://user:pass@localhost/nofluff` |
+| `RAILS_ENV` | Окружение Rails | ❌ | `production` |
+
+## Документация
+
+- [Функциональность](./docs/Product/features.md)
+- [Фоновые задачи и очереди](./docs/background-jobs-queues.md)
+- [Дорожная карта проекта](./docs/ROADMAP.md)

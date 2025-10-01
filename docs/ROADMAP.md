@@ -5,56 +5,55 @@
 ### 1.1. Инфраструктура и базовая настройка
 
 #### 1.1.1. Database Setup
-- [ ] Создать миграции для основных таблиц
-  - [ ] `telegram_users` (id, username, delivery_frequency, content_format, filter_strictness, timezone)
-  - [ ] `channels` (telegram_id, username, title, description, subscribers_count)
-  - [ ] `subscriptions` (telegram_user_id, channel_id, priority, active)
-  - [ ] `posts` (channel_id, telegram_message_id, text, media_urls, published_at, is_important, importance_score, is_ad, is_duplicate_of)
-  - [ ] `digests` (telegram_user_id, status, scheduled_for, sent_at, posts_analyzed_count, posts_included_count)
-  - [ ] `digest_items` (digest_id, post_id, position)
-- [ ] Добавить индексы
-  - [ ] `index_telegram_users_on_username` (unique)
-  - [ ] `index_channels_on_telegram_id` (unique)
-  - [ ] `index_posts_on_channel_id_and_published_at`
-  - [ ] `index_posts_on_is_important`
-  - [ ] `index_subscriptions_on_telegram_user_id_and_channel_id` (unique)
-- [ ] Запустить миграции
+- [x] Создать миграции для основных таблиц
+  - [x] `telegram_users` (id, username, delivery_frequency, content_format, filter_strictness, timezone)
+  - [x] `channels` (telegram_id, username, title, description, subscribers_count)
+  - [x] `subscriptions` (telegram_user_id, channel_id, priority, active)
+  - [x] `posts` (channel_id, telegram_message_id, text, media_urls, published_at, is_important, importance_score, is_ad, is_duplicate_of)
+  - [x] `user_digests` (telegram_user_id, status, scheduled_for, sent_at, posts_analyzed_count, posts_included_count)
+  - [x] `user_digest_items` (user_digest_id, post_id, position)
+- [x] Добавить индексы
+  - [x] `index_telegram_users_on_username` (unique)
+  - [x] `index_channels_on_telegram_id` (unique)
+  - [x] `index_posts_on_channel_id_and_published_at`
+  - [x] `index_posts_on_is_important`
+  - [x] `index_subscriptions_on_telegram_user_id_and_channel_id` (unique)
+- [x] Запустить миграции
 
 #### 1.1.2. Telegram Bot Setup
-- [ ] Настроить telegram-bot-ruby gem
-- [ ] Создать `config/initializers/telegram.rb`
-- [ ] Настроить webhook или polling (выбрать стратегию)
-- [ ] Создать базовый `Telegram::WebhookController`
-- [ ] Добавить routes для webhook
-- [ ] Протестировать подключение к Telegram
+- [x] Настроить telegram-bot-ruby gem
+- [x] Создать `config/initializers/telegram.rb`
+- [x] Создать базовый `TelegramWebhookController`
+- [x] Добавить routes для webhook
+- [x] Протестировать подключение к Telegram
 
 #### 1.1.3. AI/LLM Setup
-- [ ] Настроить ruby_llm gem
-- [ ] Создать `config/initializers/ruby_llm.rb`
+- [x] Настроить ruby_llm gem
+- [x] Создать `config/initializers/ruby_llm.rb`
 - [ ] Настроить API ключи (OpenAI/Anthropic/другие)
 - [ ] Создать базовый wrapper `lib/ai/classifier.rb`
 - [ ] Протестировать подключение к AI API
 
 #### 1.1.4. Background Jobs Setup
-- [ ] Настроить Solid Queue
-- [ ] Создать конфигурацию для разных типов джобов
-- [ ] Настроить приоритеты очередей
-- [ ] Создать базовый ApplicationJob
+- [x] Настроить Solid Queue
+- [x] Создать конфигурацию для разных типов джобов
+- [x] Настроить приоритеты очередей
+- [x] Создать базовый ApplicationJob
 
 ### 1.2. Модели и базовая валидация
 
 #### 1.2.1. TelegramUser Model
-- [ ] Создать `app/models/telegram_user.rb`
+- [x] Создать `app/models/telegram_user.rb`
 - [ ] Добавить enum для `delivery_frequency`
 - [ ] Добавить enum для `content_format`
 - [ ] Добавить enum для `filter_strictness`
-- [ ] Добавить associations (has_many :subscriptions, :digests)
+- [ ] Добавить associations (has_many :subscriptions, :user_digests)
 - [ ] Добавить validations
 - [ ] Добавить scopes (active_telegram_users, by_delivery_time)
 - [ ] Написать unit тесты
 
 #### 1.2.2. Channel Model
-- [ ] Создать `app/models/channel.rb`
+- [x] Создать `app/models/channel.rb`
 - [ ] Добавить associations (has_many :subscriptions, :posts)
 - [ ] Добавить validations (telegram_id uniqueness)
 - [ ] Добавить scopes (active_channels, by_subscribers)
@@ -62,31 +61,31 @@
 - [ ] Написать unit тесты
 
 #### 1.2.3. Subscription Model
-- [ ] Создать `app/models/subscription.rb`
-- [ ] Добавить associations (belongs_to :user, :channel)
+- [x] Создать `app/models/subscription.rb`
+- [x] Добавить associations (belongs_to :telegram_user, :channel)
 - [ ] Добавить validations (uniqueness, priority range)
 - [ ] Добавить scopes (active, by_priority)
 - [ ] Написать unit тесты
 
 #### 1.2.4. Post Model
-- [ ] Создать `app/models/post.rb`
-- [ ] Добавить associations (belongs_to :channel)
+- [x] Создать `app/models/post.rb`
+- [x] Добавить associations (belongs_to :channel)
 - [ ] Добавить validations
 - [ ] Добавить scopes (important, not_ads, unique, recent)
 - [ ] Добавить методы для работы с метаданными
 - [ ] Написать unit тесты
 
-#### 1.2.5. Digest Model
-- [ ] Создать `app/models/digest.rb`
+#### 1.2.5. UserDigest Model (renamed from Digest)
+- [x] Создать `app/models/user_digest.rb`
 - [ ] Добавить enum для `status`
-- [ ] Добавить associations (belongs_to :user, has_many :digest_items, has_many :posts through: :digest_items)
+- [ ] Добавить associations (belongs_to :telegram_user, has_many :user_digest_items, has_many :posts through: :user_digest_items)
 - [ ] Добавить validations
 - [ ] Добавить scopes (pending, sent, failed)
 - [ ] Написать unit тесты
 
-#### 1.2.6. DigestItem Model
-- [ ] Создать `app/models/digest_item.rb`
-- [ ] Добавить associations (belongs_to :digest, :post)
+#### 1.2.6. UserDigestItem Model (renamed from DigestItem)
+- [x] Создать `app/models/user_digest_item.rb`
+- [ ] Добавить associations (belongs_to :user_digest, :post)
 - [ ] Добавить validations
 - [ ] Написать unit тесты
 
@@ -138,19 +137,19 @@
 
 #### 1.4.1. Chat Model Extension
 - [x] Установить ruby_llm Rails integration: `rails generate ruby_llm:install`
-- [ ] Расширить существующую таблицу `chats`
-  - [ ] Добавить `telegram_user_id` (foreign key)
-  - [ ] Добавить `session_type` (enum: classification, summarization, personalization, digest_generation)
-  - [ ] Добавить `status` (enum: active, archived)
-  - [ ] Добавить `metadata` (jsonb для хранения контекста сессии)
-- [ ] Обновить модель `Chat` (уже использует `acts_as_chat`)
-  - [ ] Добавить связь `belongs_to :telegram_user`
+- [x] Расширить существующую таблицу `chats`
+  - [x] Добавить `telegram_user_id` (foreign key)
+  - [x] Добавить `session_type` (enum: classification, summarization, personalization, digest_generation)
+  - [x] Добавить `status` (enum: active, archived)
+  - [x] Добавить `context` (jsonb для хранения контекста сессии)
+- [x] Обновить модель `Chat` (уже использует `acts_as_chat`)
+  - [x] Добавить связь `belongs_to :telegram_user`
   - [ ] Добавить enum для session_type и status
-  - [ ] Добавить store_accessor для metadata
-- [ ] Добавить индексы:
-  - [ ] `index_chats_on_telegram_user_id_and_session_type_and_status`
-  - [ ] `index_chats_on_session_type`
-  - [ ] `index_chats_on_status`
+  - [ ] Добавить store_accessor для context
+- [x] Добавить индексы:
+  - [x] `index_chats_on_telegram_user_id_and_session_type`
+  - [x] `index_chats_on_status`
+  - [x] `index_chats_on_context` (GIN)
 - [ ] Написать unit тесты для расширенной модели Chat
 
 #### 1.4.2. TelegramUser Model Updates для Chat
@@ -205,11 +204,11 @@
 - [ ] Написать service тесты
 
 #### 1.4.7. Post Model Updates для Structured Data
-- [ ] Добавить JSONB поле `classification_data` в Post модель
-- [ ] Добавить массив `topics` (array of strings)
-- [ ] Добавить `classification_reasoning` (text)
-- [ ] Добавить `classified_by_chat_id` (foreign key к Chat)
-- [ ] Добавить GIN индексы на JSONB и array поля
+- [x] Добавить JSONB поле `classification_data` в Post модель
+- [x] Добавить массив `topics` (jsonb array)
+- [x] Добавить `classification_reasoning` (text)
+- [x] Добавить `classified_by_session_id` (foreign key к Chat)
+- [x] Добавить GIN индексы на JSONB и array поля
 - [ ] Обновить scopes для работы с JSONB:
   - [ ] `important` - использовать `classification_data->>'importance_score'`
   - [ ] `not_ads` - использовать `classification_data->>'is_ad'`
@@ -321,11 +320,11 @@
 - [ ] Написать integration тесты
 
 #### 1.6.7. PostClassification Model (персональная классификация)
-- [ ] Создать `app/models/post_classification.rb`
+- [x] Создать `app/models/post_classification.rb`
 - [ ] Добавить belongs_to :post, :telegram_user, :chat
 - [ ] Добавить поля: importance_score, is_relevant, reasoning, confidence
 - [ ] Реализовать `for_telegram_user_with_context(telegram_user, post)` - классификация с контекстом
-- [ ] Добавить индексы на telegram_user_id + post_id
+- [x] Добавить индексы на telegram_user_id + post_id
 - [ ] Написать unit тесты
 
 #### 1.6.8. Integration Tests
@@ -467,12 +466,12 @@
 > Использует накопленную историю для улучшения классификации
 
 #### 2.2.1. Feedback Model
-- [ ] Создать `app/models/feedback.rb`
+- [x] Создать `app/models/feedback.rb`
 - [ ] Добавить belongs_to :telegram_user, :post
 - [ ] Добавить enum sentiment: { dislike: -1, neutral: 0, like: 1 }
 - [ ] Добавить after_create callback для обновления AI Session
 - [ ] Реализовать метод `update_personalization_session`
-- [ ] Добавить индексы на telegram_user_id, post_id, created_at
+- [x] Добавить индексы на telegram_user_id, post_id, created_at
 - [ ] Написать unit тесты
 
 #### 2.2.2. Feedback Controller (Telegram Bot)
@@ -506,17 +505,17 @@
 - [ ] Написать job тесты
 
 #### 2.2.6. UserPreference Model
-- [ ] Создать `app/models/user_preference.rb`
-- [ ] Добавить belongs_to :user
-- [ ] Добавить belongs_to :chat, optional: true (последний чат персонализации)
-- [ ] Добавить JSONB поле `preferences` для хранения:
-  - [ ] `topic_weights` - персональные веса тем
-  - [ ] `adjusted_threshold` - динамический порог важности
-  - [ ] `preferred_sources` - предпочитаемые каналы
+- [x] Создать `app/models/user_preference.rb`
+- [ ] Добавить belongs_to :telegram_user
+- [ ] Добавить JSONB поля для хранения:
+  - [x] `topic_weights` - персональные веса тем
+  - [x] `channel_weights` - веса каналов
+  - [x] `adjusted_importance_threshold` - динамический порог важности
+  - [x] `personalization_data` - дополнительные данные персонализации
 - [ ] Реализовать `initialize_topic_weights`
 - [ ] Реализовать `adjust_topic_weight(topic, feedback)`
 - [ ] Реализовать `weighted_importance_score(post)` - пересчет оценки
-- [ ] Добавить индексы на preferences (GIN)
+- [x] Добавить индексы на topic_weights, channel_weights (GIN)
 - [ ] Написать unit тесты
 
 #### 2.2.7. Threshold Adjuster Service
