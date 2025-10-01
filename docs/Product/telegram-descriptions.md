@@ -1,4 +1,4 @@
-# Telegram описания no_fluff_bot
+# Telegram описания bez_sheluhi_bot
 
 ## About (до 120 символов, оптимизированы под поиск)
 

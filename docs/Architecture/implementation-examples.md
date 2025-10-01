@@ -4,262 +4,7 @@
 
 ---
 
-## 1. Модель Chat
-
-```ruby
-# app/models/chat.rb
-class Chat < ApplicationRecord
-  belongs_to :telegram_user
-  has_many :messages, dependent: :destroy
-
-  # Интеграция с ruby_llm для автоматического сохранения истории
-  acts_as_chat
-
-  enum session_type: {
-    classification: 0,
-    summarization: 1,
-    personalization: 2,
-    digest_generation: 3
-  }
-
-  enum status: {
-    active: 0,
-    archived: 1
-  }
-
-  # Контекст сессии (JSONB поле)
-  store_accessor :context,
-    :user_preferences,
-    :recent_feedback,
-    :feedback_examples,
-    :classification_history
-
-  validates :user, presence: true
-  validates :session_type, presence: true
-
-  # Scopes
-  scope :active, -> { where(status: :active) }
-  scope :archived, -> { where(status: :archived) }
-  scope :by_type, ->(type) { where(session_type: type) }
-  scope :recently_active, -> { where("last_activity_at > ?", 7.days.ago) }
-  scope :needs_cleanup, -> { where("messages_count > ?", 100) }
-
-  # Контекстное окно - сколько сообщений держать в активной памяти
-  def active_context_window
-    50
-  end
-
-  # Получить последние N сообщений для контекста
-  def recent_messages(limit = 10)
-    messages.order(created_at: :desc).limit(limit).reverse
-  end
-
-  # Получить важные сообщения из истории (помеченные как important)
-  def important_messages(limit = 5)
-    messages
-      .where("metadata->>'importance' = 'high'")
-      .order(created_at: :desc)
-      .limit(limit)
-  end
-
-  # Добавить пример из фидбека в контекст
-  def add_feedback_example(post, feedback)
-    examples = context["feedback_examples"] || []
-    examples << {
-      post_text: post.text[0..300], # Первые 300 символов
-      post_topics: post.topics,
-      user_liked: feedback.like?,
-      importance_score: post.importance_score,
-      timestamp: feedback.created_at.iso8601
-    }
-
-    # Храним последние 20 примеров
-    context["feedback_examples"] = examples.last(20)
-    self.last_activity_at = Time.current
-    save
-  end
-
-  # Архивировать старые сообщения
-  def archive_old_messages(older_than: 30.days.ago)
-    messages.where("created_at < ?", older_than).destroy_all
-    update(messages_count: messages.count)
-  end
-
-  # Сжатие истории для long-running сессий
-  def compact_history
-    return if messages_count < 100
-
-    # Оставить только важные + последние N сообщений
-    messages_to_keep = messages.order(created_at: :desc)
-                        .limit(50)
-                        .pluck(:id)
-
-    important_ids = messages
-                     .where("metadata->>'keep' = 'true'")
-                     .pluck(:id)
-
-    messages.where.not(id: messages_to_keep + important_ids).destroy_all
-    update(messages_count: messages.count)
-  end
-
-  # Получить chat instance с управляемым контекстом
-  def chat_with_managed_context
-    recent = recent_messages(20)
-    important = important_messages(5)
-
-    # Создать временный chat с ограниченной историей
-    messages = (important + recent).uniq.sort_by(&:created_at)
-
-    RubyLLM.chat(
-      system: build_system_prompt,
-      history: messages.map(&:to_message_hash)
-    )
-  end
-
-  private
-
-  def build_system_prompt
-    case session_type.to_sym
-    when :classification
-      classification_system_prompt
-    when :summarization
-      "Ты — эксперт по созданию кратких и информативных саммари."
-    when :personalization
-      "Ты — система персонализации, анализирующая предпочтения пользователя."
-    when :digest_generation
-      "Ты — помощник по созданию персонализированных дайджестов."
-    end
-  end
-
-  def classification_system_prompt
-    <<~PROMPT
-      Ты — система классификации контента для персонального Telegram бота.
-
-      Твоя задача — оценивать важность постов от 0 до 100 и определять:
-      - Является ли пост рекламой или шелухой
-      - Какие темы затрагивает пост
-      - Насколько пост соответствует интересам конкретного пользователя
-
-      Используй историю взаимодействий и фидбек пользователя для персонализации оценок.
-    PROMPT
-  end
-end
-
-# Миграция
-class CreateChats < ActiveRecord::Migration[8.0]
-  def change
-    create_table :chats do |t|
-      t.references :telegram_user, null: false, foreign_key: true, index: true
-      t.integer :session_type, null: false, default: 0
-      t.integer :status, null: false, default: 0
-      t.jsonb :context, default: {}
-      t.datetime :last_activity_at
-      t.integer :messages_count, default: 0
-
-      t.timestamps
-    end
-
-    add_index :chats, [:telegram_user_id, :session_type]
-    add_index :chats, :status
-    add_index :chats, :last_activity_at
-    add_index :chats, :context, using: :gin
-  end
-end
-```
-
----
-
-## 2. Обновленная модель TelegramUser
-
-```ruby
-# app/models/telegram_user.rb
-class TelegramUser < ApplicationRecord
-  has_many :subscriptions, dependent: :destroy
-  has_many :channels, through: :subscriptions
-  has_many :digests, dependent: :destroy
-  has_many :feedbacks, dependent: :destroy
-  has_one :user_preference, dependent: :destroy
-  has_many :chats, dependent: :destroy  # 🆕
-
-  # Настройки
-  enum delivery_frequency: {
-    realtime: 0,
-    three_times_daily: 1,
-    twice_daily: 2,
-    daily: 3,
-    every_two_days: 4,
-    weekly: 5,
-    on_demand: 6
-  }
-
-  enum content_format: {
-    original_posts: 0,
-    short_summaries: 1,
-    unified_digest: 2,
-    combo: 3,
-    headlines_only: 4
-  }
-
-  enum filter_strictness: {
-    maximum: 0,
-    high: 1,
-    medium: 2,
-    low: 3,
-    adaptive: 4
-  }
-
-  validates :username, uniqueness: { allow_blank: true }
-
-  # 🆕 Получить или создать активную сессию определенного типа
-  def chat_for(type)
-    chats.active.find_or_create_by!(session_type: type) do |session|
-      session.context = build_initial_context
-      session.last_activity_at = Time.current
-    end
-  end
-
-  # 🆕 Построить начальный контекст для новой сессии
-  def build_initial_context
-    {
-      user_preferences: {
-        delivery_frequency: delivery_frequency,
-        content_format: content_format,
-        filter_strictness: filter_strictness,
-        timezone: timezone || 'UTC'
-      },
-      feedback_history: recent_feedback_summary,
-      subscription_priorities: subscriptions.pluck(:channel_id, :priority).to_h,
-      created_at: Time.current.iso8601
-    }
-  end
-
-  # 🆕 Краткая сводка последнего фидбека
-  def recent_feedback_summary(limit: 20)
-    feedbacks.includes(:post).order(created_at: :desc).limit(limit).map do |f|
-      {
-        liked: f.like?,
-        post_importance: f.post.importance_score,
-        topics: f.post.topics || [],
-        created_at: f.created_at.iso8601
-      }
-    end
-  end
-
-  # 🆕 Архивировать неактивные сессии
-  def archive_inactive_sessions
-    chats.active
-      .where("last_activity_at < ?", 90.days.ago)
-      .update_all(status: :archived)
-  end
-
-  # Обновить timestamp для инвалидации кеша
-  after_update :touch
-end
-```
-
----
-
-## 3. Structured Output Schema
+## 1. Structured Output Schema
 
 ```ruby
 # app/schemas/base_schema.rb
@@ -313,7 +58,7 @@ end
 
 ---
 
-## 4. AI Tools (Function Calling)
+## 2. AI Tools (Function Calling)
 
 ```ruby
 # app/tools/base_tool.rb
@@ -402,7 +147,7 @@ end
 
 ---
 
-## 5. AI Session Manager Service
+## 3. AI Session Manager Service
 
 ```ruby
 # app/services/ai/session_manager.rb
@@ -494,7 +239,7 @@ end
 
 ---
 
-## 6. Context Builder Service
+## 4. Context Builder Service
 
 ```ruby
 # app/services/ai/context_builder.rb
@@ -689,7 +434,7 @@ end
 
 ---
 
-## 7. AI Classifier Service (обновленный)
+## 5. AI Classifier Service (обновленный)
 
 ```ruby
 # app/services/content/ai_classifier.rb
@@ -819,146 +564,7 @@ end
 
 ---
 
-## 8. Персонализация через Feedback
-
-```ruby
-# app/models/feedback.rb
-class Feedback < ApplicationRecord
-  belongs_to :telegram_user
-  belongs_to :post
-
-  enum sentiment: { dislike: -1, neutral: 0, like: 1 }
-
-  validates :user, presence: true
-  validates :post, presence: true
-  validates :sentiment, presence: true
-
-  scope :liked, -> { where(sentiment: :like) }
-  scope :disliked, -> { where(sentiment: :dislike) }
-  scope :recent, -> { where('created_at > ?', 30.days.ago) }
-
-  # После создания фидбека - обновить AI-сессию персонализации
-  after_create :update_personalization_session
-
-  private
-
-  def update_personalization_session
-    session = user.chat_for(:personalization)
-    session.add_feedback_example(post, self)
-
-    # Асинхронно обновить модель персонализации
-    PersonalizationUpdateJob.perform_later(user.id, id)
-  end
-end
-
-# app/jobs/personalization_update_job.rb
-class PersonalizationUpdateJob < ApplicationJob
-  queue_as :default
-
-  def perform(user_id, feedback_id)
-    user = TelegramUser.find(user_id)
-    feedback = Feedback.find(feedback_id)
-
-    session_manager = AI::SessionManager.new(user, :personalization)
-
-    result = session_manager.with_context do |chat, session|
-      analyze_feedback(chat, user, feedback)
-    end
-
-    # Обновить UserPreference на основе анализа
-    update_user_preference(user, feedback, result)
-  end
-
-  private
-
-  def analyze_feedback(chat, user, feedback)
-    chat.ask(
-      <<~PROMPT
-        Пользователь дал фидбек на пост:
-
-        Пост: "#{feedback.post.text[0..300]}"
-        Темы: #{feedback.post.topics.join(', ')}
-        AI-оценка важности: #{feedback.post.importance_score}/100
-        Реакция пользователя: #{feedback.like? ? 'Понравился 👍' : 'Не понравился 👎'}
-
-        Проанализируй:
-        1. Что это говорит о предпочтениях пользователя?
-        2. Какие темы нужно учитывать сильнее/слабее?
-        3. Нужно ли скорректировать порог важности?
-
-        Дай краткий анализ (2-3 предложения).
-      PROMPT
-    )
-  end
-
-  def update_user_preference(user, feedback, analysis_result)
-    preference = user.user_preference || user.create_user_preference!
-
-    # Обновить веса тем
-    feedback.post.topics.each do |topic|
-      preference.adjust_topic_weight(topic, feedback)
-    end
-  end
-end
-
-# app/services/personalization/few_shot_builder.rb
-module Personalization
-  class FewShotBuilder
-    def initialize(user)
-      @user = user
-    end
-
-    def build_examples
-      # Получить сбалансированную выборку фидбека
-      liked = @user.feedbacks.liked.includes(:post).order(created_at: :desc).limit(5)
-      disliked = @user.feedbacks.disliked.includes(:post).order(created_at: :desc).limit(5)
-
-      examples = []
-
-      # Добавить примеры понравившегося контента
-      liked.each do |feedback|
-        examples << build_example(feedback, boost: 10)
-      end
-
-      # Добавить примеры неинтересного контента
-      disliked.each do |feedback|
-        examples << build_example(feedback, boost: -20)
-      end
-
-      examples
-    end
-
-    private
-
-    def build_example(feedback, boost:)
-      adjusted_score = [feedback.post.importance_score + boost, 0, 100].sort[1]
-
-      [
-        {
-          role: 'user',
-          content: "Классифицируй этот пост:\n\n#{feedback.post.text[0..300]}"
-        },
-        {
-          role: 'assistant',
-          content: {
-            importance_score: adjusted_score,
-            is_ad: feedback.post.classification_data['is_ad'],
-            is_fluff: feedback.post.classification_data['is_fluff'],
-            topics: feedback.post.topics,
-            reasoning: "Пользователь #{feedback.like? ? 'одобрил' : 'отклонил'} похожий контент",
-            user_liked: feedback.like?,
-            confidence: 85
-          }.to_json
-        }
-      ]
-    end
-  end
-end
-```
-
----
-
-## 9. Streaming Support
+## 6. Streaming Support
 
 ```ruby
 # app/services/digest/builder.rb (с поддержкой streaming)
@@ -1040,7 +646,7 @@ end
 
 ---
 
-## 10. Batch Classification
+## 7. Batch Classification
 
 ```ruby
 # app/services/content/batch_classifier.rb
@@ -1119,13 +725,11 @@ end
 
 Эти примеры демонстрируют:
 
-1. **Chat с acts_as_chat** - автоматическое сохранение истории
-2. **Structured Output** - надежный парсинг ответов AI
-3. **Tools (Function Calling)** - более точная классификация
-4. **Context Management** - оптимизация использования токенов
-5. **Few-Shot Learning** - персонализация через фидбек
-6. **Streaming** - улучшение UX
-7. **Batch Processing** - оптимизация производительности
+1. **Structured Output** - надежный парсинг ответов AI
+2. **Tools (Function Calling)** - более точная классификация
+3. **Context Management** - оптимизация использования токенов
+4. **Streaming** - улучшение UX
+5. **Batch Processing** - оптимизация производительности
 
 Все компоненты спроектированы для совместной работы и обеспечивают:
 - Персонализацию для каждого пользователя

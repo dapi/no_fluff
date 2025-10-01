@@ -8,6 +8,30 @@
 
 Перед тем как отвечать на вопросы касающиеся продукта изучи ./docs/Product
 
+## Структура документации
+
+- ./docs/Product - документация по продукту
+  - target-audience.md - целевая аудитория
+  - bot-descriptions.md - описания ботов
+  - problems.md - проблемы которые решает продукт
+  - telegram-descriptions.md - описания для Telegram
+  - core-settings.md - основные настройки
+  - features.md - функциональность
+  - user-flow.md - пользовательский поток
+- ./docs/Architecture - архитектурная документация
+  - c4-model.md - C4 модель архитектуры
+- ./docs/gems - документация по используемым gem-ам
+  - telegram-bot.md - Telegram bot
+  - ruby-llm.md - Ruby LLM
+- ./docs/Other - прочая документация
+- ./docs/Hidden - скрытая документация
+- ./docs/ROADMAP.md - дорожная карта проекта
+- ./docs/architectural-review-report.md - отчет по архитектурному ревью
+- ./docs/architecture-review-merged.md - объединенный архитектурный ревью
+- ./docs/implementation-examples.md - примеры реализации
+- ./docs/documentation-correction-plan.md - план корректировки документации
+- ./docs/documentation-correction-summary.md - итоги корректировки документации
+
 Модели и новые таблицы создаем через `rails g model` а не через прямое создание
 миграций.
 

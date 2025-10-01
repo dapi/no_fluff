@@ -1,4 +1,4 @@
-# User Flow: Онбординг no_fluff_bot
+# User Flow: Онбординг bez_sheluhi_bot
 
 ## 🎬 Шаг 1: Первое сообщение (/start)
 
