@@ -1,25 +1,25 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  username: MyString
-  first_name: MyString
-  last_name: MyString
-  language_code: MyString
+  username: test_user_one
+  first_name: Test
+  last_name: User One
+  language_code: en
   is_premium: false
   is_bot: false
   delivery_frequency: 1
   content_format: 1
   filter_strictness: 1
-  timezone: MyString
+  timezone: UTC
 
 two:
-  username: MyString
-  first_name: MyString
-  last_name: MyString
-  language_code: MyString
+  username: test_user_two
+  first_name: Test
+  last_name: User Two
+  language_code: en
   is_premium: false
   is_bot: false
   delivery_frequency: 1
   content_format: 1
   filter_strictness: 1
-  timezone: MyString
+  timezone: UTC

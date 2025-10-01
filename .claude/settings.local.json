@@ -13,7 +13,10 @@
       "Bash(rails g:*)",
       "Bash(bin/rails g model:*)",
       "Bash(./bin/rails g model:*)",
-      "Bash(./bin/rails:*)"
+      "Bash(./bin/rails:*)",
+      "Bash(./bin/rake test:models)",
+      "Bash(RAILS_ENV=test ./bin/rails db:migrate:status)",
+      "Bash(./bin/rake)"
     ],
     "deny": [],
     "ask": []

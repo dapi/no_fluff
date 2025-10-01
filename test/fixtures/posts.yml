@@ -2,34 +2,34 @@
 
 one:
   channel: one
-  telegram_message_id: 
+  telegram_message_id: 12345
   text: MyText
-  media_urls: 
+  media_urls:
   published_at: 2025-10-01 14:39:29
   is_important: false
   importance_score: 1.5
   is_ad: false
   is_fluff: false
-  is_duplicate_of: 
-  topics: 
+  is_duplicate_of:
+  topics:
   classification_reasoning: MyText
   confidence: 1.5
-  classification_data: 
-  classified_by_session_id: 
+  classification_data:
+  classified_by_session_id:
 
 two:
   channel: two
-  telegram_message_id: 
+  telegram_message_id: 12346
   text: MyText
-  media_urls: 
+  media_urls:
   published_at: 2025-10-01 14:39:29
   is_important: false
   importance_score: 1.5
   is_ad: false
   is_fluff: false
-  is_duplicate_of: 
-  topics: 
+  is_duplicate_of:
+  topics:
   classification_reasoning: MyText
   confidence: 1.5
-  classification_data: 
+  classification_data:
   classified_by_session_id: 

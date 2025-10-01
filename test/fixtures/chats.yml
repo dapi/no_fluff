@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  telegram_user: one
+  model:
+  session_type: 0
+  status: 0
+  context: {}
+  last_activity_at: 2025-10-01 14:00:00
+  messages_count: 5
+
+two:
+  telegram_user: two
+  model:
+  session_type: 1
+  status: 1
+  context: {}
+  last_activity_at: 2025-10-01 15:00:00
+  messages_count: 10

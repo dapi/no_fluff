@@ -1,9 +1,9 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  telegram_id: 
-  username: MyString
-  title: MyString
+  telegram_id: 1001234567890
+  username: test_channel_one
+  title: Test Channel One
   description: MyText
   subscribers_count: 1
   is_verified: false
@@ -12,9 +12,9 @@ one:
   monitored_at: 2025-10-01 14:36:11
 
 two:
-  telegram_id: 
-  username: MyString
-  title: MyString
+  telegram_id: 1001234567891
+  username: test_channel_two
+  title: Test Channel Two
   description: MyText
   subscribers_count: 1
   is_verified: false
