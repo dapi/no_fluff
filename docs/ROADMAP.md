@@ -100,12 +100,12 @@
 - [x] Написать integration тесты
 
 #### 1.3.2. Add Channel Command
-- [ ] Создать `app/controllers/telegram/commands/channel_controller.rb`
-- [ ] Реализовать `/add @channelname` команду
-- [ ] Добавить валидацию канала через Telegram API
-- [ ] Создать подписку в БД
-- [ ] Добавить feedback пользователю (успех/ошибка)
-- [ ] Написать integration тесты
+- [x] Создать `app/controllers/telegram/commands/channel_controller.rb` (реализовано в основном контроллере)
+- [x] Реализовать `/add @channelname` команду
+- [x] Добавить валидацию канала через Telegram API
+- [x] Создать подписку в БД
+- [x] Добавить feedback пользователю (успех/ошибка)
+- [x] Написать integration тесты
 
 #### 1.3.3. List Channels Command
 - [x] Реализовать `/list` команду в `TelegramWebhookController` через `SubscriptionCommands` concern

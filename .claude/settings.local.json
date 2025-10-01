@@ -23,7 +23,8 @@
       "Bash(priority:*)",
       "Bash(remove_channel)",
       "Bash(confirm_remove)",
-      "Bash(my_subscriptions/)"
+      "Bash(my_subscriptions/)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

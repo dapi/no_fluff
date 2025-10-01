@@ -48,4 +48,6 @@
 
 При создании тестов изучай ./docs/Testing
 
+Если делаешь обещания - записывай их в .claude/promises.md
+
 /file:.claude-on-rails/context.md
