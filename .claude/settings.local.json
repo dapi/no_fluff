@@ -28,7 +28,8 @@
       "Bash(ruby:*)",
       "Bash(git checkout:*)",
       "Bash(xargs:*)",
-      "Bash(bundle exec ruby:*)"
+      "Bash(bundle exec ruby:*)",
+      "WebFetch(domain:core.telegram.org)"
     ],
     "deny": [],
     "ask": []

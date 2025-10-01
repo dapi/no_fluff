@@ -4,6 +4,10 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::CallbackQueryContext
   include Telegram::SubscriptionCommands
   include Telegram::SettingsCommands
+  include Telegram::KeyboardHelpers
+
+  # Выполняем перед каждым действием
+  before_action :find_or_create_user
 
   # Обработка ошибок
   rescue_from StandardError do |exception|
@@ -15,9 +19,6 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
 
   # Команда /start - приветствие и краткая инструкция
   def start!(*)
-    # Создаём или находим пользователя
-    find_or_create_user
-
     # Отправляем приветственное сообщение с inline кнопками
     respond_with :message,
       text: I18n.t('telegram_bot.start.welcome'),
@@ -32,8 +33,6 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   
   # Команда /add - добавление канала
   def add!(*args)
-    find_or_create_user
-
     # Если передан username канала сразу в команде: /add @channelname
     if args.any?
       channel_input = args.join(' ')
@@ -46,8 +45,6 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
 
   # Команда /remove - удаление канала
   def remove!(*args)
-    find_or_create_user
-
     # Если передан username канала сразу в команде: /remove @channelname
     if args.any?
       channel_input = args.join(' ')
@@ -90,7 +87,6 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
     # Если пользователь отправил текст, пробуем интерпретировать как канал
     # (только если текст начинается с @ или содержит t.me/)
     if text.start_with?('@') || text.include?('t.me/')
-      find_or_create_user
       add_channel(text)
     else
       respond_with :message, text: "Вы написали: #{text}"
@@ -98,6 +94,25 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   end
 
   private
+
+  # Находит или создаёт пользователя в БД
+  def find_or_create_user
+    user_data = from
+    # Используем username если есть, иначе используем id в качестве username
+    username = user_data['username'] || "user_#{user_data['id']}"
+
+    @current_user ||= TelegramUser.find_or_create_by(username: username) do |user|
+      user.first_name = user_data['first_name']
+      user.last_name = user_data['last_name']
+      user.language_code = user_data['language_code'] || 'ru'
+      user.is_premium = user_data['is_premium'] || false
+    end
+  end
+
+  # Возвращает текущего пользователя
+  def current_user
+    @current_user
+  end
 
   # Добавляет канал для текущего пользователя
   def add_channel(channel_input)
@@ -158,56 +173,35 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
 
   # Inline клавиатура для команды /start
   def start_keyboard
-    kb = [
-      [
-        Telegram::Bot::Types::InlineKeyboardButton.new(
-          text: I18n.t('telegram_bot.start.button_start'),
-          callback_data: 'start_onboarding:'
-        ),
-        Telegram::Bot::Types::InlineKeyboardButton.new(
-          text: I18n.t('telegram_bot.start.button_more_info'),
-          callback_data: 'more_info:'
-        )
-      ],
-      [
-        Telegram::Bot::Types::InlineKeyboardButton.new(
-          text: '⚙️ Настройки',
-          callback_data: 'settings:'
-        )
-      ]
-    ]
-    Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: kb)
+    inline_keyboard(
+      keyboard_row(
+        callback_button(I18n.t('telegram_bot.start.button_start'), 'start_onboarding:'),
+        callback_button(I18n.t('telegram_bot.start.button_more_info'), 'more_info:')
+      ),
+      keyboard_row(
+        callback_button('⚙️ Настройки', 'settings:')
+      )
+    )
   end
 
   # Inline клавиатура для подробной информации
   def more_info_keyboard
-    kb = [
-      [
-        Telegram::Bot::Types::InlineKeyboardButton.new(
-          text: I18n.t('telegram_bot.more_info.button_lets_start'),
-          callback_data: 'start_onboarding:'
-        )
-      ],
-      [
-        Telegram::Bot::Types::InlineKeyboardButton.new(
-          text: '← Назад',
-          callback_data: 'back_to_start:'
-        )
-      ]
-    ]
-    Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: kb)
+    inline_keyboard(
+      keyboard_row(
+        callback_button(I18n.t('telegram_bot.more_info.button_lets_start'), 'start_onboarding:')
+      ),
+      keyboard_row(
+        callback_button('← Назад', 'back_to_start:')
+      )
+    )
   end
 
   # Inline клавиатура для онбординга
   def onboarding_keyboard
-    kb = [
-      [
-        Telegram::Bot::Types::InlineKeyboardButton.new(
-          text: I18n.t('telegram_bot.onboarding.button_my_subscriptions'),
-          callback_data: 'my_subscriptions:'
-        )
-      ]
-    ]
-    Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: kb)
+    inline_keyboard(
+      keyboard_row(
+        callback_button(I18n.t('telegram_bot.onboarding.button_my_subscriptions'), 'my_subscriptions:')
+      )
+    )
   end
 end

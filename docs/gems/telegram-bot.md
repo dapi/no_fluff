@@ -412,6 +412,7 @@ respond_with :message, text: 'Клавиатура скрыта', reply_markup: 
 
 ### Создание Inline-клавиатуры
 
+**Стандартный способ:**
 ```ruby
 kb = [
   [
@@ -435,6 +436,40 @@ kb = [
 markup = Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: kb)
 respond_with :message, text: 'Выберите действие:', reply_markup: markup
 ```
+
+**Рекомендуемый способ с использованием helper-методов:**
+```ruby
+# Сначала подключите concern Telegram::KeyboardHelpers в ваш контроллер
+class MyController < Telegram::Bot::UpdatesController
+  include Telegram::KeyboardHelpers
+
+  def my_action
+    respond_with :message,
+      text: 'Выберите действие:',
+      reply_markup: my_keyboard
+  end
+
+  private
+
+  def my_keyboard
+    inline_keyboard(
+      keyboard_row(
+        url_button('Google', 'https://google.com'),
+        callback_button('Нажми меня', 'button_clicked')
+      ),
+      keyboard_row(
+        button('Inline запрос', nil, switch_inline_query: 'текст запроса')
+      )
+    )
+  end
+end
+```
+
+**Преимущества helper-методов:**
+- Меньше дублирования кода
+- Более читаемый синтаксис
+- Легче поддерживать и изменять
+- Типобезопасность сохраняется
 
 ### Обработка Callback Query
 
@@ -830,6 +865,86 @@ Telegram.bot.requests.last
 
 # Очистить запросы
 Telegram.bot.reset
+```
+
+---
+
+## Helper-методы для клавиатур
+
+### Telegram::KeyboardHelpers
+
+Concern для упрощения создания Telegram inline-клавиатур.
+
+**Подключение:**
+```ruby
+class MyController < Telegram::Bot::UpdatesController
+  include Telegram::KeyboardHelpers
+end
+```
+
+#### button(text, callback_data = nil, url: nil, **options)
+Создает inline-кнопку с любыми параметрами.
+
+```ruby
+button('Текст', 'data')
+button('Текст', nil, url: 'https://example.com')
+button('Текст', nil, switch_inline_query: 'query')
+```
+
+#### callback_button(text, data)
+Создает кнопку с callback_data.
+
+```ruby
+callback_button('Настройки', 'settings:')
+callback_button('Удалить', "delete:#{item.id}")
+```
+
+#### url_button(text, url)
+Создает кнопку с URL.
+
+```ruby
+url_button('Google', 'https://google.com')
+url_button('Открыть', item.link)
+```
+
+#### inline_keyboard(*rows)
+Создает InlineKeyboardMarkup из массива строк кнопок.
+
+```ruby
+inline_keyboard(
+  keyboard_row(button1, button2),
+  keyboard_row(button3)
+)
+```
+
+#### keyboard_row(*buttons)
+Создает строку кнопок.
+
+```ruby
+keyboard_row(
+  callback_button('Да', 'yes'),
+  callback_button('Нет', 'no')
+)
+```
+
+### Пример использования
+
+```ruby
+def welcome_keyboard
+  inline_keyboard(
+    keyboard_row(
+      callback_button('Начать', 'start:'),
+      callback_button('Помощь', 'help:')
+    ),
+    keyboard_row(
+      url_button('Наш сайт', 'https://example.com')
+    )
+  )
+end
+
+respond_with :message,
+  text: 'Добро пожаловать!',
+  reply_markup: welcome_keyboard
 ```
 
 ---
