@@ -182,25 +182,18 @@ class Telegram::ChannelServiceTest < ActiveSupport::TestCase
   end
 
   test "remove_channel_for_user works with different username formats" do
-    # Создаем канал и подписку
-    channel = Channel.create!(
-      telegram_id: 3003,
-      username: "testchannel_formats",
-      title: "Test Channel Formats"
-    )
-
-    subscription = Subscription.create!(
-      telegram_user: @user,
-      channel: channel,
-      priority: 5,
-      active: true
-    )
-
     # Тестируем разные форматы
     formats = [ "@testchannel_formats", "testchannel_formats", "t.me/testchannel_formats", "https://t.me/testchannel_formats" ]
 
     formats.each_with_index do |format, i|
-      # Создаем новую подписку для каждого формата
+      # Создаем уникальный канал для каждого формата
+      channel = Channel.create!(
+        telegram_id: 3003 + i,
+        username: "testchannel_formats_#{i}",
+        title: "Test Channel Formats #{i}"
+      )
+
+      # Создаем подписку
       subscription = Subscription.create!(
         telegram_user: @user,
         channel: channel,
@@ -208,10 +201,13 @@ class Telegram::ChannelServiceTest < ActiveSupport::TestCase
         active: true
       )
 
-      result = @service.remove_channel_for_user(@user, format)
+      # Используем модифицированный формат, который парсится в тот же username
+      modified_format = format.gsub("testchannel_formats", "testchannel_formats_#{i}")
 
-      assert result[:success], "Failed for format: #{format}"
-      assert_includes result[:message], "@testchannel_formats удалён"
+      result = @service.remove_channel_for_user(@user, modified_format)
+
+      assert result[:success], "Failed for format: #{modified_format}"
+      assert_includes result[:message], "@testchannel_formats_#{i} удалён"
 
       # Проверяем деактивацию
       subscription.reload

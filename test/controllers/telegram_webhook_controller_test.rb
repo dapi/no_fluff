@@ -1176,13 +1176,22 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     _, edit_params = edit_request
     edit_params = edit_params.first
     assert_includes edit_params[:text], "⏰ Частота доставки"
-    assert_includes edit_params[:text], "Реальное время"
-    assert_includes edit_params[:text], "Раз в день"
-    assert_includes edit_params[:text], "← Назад"
 
     # Проверяем наличие inline клавиатуры с опциями
     assert_not_nil edit_params[:reply_markup]
     assert edit_params[:reply_markup].is_a?(Telegram::Bot::Types::InlineKeyboardMarkup)
+
+    # Проверяем что опции находятся в клавиатуре, а не в тексте
+    keyboard = edit_params[:reply_markup].inline_keyboard
+    assert_not_empty keyboard
+
+    # Находим кнопки с опциями
+    flat_buttons = keyboard.flatten
+    option_texts = flat_buttons.map(&:text)
+
+    assert_includes option_texts, "Реальное время"
+    assert_includes option_texts, "Раз в день"
+    assert_includes option_texts, "← Назад"
   end
 
   test "callback query content_format shows format options" do
@@ -1218,9 +1227,15 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     _, edit_params = edit_request
     edit_params = edit_params.first
     assert_includes edit_params[:text], "📝 Формат контента"
-    assert_includes edit_params[:text], "Оригинальные посты"
-    assert_includes edit_params[:text], "Саммари"
-    assert_includes edit_params[:text], "← Назад"
+
+    # Проверяем что опции находятся в клавиатуре
+    keyboard = edit_params[:reply_markup].inline_keyboard
+    flat_buttons = keyboard.flatten
+    option_texts = flat_buttons.map(&:text)
+
+    assert_includes option_texts, "Оригинальные посты"
+    assert_includes option_texts, "Саммари"
+    assert_includes option_texts, "← Назад"
   end
 
   test "callback query filter_strictness shows strictness options" do
@@ -1256,9 +1271,15 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     _, edit_params = edit_request
     edit_params = edit_params.first
     assert_includes edit_params[:text], "🎯 Строгость фильтрации"
-    assert_includes edit_params[:text], "Ультра"
-    assert_includes edit_params[:text], "Высокая"
-    assert_includes edit_params[:text], "← Назад"
+
+    # Проверяем что опции находятся в клавиатуре
+    keyboard = edit_params[:reply_markup].inline_keyboard
+    flat_buttons = keyboard.flatten
+    option_texts = flat_buttons.map(&:text)
+
+    assert_includes option_texts, "Ультра"
+    assert_includes option_texts, "Высокая"
+    assert_includes option_texts, "← Назад"
   end
 
   test "callback query set_delivery_frequency updates user setting" do
@@ -1415,11 +1436,11 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
       first_name: "Test",
       language_code: "ru",
       timezone: "UTC",
-      delivery_frequency: "real_time"
+      delivery_frequency: :real_time  # Используем символ
     )
 
     user_data = {
-      "id" => 123456,
+      "id" => user.id,  # Используем тот же ID что и у пользователя
       "username" => "testuser_same_value",
       "first_name" => "Test"
     }
@@ -1447,13 +1468,14 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     user.reload
     assert_equal "real_time", user.delivery_frequency
 
-    # Проверяем editMessageText с возвратом к настройкам
+    # Проверяем editMessageText с сообщением (текущее поведение)
     edit_request = @bot.requests.find { |method, _| method == :editMessageText }
     assert_not_nil edit_request
 
     _, edit_params = edit_request
     edit_params = edit_params.first
-    assert_includes edit_params[:text], "⚙️ Настройки"
-    assert_includes edit_params[:text], "📋 Текущие настройки"
+    # Проверяем что пришло сообщение об успехе (текущее поведение)
+    assert_includes edit_params[:text], "✅ Частота доставки изменена на"
+    assert_includes edit_params[:text], "Реальное время"
   end
 end

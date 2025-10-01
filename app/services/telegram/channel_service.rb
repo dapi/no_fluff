@@ -196,5 +196,68 @@ module Telegram
         message: I18n.t("telegram_bot.channels.add.error", error: e.message)
       }
     end
+
+    # Удаляет канал из подписок пользователя
+    # @param user [TelegramUser] - пользователь
+    # @param channel_username [String] - username канала
+    # @return [Hash] - результат операции { success: true/false, message: String, channel: Channel }
+    def remove_channel_for_user(user, channel_username)
+      # Парсим username
+      username = parse_channel_username(channel_username)
+
+      unless username
+        return {
+          success: false,
+          message: I18n.t("telegram_bot.channels.remove.invalid_format")
+        }
+      end
+
+      # Ищем канал в БД
+      channel = Channel.find_by(username: username)
+
+      unless channel
+        return {
+          success: false,
+          message: I18n.t("telegram_bot.channels.remove.not_found", channel: "@#{username}")
+        }
+      end
+
+      # Ищем любую подписку (активную или неактивную)
+      subscription = user.subscriptions.find_by(channel: channel)
+
+      unless subscription
+        return {
+          success: false,
+          message: I18n.t("telegram_bot.channels.remove.not_subscribed", channel: "@#{channel.username}")
+        }
+      end
+
+      # Если подписка неактивна
+      unless subscription.active?
+        return {
+          success: false,
+          message: I18n.t("telegram_bot.channels.remove.not_subscribed", channel: "@#{channel.username}")
+        }
+      end
+
+      # Деактивируем подписку
+      subscription.deactivate!
+
+      {
+        success: true,
+        message: I18n.t("telegram_bot.channels.remove.success",
+                       channel: "@#{channel.username}",
+                       count: user.subscriptions.active.count),
+        channel: channel
+      }
+    rescue StandardError => e
+      Rails.logger.error "Error removing channel for user #{user.id}: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+
+      {
+        success: false,
+        message: I18n.t("telegram_bot.channels.remove.error", error: e.message)
+      }
+    end
   end
 end

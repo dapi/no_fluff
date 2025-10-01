@@ -56,11 +56,13 @@ telegram_bot_username: "YOUR_BOT_USERNAME"
 
 - **`channels`** - задачи мониторинга и получения постов из каналов
   - MonitorJob, FetchPostsJob
-  - Средний приоритет, до 4 потоков
+  - 2 потока, 1 процесс (можно изменить через CHANNELS_CONCURRENCY)
+  - Интервал опроса: 1 секунда
 
 - **`content`** - задачи обработки и доставки контента
   - ProcessPostJob, DeliverPostsJob
-  - Средний приоритет, до 4 потоков
+  - 3 потока, 2 процесса (можно изменить через CONTENT_CONCURRENCY)
+  - Интервал опроса: 0.5 секунды
 
 Конфигурация воркеров находится в `config/queue.yml`.
 
