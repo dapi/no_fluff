@@ -22,7 +22,7 @@ gem "solid_cable"
 
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
-gem 'semver2', github: 'haf/semver'
+gem "semver2", github: "haf/semver"
 
 # Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
 gem "kamal", require: false
@@ -37,7 +37,7 @@ gem "thruster", require: false
 # gem "rack-cors"
 
 group :development, :test do
-  gem 'claude-on-rails'
+  gem "claude-on-rails"
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
 

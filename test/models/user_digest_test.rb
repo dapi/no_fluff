@@ -36,7 +36,7 @@ class UserDigestTest < ActiveSupport::TestCase
 
   test "should destroy associated user_digest_items when destroyed" do
     user_digest = user_digests(:one)
-    assert_difference 'UserDigestItem.count', -1 do
+    assert_difference "UserDigestItem.count", -1 do
       user_digest.destroy
     end
   end

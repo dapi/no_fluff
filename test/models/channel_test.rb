@@ -78,7 +78,7 @@ class ChannelTest < ActiveSupport::TestCase
       telegram_user: telegram_users(:one),
       priority: 5
     )
-    assert_difference 'Subscription.count', -1 do
+    assert_difference "Subscription.count", -1 do
       channel.destroy
     end
   end
@@ -92,7 +92,7 @@ class ChannelTest < ActiveSupport::TestCase
       telegram_message_id: 88888,
       published_at: Time.current
     )
-    assert_difference 'Post.count', -1 do
+    assert_difference "Post.count", -1 do
       channel.destroy
     end
   end

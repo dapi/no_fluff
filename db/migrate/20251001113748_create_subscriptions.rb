@@ -12,7 +12,7 @@ class CreateSubscriptions < ActiveRecord::Migration[8.0]
     end
 
     # Индексы
-    add_index :subscriptions, [:telegram_user_id, :channel_id], unique: true
+    add_index :subscriptions, [ :telegram_user_id, :channel_id ], unique: true
     add_index :subscriptions, :active
     add_index :subscriptions, :priority
     add_index :subscriptions, :last_digest_sent_at

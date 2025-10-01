@@ -12,37 +12,37 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
   test "start command creates user and sends welcome message" do
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser',
-      'first_name' => 'Test',
-      'last_name' => 'User',
-      'language_code' => 'ru',
-      'is_premium' => false
+      "id" => 123456,
+      "username" => "testuser",
+      "first_name" => "Test",
+      "last_name" => "User",
+      "language_code" => "ru",
+      "is_premium" => false
     }
 
     # Создаём update для команды /start
     update = {
-      'update_id' => 1,
-      'message' => {
-        'message_id' => 1,
-        'from' => user_data,
-        'chat' => { 'id' => 123456, 'type' => 'private' },
-        'text' => '/start'
+      "update_id" => 1,
+      "message" => {
+        "message_id" => 1,
+        "from" => user_data,
+        "chat" => { "id" => 123456, "type" => "private" },
+        "text" => "/start"
       }
     }
 
     # Отправляем update в контроллер
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
     # Проверяем, что пользователь был создан
-    user = TelegramUser.find_by(username: 'testuser')
+    user = TelegramUser.find_by(username: "testuser")
     assert_not_nil user
-    assert_equal 'Test', user.first_name
-    assert_equal 'User', user.last_name
-    assert_equal 'ru', user.language_code
+    assert_equal "Test", user.first_name
+    assert_equal "User", user.last_name
+    assert_equal "ru", user.language_code
     assert_equal false, user.is_premium
 
     # Проверяем, что бот отправил сообщение
@@ -54,8 +54,8 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal :sendMessage, method
     assert_equal 123456, params[:chat_id]
-    assert_includes params[:text], 'Привет!'
-    assert_includes params[:text], 'No Fluff Bot'
+    assert_includes params[:text], "Привет!"
+    assert_includes params[:text], "No Fluff Bot"
 
     # Проверяем наличие inline клавиатуры
     assert_not_nil params[:reply_markup]
@@ -67,27 +67,27 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     existing_user = telegram_users(:one)
 
     user_data = {
-      'id' => 123456,
-      'username' => existing_user.username,
-      'first_name' => 'Updated',
-      'last_name' => 'Name',
-      'language_code' => 'en'
+      "id" => 123456,
+      "username" => existing_user.username,
+      "first_name" => "Updated",
+      "last_name" => "Name",
+      "language_code" => "en"
     }
 
     update = {
-      'update_id' => 2,
-      'message' => {
-        'message_id' => 2,
-        'from' => user_data,
-        'chat' => { 'id' => 123456, 'type' => 'private' },
-        'text' => '/start'
+      "update_id" => 2,
+      "message" => {
+        "message_id" => 2,
+        "from" => user_data,
+        "chat" => { "id" => 123456, "type" => "private" },
+        "text" => "/start"
       }
     }
 
     initial_count = TelegramUser.count
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
     assert_equal initial_count, TelegramUser.count
@@ -95,24 +95,24 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
   test "help command sends help message" do
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser',
-      'first_name' => 'Test',
-      'chat' => { 'id' => 123456, 'type' => 'private' }
+      "id" => 123456,
+      "username" => "testuser",
+      "first_name" => "Test",
+      "chat" => { "id" => 123456, "type" => "private" }
     }
 
     update = {
-      'update_id' => 3,
-      'message' => {
-        'message_id' => 3,
-        'from' => user_data,
-        'chat' => { 'id' => 123456, 'type' => 'private' },
-        'text' => '/help'
+      "update_id" => 3,
+      "message" => {
+        "message_id" => 3,
+        "from" => user_data,
+        "chat" => { "id" => 123456, "type" => "private" },
+        "text" => "/help"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -123,34 +123,34 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     params = params.first
 
     assert_equal :sendMessage, method
-    assert_includes params[:text], 'Доступные команды'
-    assert_includes params[:text], '/start'
-    assert_includes params[:text], '/help'
+    assert_includes params[:text], "Доступные команды"
+    assert_includes params[:text], "/start"
+    assert_includes params[:text], "/help"
   end
 
   test "callback query start_onboarding edits message" do
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser',
-      'first_name' => 'Test'
+      "id" => 123456,
+      "username" => "testuser",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 4,
-      'callback_query' => {
-        'id' => 'callback_1',
-        'from' => user_data,
-        'message' => {
-          'message_id' => 10,
-          'chat' => { 'id' => 123456, 'type' => 'private' },
-          'text' => 'Previous text'
+      "update_id" => 4,
+      "callback_query" => {
+        "id" => "callback_1",
+        "from" => user_data,
+        "message" => {
+          "message_id" => 10,
+          "chat" => { "id" => 123456, "type" => "private" },
+          "text" => "Previous text"
         },
-        'data' => 'start_onboarding:'
+        "data" => "start_onboarding:"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -167,32 +167,32 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     _, edit_params = edit_request
     edit_params = edit_params.first
-    assert_includes edit_params[:text], 'Пришли мне ссылки'
+    assert_includes edit_params[:text], "Пришли мне ссылки"
   end
 
   test "callback query more_info shows detailed information" do
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser',
-      'first_name' => 'Test'
+      "id" => 123456,
+      "username" => "testuser",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 5,
-      'callback_query' => {
-        'id' => 'callback_2',
-        'from' => user_data,
-        'message' => {
-          'message_id' => 11,
-          'chat' => { 'id' => 123456, 'type' => 'private' },
-          'text' => 'Previous text'
+      "update_id" => 5,
+      "callback_query" => {
+        "id" => "callback_2",
+        "from" => user_data,
+        "message" => {
+          "message_id" => 11,
+          "chat" => { "id" => 123456, "type" => "private" },
+          "text" => "Previous text"
         },
-        'data' => 'more_info:'
+        "data" => "more_info:"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -202,33 +202,33 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     _, edit_params = edit_request
     edit_params = edit_params.first
-    assert_includes edit_params[:text], 'Как это работает?'
-    assert_includes edit_params[:text], 'AI'
+    assert_includes edit_params[:text], "Как это работает?"
+    assert_includes edit_params[:text], "AI"
   end
 
   test "callback query back_to_start returns to welcome" do
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser',
-      'first_name' => 'Test'
+      "id" => 123456,
+      "username" => "testuser",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 6,
-      'callback_query' => {
-        'id' => 'callback_3',
-        'from' => user_data,
-        'message' => {
-          'message_id' => 12,
-          'chat' => { 'id' => 123456, 'type' => 'private' },
-          'text' => 'Previous text'
+      "update_id" => 6,
+      "callback_query" => {
+        "id" => "callback_3",
+        "from" => user_data,
+        "message" => {
+          "message_id" => 12,
+          "chat" => { "id" => 123456, "type" => "private" },
+          "text" => "Previous text"
         },
-        'data' => 'back_to_start:'
+        "data" => "back_to_start:"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -238,31 +238,31 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     _, edit_params = edit_request
     edit_params = edit_params.first
-    assert_includes edit_params[:text], 'No Fluff Bot'
-    assert_includes edit_params[:text], 'Начнём?'
+    assert_includes edit_params[:text], "No Fluff Bot"
+    assert_includes edit_params[:text], "Начнём?"
   end
 
   # Тесты команды /add
 
   test "add command without arguments shows prompt" do
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser',
-      'first_name' => 'Test'
+      "id" => 123456,
+      "username" => "testuser",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 7,
-      'message' => {
-        'message_id' => 13,
-        'from' => user_data,
-        'chat' => { 'id' => 123456, 'type' => 'private' },
-        'text' => '/add'
+      "update_id" => 7,
+      "message" => {
+        "message_id" => 13,
+        "from" => user_data,
+        "chat" => { "id" => 123456, "type" => "private" },
+        "text" => "/add"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -270,29 +270,29 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     params = params.first
 
     assert_equal :sendMessage, method
-    assert_includes params[:text], 'Отправь мне ссылку'
-    assert_includes params[:text], '@channelname'
+    assert_includes params[:text], "Отправь мне ссылку"
+    assert_includes params[:text], "@channelname"
   end
 
   test "add command with invalid format returns error" do
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser',
-      'first_name' => 'Test'
+      "id" => 123456,
+      "username" => "testuser",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 8,
-      'message' => {
-        'message_id' => 14,
-        'from' => user_data,
-        'chat' => { 'id' => 123456, 'type' => 'private' },
-        'text' => '/add invalid!'
+      "update_id" => 8,
+      "message" => {
+        "message_id" => 14,
+        "from" => user_data,
+        "chat" => { "id" => 123456, "type" => "private" },
+        "text" => "/add invalid!"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -300,28 +300,28 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     params = params.first
 
     assert_equal :sendMessage, method
-    assert_includes params[:text], 'Неверный формат'
+    assert_includes params[:text], "Неверный формат"
   end
 
   test "message with @username triggers add channel" do
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser',
-      'first_name' => 'Test'
+      "id" => 123456,
+      "username" => "testuser",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 9,
-      'message' => {
-        'message_id' => 15,
-        'from' => user_data,
-        'chat' => { 'id' => 123456, 'type' => 'private' },
-        'text' => '@testchannel'
+      "update_id" => 9,
+      "message" => {
+        "message_id" => 15,
+        "from" => user_data,
+        "chat" => { "id" => 123456, "type" => "private" },
+        "text" => "@testchannel"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -335,23 +335,23 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
   test "message with t.me link triggers add channel" do
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser',
-      'first_name' => 'Test'
+      "id" => 123456,
+      "username" => "testuser",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 10,
-      'message' => {
-        'message_id' => 16,
-        'from' => user_data,
-        'chat' => { 'id' => 123456, 'type' => 'private' },
-        'text' => 'https://t.me/testchannel'
+      "update_id" => 10,
+      "message" => {
+        "message_id" => 16,
+        "from" => user_data,
+        "chat" => { "id" => 123456, "type" => "private" },
+        "text" => "https://t.me/testchannel"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -365,23 +365,23 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
   test "message without @ or t.me does not trigger add channel" do
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser',
-      'first_name' => 'Test'
+      "id" => 123456,
+      "username" => "testuser",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 11,
-      'message' => {
-        'message_id' => 17,
-        'from' => user_data,
-        'chat' => { 'id' => 123456, 'type' => 'private' },
-        'text' => 'Hello world'
+      "update_id" => 11,
+      "message" => {
+        "message_id" => 17,
+        "from" => user_data,
+        "chat" => { "id" => 123456, "type" => "private" },
+        "text" => "Hello world"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -389,30 +389,30 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     params = params.first
 
     assert_equal :sendMessage, method
-    assert_includes params[:text], 'Вы написали'
+    assert_includes params[:text], "Вы написали"
   end
 
   # Тесты команды /list
 
   test "list command with no subscriptions shows empty message" do
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser',
-      'first_name' => 'Test'
+      "id" => 123456,
+      "username" => "testuser",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 12,
-      'message' => {
-        'message_id' => 18,
-        'from' => user_data,
-        'chat' => { 'id' => 123456, 'type' => 'private' },
-        'text' => '/list'
+      "update_id" => 12,
+      "message" => {
+        "message_id" => 18,
+        "from" => user_data,
+        "chat" => { "id" => 123456, "type" => "private" },
+        "text" => "/list"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -420,30 +420,30 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     params = params.first
 
     assert_equal :sendMessage, method
-    assert_includes params[:text], 'У тебя пока нет подписок'
-    assert_includes params[:text], '/add'
+    assert_includes params[:text], "У тебя пока нет подписок"
+    assert_includes params[:text], "/add"
   end
 
   test "list command with subscriptions shows list with buttons" do
     # Создаем тестового пользователя
     user = TelegramUser.create!(
-      username: 'testuser_list',
-      first_name: 'Test',
-      language_code: 'ru',
-      timezone: 'UTC'
+      username: "testuser_list",
+      first_name: "Test",
+      language_code: "ru",
+      timezone: "UTC"
     )
 
     # Создаем тестовые каналы
     channel1 = Channel.create!(
       telegram_id: 1001,
-      username: 'testchannel1',
-      title: 'Test Channel 1'
+      username: "testchannel1",
+      title: "Test Channel 1"
     )
 
     channel2 = Channel.create!(
       telegram_id: 1002,
-      username: 'testchannel2',
-      title: 'Test Channel 2'
+      username: "testchannel2",
+      title: "Test Channel 2"
     )
 
     # Создаем подписки
@@ -462,23 +462,23 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     )
 
     user_data = {
-      'id' => 123457,
-      'username' => 'testuser_list',
-      'first_name' => 'Test'
+      "id" => 123457,
+      "username" => "testuser_list",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 13,
-      'message' => {
-        'message_id' => 19,
-        'from' => user_data,
-        'chat' => { 'id' => 123457, 'type' => 'private' },
-        'text' => '/list'
+      "update_id" => 13,
+      "message" => {
+        "message_id" => 19,
+        "from" => user_data,
+        "chat" => { "id" => 123457, "type" => "private" },
+        "text" => "/list"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -486,12 +486,12 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     params = params.first
 
     assert_equal :sendMessage, method
-    assert_includes params[:text], 'Мои подписки'
-    assert_includes params[:text], 'Всего каналов: 2'
-    assert_includes params[:text], 'Test Channel 1'
-    assert_includes params[:text], 'Test Channel 2'
-    assert_includes params[:text], 'приоритет: 5'
-    assert_includes params[:text], 'приоритет: 8'
+    assert_includes params[:text], "Мои подписки"
+    assert_includes params[:text], "Всего каналов: 2"
+    assert_includes params[:text], "Test Channel 1"
+    assert_includes params[:text], "Test Channel 2"
+    assert_includes params[:text], "приоритет: 5"
+    assert_includes params[:text], "приоритет: 8"
 
     # Проверяем наличие inline клавиатуры
     assert_not_nil params[:reply_markup]
@@ -504,44 +504,44 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     # Проверяем кнопки для первого канала
     first_row = keyboard.first
     assert_equal 3, first_row.length  # Три кнопки: вверх, вниз, удалить
-    assert_equal '⬆️', first_row[0].text
-    assert_equal '⬇️', first_row[1].text
-    assert_equal '🗑️', first_row[2].text
-    assert_includes first_row[0].callback_data, 'priority_up:'
-    assert_includes first_row[1].callback_data, 'priority_down:'
-    assert_includes first_row[2].callback_data, 'remove_channel:'
+    assert_equal "⬆️", first_row[0].text
+    assert_equal "⬇️", first_row[1].text
+    assert_equal "🗑️", first_row[2].text
+    assert_includes first_row[0].callback_data, "priority_up:"
+    assert_includes first_row[1].callback_data, "priority_down:"
+    assert_includes first_row[2].callback_data, "remove_channel:"
   end
 
   test "callback query my_subscriptions triggers list command" do
     user = TelegramUser.create!(
-      username: 'testuser',
-      first_name: 'Test',
-      language_code: 'ru',
-      timezone: 'UTC'
+      username: "testuser",
+      first_name: "Test",
+      language_code: "ru",
+      timezone: "UTC"
     )
 
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser',
-      'first_name' => 'Test'
+      "id" => 123456,
+      "username" => "testuser",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 14,
-      'callback_query' => {
-        'id' => 'callback_list_1',
-        'from' => user_data,
-        'message' => {
-          'message_id' => 20,
-          'chat' => { 'id' => 123456, 'type' => 'private' },
-          'text' => 'Previous text'
+      "update_id" => 14,
+      "callback_query" => {
+        "id" => "callback_list_1",
+        "from" => user_data,
+        "message" => {
+          "message_id" => 20,
+          "chat" => { "id" => 123456, "type" => "private" },
+          "text" => "Previous text"
         },
-        'data' => 'my_subscriptions:'
+        "data" => "my_subscriptions:"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -555,22 +555,22 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     _, edit_params = edit_request
     edit_params = edit_params.first
-    assert_includes edit_params[:text], 'У тебя пока нет подписок'
+    assert_includes edit_params[:text], "У тебя пока нет подписок"
   end
 
   test "callback query remove_channel shows confirmation" do
     # Создаем тестовые данные
     user = TelegramUser.create!(
-      username: 'testuser_remove',
-      first_name: 'Test',
-      language_code: 'ru',
-      timezone: 'UTC'
+      username: "testuser_remove",
+      first_name: "Test",
+      language_code: "ru",
+      timezone: "UTC"
     )
 
     channel = Channel.create!(
       telegram_id: 1003,
-      username: 'testchannel_remove',
-      title: 'Test Channel Remove'
+      username: "testchannel_remove",
+      title: "Test Channel Remove"
     )
 
     subscription = Subscription.create!(
@@ -581,27 +581,27 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     )
 
     user_data = {
-      'id' => 123458,
-      'username' => 'testuser_remove',
-      'first_name' => 'Test'
+      "id" => 123458,
+      "username" => "testuser_remove",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 15,
-      'callback_query' => {
-        'id' => 'callback_remove_1',
-        'from' => user_data,
-        'message' => {
-          'message_id' => 21,
-          'chat' => { 'id' => 123458, 'type' => 'private' },
-          'text' => 'Previous text'
+      "update_id" => 15,
+      "callback_query" => {
+        "id" => "callback_remove_1",
+        "from" => user_data,
+        "message" => {
+          "message_id" => 21,
+          "chat" => { "id" => 123458, "type" => "private" },
+          "text" => "Previous text"
         },
-        'data' => "remove_channel:#{channel.id}"
+        "data" => "remove_channel:#{channel.id}"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -615,7 +615,7 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     _, edit_params = edit_request
     edit_params = edit_params.first
-    assert_includes edit_params[:text], 'Удалить @testchannel_remove из подписок?'
+    assert_includes edit_params[:text], "Удалить @testchannel_remove из подписок?"
 
     # Проверяем наличие кнопок подтверждения
     assert_not_nil edit_params[:reply_markup]
@@ -624,25 +624,25 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     first_row = keyboard.first
     assert_equal 2, first_row.length
-    assert_equal '🗑️', first_row[0].text
-    assert_equal 'Отмена', first_row[1].text
-    assert_includes first_row[0].callback_data, 'confirm_remove:'
-    assert_equal 'my_subscriptions:', first_row[1].callback_data
+    assert_equal "🗑️", first_row[0].text
+    assert_equal "Отмена", first_row[1].text
+    assert_includes first_row[0].callback_data, "confirm_remove:"
+    assert_equal "my_subscriptions:", first_row[1].callback_data
   end
 
   test "callback query confirm_remove deactivates subscription" do
     # Создаем тестовые данные
     user = TelegramUser.create!(
-      username: 'testuser_confirm',
-      first_name: 'Test',
-      language_code: 'ru',
-      timezone: 'UTC'
+      username: "testuser_confirm",
+      first_name: "Test",
+      language_code: "ru",
+      timezone: "UTC"
     )
 
     channel = Channel.create!(
       telegram_id: 1004,
-      username: 'testchannel_confirm',
-      title: 'Test Channel Confirm'
+      username: "testchannel_confirm",
+      title: "Test Channel Confirm"
     )
 
     subscription = Subscription.create!(
@@ -653,27 +653,27 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     )
 
     user_data = {
-      'id' => 123459,
-      'username' => 'testuser_confirm',
-      'first_name' => 'Test'
+      "id" => 123459,
+      "username" => "testuser_confirm",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 16,
-      'callback_query' => {
-        'id' => 'callback_confirm_1',
-        'from' => user_data,
-        'message' => {
-          'message_id' => 22,
-          'chat' => { 'id' => 123459, 'type' => 'private' },
-          'text' => 'Previous text'
+      "update_id" => 16,
+      "callback_query" => {
+        "id" => "callback_confirm_1",
+        "from" => user_data,
+        "message" => {
+          "message_id" => 22,
+          "chat" => { "id" => 123459, "type" => "private" },
+          "text" => "Previous text"
         },
-        'data' => "confirm_remove:#{channel.id}"
+        "data" => "confirm_remove:#{channel.id}"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -691,22 +691,22 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     _, edit_params = edit_request
     edit_params = edit_params.first
-    assert_includes edit_params[:text], 'Канал @testchannel_confirm удалён из подписок'
+    assert_includes edit_params[:text], "Канал @testchannel_confirm удалён из подписок"
   end
 
   test "callback query priority_up increases priority" do
     # Создаем тестовые данные
     user = TelegramUser.create!(
-      username: 'testuser_priority_up',
-      first_name: 'Test',
-      language_code: 'ru',
-      timezone: 'UTC'
+      username: "testuser_priority_up",
+      first_name: "Test",
+      language_code: "ru",
+      timezone: "UTC"
     )
 
     channel = Channel.create!(
       telegram_id: 1005,
-      username: 'testchannel_priority',
-      title: 'Test Channel Priority'
+      username: "testchannel_priority",
+      title: "Test Channel Priority"
     )
 
     subscription = Subscription.create!(
@@ -719,8 +719,8 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     # Добавим еще одну подписку чтобы список не был пустым
     channel2 = Channel.create!(
       telegram_id: 1007,
-      username: 'testchannel_priority_extra',
-      title: 'Test Channel Priority Extra'
+      username: "testchannel_priority_extra",
+      title: "Test Channel Priority Extra"
     )
 
     Subscription.create!(
@@ -731,27 +731,27 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     )
 
     user_data = {
-      'id' => 123460,
-      'username' => 'testuser_priority_up',
-      'first_name' => 'Test'
+      "id" => 123460,
+      "username" => "testuser_priority_up",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 17,
-      'callback_query' => {
-        'id' => 'callback_priority_up_1',
-        'from' => user_data,
-        'message' => {
-          'message_id' => 23,
-          'chat' => { 'id' => 123460, 'type' => 'private' },
-          'text' => 'Previous text'
+      "update_id" => 17,
+      "callback_query" => {
+        "id" => "callback_priority_up_1",
+        "from" => user_data,
+        "message" => {
+          "message_id" => 23,
+          "chat" => { "id" => 123460, "type" => "private" },
+          "text" => "Previous text"
         },
-        'data' => "priority_up:#{channel.id}"
+        "data" => "priority_up:#{channel.id}"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -769,22 +769,22 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     _, edit_params = edit_request
     edit_params = edit_params.first
-    assert_includes edit_params[:text], 'Мои подписки'
+    assert_includes edit_params[:text], "Мои подписки"
   end
 
   test "callback query priority_down decreases priority" do
     # Создаем тестовые данные
     user = TelegramUser.create!(
-      username: 'testuser_priority_down',
-      first_name: 'Test',
-      language_code: 'ru',
-      timezone: 'UTC'
+      username: "testuser_priority_down",
+      first_name: "Test",
+      language_code: "ru",
+      timezone: "UTC"
     )
 
     channel = Channel.create!(
       telegram_id: 1006,
-      username: 'testchannel_priority2',
-      title: 'Test Channel Priority 2'
+      username: "testchannel_priority2",
+      title: "Test Channel Priority 2"
     )
 
     subscription = Subscription.create!(
@@ -797,8 +797,8 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     # Добавим еще одну подписку чтобы список не был пустым
     channel2 = Channel.create!(
       telegram_id: 1008,
-      username: 'testchannel_priority2_extra',
-      title: 'Test Channel Priority 2 Extra'
+      username: "testchannel_priority2_extra",
+      title: "Test Channel Priority 2 Extra"
     )
 
     Subscription.create!(
@@ -809,27 +809,27 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     )
 
     user_data = {
-      'id' => 123461,
-      'username' => 'testuser_priority_down',
-      'first_name' => 'Test'
+      "id" => 123461,
+      "username" => "testuser_priority_down",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 18,
-      'callback_query' => {
-        'id' => 'callback_priority_down_1',
-        'from' => user_data,
-        'message' => {
-          'message_id' => 24,
-          'chat' => { 'id' => 123461, 'type' => 'private' },
-          'text' => 'Previous text'
+      "update_id" => 18,
+      "callback_query" => {
+        "id" => "callback_priority_down_1",
+        "from" => user_data,
+        "message" => {
+          "message_id" => 24,
+          "chat" => { "id" => 123461, "type" => "private" },
+          "text" => "Previous text"
         },
-        'data' => "priority_down:#{channel.id}"
+        "data" => "priority_down:#{channel.id}"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -847,30 +847,30 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     _, edit_params = edit_request
     edit_params = edit_params.first
-    assert_includes edit_params[:text], 'Мои подписки'
+    assert_includes edit_params[:text], "Мои подписки"
   end
 
   # Тесты команды /remove
 
   test "remove command without arguments shows prompt" do
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser',
-      'first_name' => 'Test'
+      "id" => 123456,
+      "username" => "testuser",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 19,
-      'message' => {
-        'message_id' => 25,
-        'from' => user_data,
-        'chat' => { 'id' => 123456, 'type' => 'private' },
-        'text' => '/remove'
+      "update_id" => 19,
+      "message" => {
+        "message_id" => 25,
+        "from" => user_data,
+        "chat" => { "id" => 123456, "type" => "private" },
+        "text" => "/remove"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -878,29 +878,29 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     params = params.first
 
     assert_equal :sendMessage, method
-    assert_includes params[:text], 'Отправь мне username или ссылку'
-    assert_includes params[:text], 'для удаления'
+    assert_includes params[:text], "Отправь мне username или ссылку"
+    assert_includes params[:text], "для удаления"
   end
 
   test "remove command with invalid format returns error" do
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser',
-      'first_name' => 'Test'
+      "id" => 123456,
+      "username" => "testuser",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 20,
-      'message' => {
-        'message_id' => 26,
-        'from' => user_data,
-        'chat' => { 'id' => 123456, 'type' => 'private' },
-        'text' => '/remove invalid!'
+      "update_id" => 20,
+      "message" => {
+        "message_id" => 26,
+        "from" => user_data,
+        "chat" => { "id" => 123456, "type" => "private" },
+        "text" => "/remove invalid!"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -908,28 +908,28 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     params = params.first
 
     assert_equal :sendMessage, method
-    assert_includes params[:text], 'Неверный формат'
+    assert_includes params[:text], "Неверный формат"
   end
 
   test "remove command with non-existent channel returns error" do
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser',
-      'first_name' => 'Test'
+      "id" => 123456,
+      "username" => "testuser",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 21,
-      'message' => {
-        'message_id' => 27,
-        'from' => user_data,
-        'chat' => { 'id' => 123456, 'type' => 'private' },
-        'text' => '/remove @nonexistentchannel'
+      "update_id" => 21,
+      "message" => {
+        "message_id" => 27,
+        "from" => user_data,
+        "chat" => { "id" => 123456, "type" => "private" },
+        "text" => "/remove @nonexistentchannel"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -937,22 +937,22 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     params = params.first
 
     assert_equal :sendMessage, method
-    assert_includes params[:text], 'не найден в твоих подписках'
+    assert_includes params[:text], "не найден в твоих подписках"
   end
 
   test "remove command with subscribed channel successfully removes it" do
     # Создаем тестового пользователя и подписку
     user = TelegramUser.create!(
-      username: 'testuser_remove_cmd',
-      first_name: 'Test',
-      language_code: 'ru',
-      timezone: 'UTC'
+      username: "testuser_remove_cmd",
+      first_name: "Test",
+      language_code: "ru",
+      timezone: "UTC"
     )
 
     channel = Channel.create!(
       telegram_id: 2001,
-      username: 'testchannel_remove_cmd',
-      title: 'Test Channel Remove Cmd'
+      username: "testchannel_remove_cmd",
+      title: "Test Channel Remove Cmd"
     )
 
     subscription = Subscription.create!(
@@ -963,23 +963,23 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     )
 
     user_data = {
-      'id' => 123462,
-      'username' => 'testuser_remove_cmd',
-      'first_name' => 'Test'
+      "id" => 123462,
+      "username" => "testuser_remove_cmd",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 22,
-      'message' => {
-        'message_id' => 28,
-        'from' => user_data,
-        'chat' => { 'id' => 123462, 'type' => 'private' },
-        'text' => '/remove @testchannel_remove_cmd'
+      "update_id" => 22,
+      "message" => {
+        "message_id" => 28,
+        "from" => user_data,
+        "chat" => { "id" => 123462, "type" => "private" },
+        "text" => "/remove @testchannel_remove_cmd"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -987,8 +987,8 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     params = params.first
 
     assert_equal :sendMessage, method
-    assert_includes params[:text], 'Канал @testchannel_remove_cmd удалён'
-    assert_includes params[:text], 'Всего каналов: 0'
+    assert_includes params[:text], "Канал @testchannel_remove_cmd удалён"
+    assert_includes params[:text], "Всего каналов: 0"
 
     # Проверяем что подписка деактивирована
     subscription.reload
@@ -998,16 +998,16 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
   test "remove command with t.me link successfully removes channel" do
     # Создаем тестового пользователя и подписку
     user = TelegramUser.create!(
-      username: 'testuser_remove_link',
-      first_name: 'Test',
-      language_code: 'ru',
-      timezone: 'UTC'
+      username: "testuser_remove_link",
+      first_name: "Test",
+      language_code: "ru",
+      timezone: "UTC"
     )
 
     channel = Channel.create!(
       telegram_id: 2002,
-      username: 'testchannel_remove_link',
-      title: 'Test Channel Remove Link'
+      username: "testchannel_remove_link",
+      title: "Test Channel Remove Link"
     )
 
     subscription = Subscription.create!(
@@ -1018,23 +1018,23 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     )
 
     user_data = {
-      'id' => 123463,
-      'username' => 'testuser_remove_link',
-      'first_name' => 'Test'
+      "id" => 123463,
+      "username" => "testuser_remove_link",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 23,
-      'message' => {
-        'message_id' => 29,
-        'from' => user_data,
-        'chat' => { 'id' => 123463, 'type' => 'private' },
-        'text' => '/remove t.me/testchannel_remove_link'
+      "update_id" => 23,
+      "message" => {
+        "message_id" => 29,
+        "from" => user_data,
+        "chat" => { "id" => 123463, "type" => "private" },
+        "text" => "/remove t.me/testchannel_remove_link"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -1042,7 +1042,7 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     params = params.first
 
     assert_equal :sendMessage, method
-    assert_includes params[:text], 'Канал @testchannel_remove_link удалён'
+    assert_includes params[:text], "Канал @testchannel_remove_link удалён"
 
     # Проверяем что подписка деактивирована
     subscription.reload
@@ -1053,31 +1053,31 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
   test "settings command shows current settings" do
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser_settings',
-      'first_name' => 'Test',
-      'last_name' => 'User',
-      'language_code' => 'ru',
-      'is_premium' => false
+      "id" => 123456,
+      "username" => "testuser_settings",
+      "first_name" => "Test",
+      "last_name" => "User",
+      "language_code" => "ru",
+      "is_premium" => false
     }
 
     update = {
-      'update_id' => 24,
-      'message' => {
-        'message_id' => 30,
-        'from' => user_data,
-        'chat' => { 'id' => 123456, 'type' => 'private' },
-        'text' => '/settings'
+      "update_id" => 24,
+      "message" => {
+        "message_id" => 30,
+        "from" => user_data,
+        "chat" => { "id" => 123456, "type" => "private" },
+        "text" => "/settings"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
     # Проверяем, что пользователь был создан
-    user = TelegramUser.find_by(username: 'testuser_settings')
+    user = TelegramUser.find_by(username: "testuser_settings")
     assert_not_nil user
 
     # Проверяем, что бот отправил сообщение
@@ -1088,11 +1088,11 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal :sendMessage, method
     assert_equal 123456, params[:chat_id]
-    assert_includes params[:text], '⚙️ Настройки'
-    assert_includes params[:text], '📋 Текущие настройки'
-    assert_includes params[:text], '⏰ Частота доставки'
-    assert_includes params[:text], '📝 Формат контента'
-    assert_includes params[:text], '🎯 Строгость фильтрации'
+    assert_includes params[:text], "⚙️ Настройки"
+    assert_includes params[:text], "📋 Текущие настройки"
+    assert_includes params[:text], "⏰ Частота доставки"
+    assert_includes params[:text], "📝 Формат контента"
+    assert_includes params[:text], "🎯 Строгость фильтрации"
 
     # Проверяем наличие inline клавиатуры
     assert_not_nil params[:reply_markup]
@@ -1101,27 +1101,27 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
   test "callback query settings shows settings menu" do
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser_settings',
-      'first_name' => 'Test'
+      "id" => 123456,
+      "username" => "testuser_settings",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 25,
-      'callback_query' => {
-        'id' => 'callback_settings_1',
-        'from' => user_data,
-        'message' => {
-          'message_id' => 31,
-          'chat' => { 'id' => 123456, 'type' => 'private' },
-          'text' => 'Previous text'
+      "update_id" => 25,
+      "callback_query" => {
+        "id" => "callback_settings_1",
+        "from" => user_data,
+        "message" => {
+          "message_id" => 31,
+          "chat" => { "id" => 123456, "type" => "private" },
+          "text" => "Previous text"
         },
-        'data' => 'settings:'
+        "data" => "settings:"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -1135,33 +1135,33 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     _, edit_params = edit_request
     edit_params = edit_params.first
-    assert_includes edit_params[:text], '⚙️ Настройки'
-    assert_includes edit_params[:text], '📋 Текущие настройки'
+    assert_includes edit_params[:text], "⚙️ Настройки"
+    assert_includes edit_params[:text], "📋 Текущие настройки"
   end
 
   test "callback query delivery_frequency shows frequency options" do
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser_settings',
-      'first_name' => 'Test'
+      "id" => 123456,
+      "username" => "testuser_settings",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 26,
-      'callback_query' => {
-        'id' => 'callback_frequency_1',
-        'from' => user_data,
-        'message' => {
-          'message_id' => 32,
-          'chat' => { 'id' => 123456, 'type' => 'private' },
-          'text' => 'Previous text'
+      "update_id" => 26,
+      "callback_query" => {
+        "id" => "callback_frequency_1",
+        "from" => user_data,
+        "message" => {
+          "message_id" => 32,
+          "chat" => { "id" => 123456, "type" => "private" },
+          "text" => "Previous text"
         },
-        'data' => 'delivery_frequency:'
+        "data" => "delivery_frequency:"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -1175,10 +1175,10 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     _, edit_params = edit_request
     edit_params = edit_params.first
-    assert_includes edit_params[:text], '⏰ Частота доставки'
-    assert_includes edit_params[:text], 'Реальное время'
-    assert_includes edit_params[:text], 'Раз в день'
-    assert_includes edit_params[:text], '← Назад'
+    assert_includes edit_params[:text], "⏰ Частота доставки"
+    assert_includes edit_params[:text], "Реальное время"
+    assert_includes edit_params[:text], "Раз в день"
+    assert_includes edit_params[:text], "← Назад"
 
     # Проверяем наличие inline клавиатуры с опциями
     assert_not_nil edit_params[:reply_markup]
@@ -1187,27 +1187,27 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
   test "callback query content_format shows format options" do
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser_settings',
-      'first_name' => 'Test'
+      "id" => 123456,
+      "username" => "testuser_settings",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 27,
-      'callback_query' => {
-        'id' => 'callback_format_1',
-        'from' => user_data,
-        'message' => {
-          'message_id' => 33,
-          'chat' => { 'id' => 123456, 'type' => 'private' },
-          'text' => 'Previous text'
+      "update_id" => 27,
+      "callback_query" => {
+        "id" => "callback_format_1",
+        "from" => user_data,
+        "message" => {
+          "message_id" => 33,
+          "chat" => { "id" => 123456, "type" => "private" },
+          "text" => "Previous text"
         },
-        'data' => 'content_format:'
+        "data" => "content_format:"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -1217,35 +1217,35 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     _, edit_params = edit_request
     edit_params = edit_params.first
-    assert_includes edit_params[:text], '📝 Формат контента'
-    assert_includes edit_params[:text], 'Оригинальные посты'
-    assert_includes edit_params[:text], 'Саммари'
-    assert_includes edit_params[:text], '← Назад'
+    assert_includes edit_params[:text], "📝 Формат контента"
+    assert_includes edit_params[:text], "Оригинальные посты"
+    assert_includes edit_params[:text], "Саммари"
+    assert_includes edit_params[:text], "← Назад"
   end
 
   test "callback query filter_strictness shows strictness options" do
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser_settings',
-      'first_name' => 'Test'
+      "id" => 123456,
+      "username" => "testuser_settings",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 28,
-      'callback_query' => {
-        'id' => 'callback_strictness_1',
-        'from' => user_data,
-        'message' => {
-          'message_id' => 34,
-          'chat' => { 'id' => 123456, 'type' => 'private' },
-          'text' => 'Previous text'
+      "update_id" => 28,
+      "callback_query" => {
+        "id" => "callback_strictness_1",
+        "from" => user_data,
+        "message" => {
+          "message_id" => 34,
+          "chat" => { "id" => 123456, "type" => "private" },
+          "text" => "Previous text"
         },
-        'data' => 'filter_strictness:'
+        "data" => "filter_strictness:"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
@@ -1255,49 +1255,49 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     _, edit_params = edit_request
     edit_params = edit_params.first
-    assert_includes edit_params[:text], '🎯 Строгость фильтрации'
-    assert_includes edit_params[:text], 'Ультра'
-    assert_includes edit_params[:text], 'Высокая'
-    assert_includes edit_params[:text], '← Назад'
+    assert_includes edit_params[:text], "🎯 Строгость фильтрации"
+    assert_includes edit_params[:text], "Ультра"
+    assert_includes edit_params[:text], "Высокая"
+    assert_includes edit_params[:text], "← Назад"
   end
 
   test "callback query set_delivery_frequency updates user setting" do
     user = TelegramUser.create!(
-      username: 'testuser_freq_change',
-      first_name: 'Test',
-      language_code: 'ru',
-      timezone: 'UTC',
-      delivery_frequency: 'once_daily'
+      username: "testuser_freq_change",
+      first_name: "Test",
+      language_code: "ru",
+      timezone: "UTC",
+      delivery_frequency: "once_daily"
     )
 
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser_freq_change',
-      'first_name' => 'Test'
+      "id" => 123456,
+      "username" => "testuser_freq_change",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 29,
-      'callback_query' => {
-        'id' => 'callback_set_freq_1',
-        'from' => user_data,
-        'message' => {
-          'message_id' => 35,
-          'chat' => { 'id' => 123456, 'type' => 'private' },
-          'text' => 'Previous text'
+      "update_id" => 29,
+      "callback_query" => {
+        "id" => "callback_set_freq_1",
+        "from" => user_data,
+        "message" => {
+          "message_id" => 35,
+          "chat" => { "id" => 123456, "type" => "private" },
+          "text" => "Previous text"
         },
-        'data' => 'set_delivery_frequency:weekly'
+        "data" => "set_delivery_frequency:weekly"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
     # Проверяем, что настройка была обновлена
     user.reload
-    assert_equal 'weekly', user.delivery_frequency
+    assert_equal "weekly", user.delivery_frequency
 
     # Проверяем answerCallbackQuery
     answer_request = @bot.requests.find { |method, _| method == :answerCallbackQuery }
@@ -1309,47 +1309,47 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     _, edit_params = edit_request
     edit_params = edit_params.first
-    assert_includes edit_params[:text], '✅ Частота доставки изменена на'
-    assert_includes edit_params[:text], 'Раз в неделю'
+    assert_includes edit_params[:text], "✅ Частота доставки изменена на"
+    assert_includes edit_params[:text], "Раз в неделю"
   end
 
   test "callback query set_content_format updates user setting" do
     user = TelegramUser.create!(
-      username: 'testuser_format_change',
-      first_name: 'Test',
-      language_code: 'ru',
-      timezone: 'UTC',
-      content_format: 'original'
+      username: "testuser_format_change",
+      first_name: "Test",
+      language_code: "ru",
+      timezone: "UTC",
+      content_format: "original"
     )
 
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser_format_change',
-      'first_name' => 'Test'
+      "id" => 123456,
+      "username" => "testuser_format_change",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 30,
-      'callback_query' => {
-        'id' => 'callback_set_format_1',
-        'from' => user_data,
-        'message' => {
-          'message_id' => 36,
-          'chat' => { 'id' => 123456, 'type' => 'private' },
-          'text' => 'Previous text'
+      "update_id" => 30,
+      "callback_query" => {
+        "id" => "callback_set_format_1",
+        "from" => user_data,
+        "message" => {
+          "message_id" => 36,
+          "chat" => { "id" => 123456, "type" => "private" },
+          "text" => "Previous text"
         },
-        'data' => 'set_content_format:summaries'
+        "data" => "set_content_format:summaries"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
     # Проверяем, что настройка была обновлена
     user.reload
-    assert_equal 'summaries', user.content_format
+    assert_equal "summaries", user.content_format
 
     # Проверяем editMessageText с сообщением об успехе
     edit_request = @bot.requests.find { |method, _| method == :editMessageText }
@@ -1357,47 +1357,47 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     _, edit_params = edit_request
     edit_params = edit_params.first
-    assert_includes edit_params[:text], '✅ Формат контента изменён на'
-    assert_includes edit_params[:text], 'Саммари'
+    assert_includes edit_params[:text], "✅ Формат контента изменён на"
+    assert_includes edit_params[:text], "Саммари"
   end
 
   test "callback query set_filter_strictness updates user setting" do
     user = TelegramUser.create!(
-      username: 'testuser_strictness_change',
-      first_name: 'Test',
-      language_code: 'ru',
-      timezone: 'UTC',
-      filter_strictness: 'medium'
+      username: "testuser_strictness_change",
+      first_name: "Test",
+      language_code: "ru",
+      timezone: "UTC",
+      filter_strictness: "medium"
     )
 
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser_strictness_change',
-      'first_name' => 'Test'
+      "id" => 123456,
+      "username" => "testuser_strictness_change",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 31,
-      'callback_query' => {
-        'id' => 'callback_set_strictness_1',
-        'from' => user_data,
-        'message' => {
-          'message_id' => 37,
-          'chat' => { 'id' => 123456, 'type' => 'private' },
-          'text' => 'Previous text'
+      "update_id" => 31,
+      "callback_query" => {
+        "id" => "callback_set_strictness_1",
+        "from" => user_data,
+        "message" => {
+          "message_id" => 37,
+          "chat" => { "id" => 123456, "type" => "private" },
+          "text" => "Previous text"
         },
-        'data' => 'set_filter_strictness:high'
+        "data" => "set_filter_strictness:high"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
     # Проверяем, что настройка была обновлена
     user.reload
-    assert_equal 'high', user.filter_strictness
+    assert_equal "high", user.filter_strictness
 
     # Проверяем editMessageText с сообщением об успехе
     edit_request = @bot.requests.find { |method, _| method == :editMessageText }
@@ -1405,47 +1405,47 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     _, edit_params = edit_request
     edit_params = edit_params.first
-    assert_includes edit_params[:text], '✅ Строгость фильтрации изменена на'
-    assert_includes edit_params[:text], 'Высокая'
+    assert_includes edit_params[:text], "✅ Строгость фильтрации изменена на"
+    assert_includes edit_params[:text], "Высокая"
   end
 
   test "callback query with same value returns to settings without update" do
     user = TelegramUser.create!(
-      username: 'testuser_same_value',
-      first_name: 'Test',
-      language_code: 'ru',
-      timezone: 'UTC',
-      delivery_frequency: 'real_time'
+      username: "testuser_same_value",
+      first_name: "Test",
+      language_code: "ru",
+      timezone: "UTC",
+      delivery_frequency: "real_time"
     )
 
     user_data = {
-      'id' => 123456,
-      'username' => 'testuser_same_value',
-      'first_name' => 'Test'
+      "id" => 123456,
+      "username" => "testuser_same_value",
+      "first_name" => "Test"
     }
 
     update = {
-      'update_id' => 32,
-      'callback_query' => {
-        'id' => 'callback_same_value_1',
-        'from' => user_data,
-        'message' => {
-          'message_id' => 38,
-          'chat' => { 'id' => 123456, 'type' => 'private' },
-          'text' => 'Previous text'
+      "update_id" => 32,
+      "callback_query" => {
+        "id" => "callback_same_value_1",
+        "from" => user_data,
+        "message" => {
+          "message_id" => 38,
+          "chat" => { "id" => 123456, "type" => "private" },
+          "text" => "Previous text"
         },
-        'data' => 'set_delivery_frequency:real_time'
+        "data" => "set_delivery_frequency:real_time"
       }
     }
 
     post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
+      headers: { "Content-Type" => "application/json" }
 
     assert_response :success
 
     # Проверяем, что настройка не изменилась
     user.reload
-    assert_equal 'real_time', user.delivery_frequency
+    assert_equal "real_time", user.delivery_frequency
 
     # Проверяем editMessageText с возвратом к настройкам
     edit_request = @bot.requests.find { |method, _| method == :editMessageText }
@@ -1453,7 +1453,7 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     _, edit_params = edit_request
     edit_params = edit_params.first
-    assert_includes edit_params[:text], '⚙️ Настройки'
-    assert_includes edit_params[:text], '📋 Текущие настройки'
+    assert_includes edit_params[:text], "⚙️ Настройки"
+    assert_includes edit_params[:text], "📋 Текущие настройки"
   end
 end

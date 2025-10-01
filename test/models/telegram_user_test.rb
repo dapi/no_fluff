@@ -101,7 +101,7 @@ class TelegramUserTest < ActiveSupport::TestCase
       channel: channels(:one),
       priority: 5
     )
-    assert_difference 'Subscription.count', -1 do
+    assert_difference "Subscription.count", -1 do
       user.destroy
     end
   end
@@ -116,7 +116,7 @@ class TelegramUserTest < ActiveSupport::TestCase
       posts_analyzed_count: 0,
       posts_included_count: 0
     )
-    assert_difference 'UserDigest.count', -1 do
+    assert_difference "UserDigest.count", -1 do
       user.destroy
     end
   end

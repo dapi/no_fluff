@@ -51,7 +51,7 @@ class PostTest < ActiveSupport::TestCase
 
   test "should destroy associated user_digest_items when destroyed" do
     post = posts(:one)
-    assert_difference 'UserDigestItem.count', -1 do
+    assert_difference "UserDigestItem.count", -1 do
       post.destroy
     end
   end
@@ -318,7 +318,7 @@ class PostTest < ActiveSupport::TestCase
 
   test "by_topic scope should return posts with specific topic" do
     post = posts(:one)
-    post.update(topics: ["ruby", "rails"])
+    post.update(topics: [ "ruby", "rails" ])
 
     ruby_posts = Post.by_topic("ruby")
     assert_includes ruby_posts, post
@@ -326,7 +326,7 @@ class PostTest < ActiveSupport::TestCase
 
   test "by_topic scope should not return posts without specific topic" do
     post = posts(:one)
-    post.update(topics: ["python", "django"])
+    post.update(topics: [ "python", "django" ])
 
     ruby_posts = Post.by_topic("ruby")
     assert_not_includes ruby_posts, post
@@ -403,7 +403,7 @@ class PostTest < ActiveSupport::TestCase
 
   test "has_media? should return true when media_urls is present and not empty" do
     post = posts(:one)
-    post.update(media_urls: ["https://example.com/image.jpg"])
+    post.update(media_urls: [ "https://example.com/image.jpg" ])
 
     assert post.has_media?
   end
@@ -506,7 +506,7 @@ class PostTest < ActiveSupport::TestCase
 
   test "should handle multiple topics" do
     post = posts(:one)
-    post.topics = ["ruby", "rails", "programming", "web development"]
+    post.topics = [ "ruby", "rails", "programming", "web development" ]
     assert post.save
     post.reload
     assert_equal 4, post.topics.length

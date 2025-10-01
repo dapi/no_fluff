@@ -21,7 +21,7 @@ class CreatePosts < ActiveRecord::Migration[8.0]
     end
 
     # Индексы
-    add_index :posts, [:channel_id, :published_at]
+    add_index :posts, [ :channel_id, :published_at ]
     add_index :posts, :telegram_message_id
     add_index :posts, :is_important
     add_index :posts, :is_ad
@@ -30,6 +30,6 @@ class CreatePosts < ActiveRecord::Migration[8.0]
     add_index :posts, :importance_score
     add_index :posts, :published_at
     add_index :posts, :topics, using: :gin
-    add_index :posts, [:channel_id, :telegram_message_id], unique: true
+    add_index :posts, [ :channel_id, :telegram_message_id ], unique: true
   end
 end

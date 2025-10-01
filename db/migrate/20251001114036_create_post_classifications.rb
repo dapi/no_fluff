@@ -14,7 +14,7 @@ class CreatePostClassifications < ActiveRecord::Migration[8.0]
     end
 
     # Индексы (индексы для references создаются автоматически)
-    add_index :post_classifications, [:telegram_user_id, :post_id], unique: true
+    add_index :post_classifications, [ :telegram_user_id, :post_id ], unique: true
     add_index :post_classifications, :is_relevant
     add_index :post_classifications, :importance_score
   end

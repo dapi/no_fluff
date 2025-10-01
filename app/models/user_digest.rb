@@ -25,9 +25,9 @@ class UserDigest < ApplicationRecord
   scope :ready, -> { where(status: :ready) }
   scope :sent, -> { where(status: :sent) }
   scope :failed, -> { where(status: :failed) }
-  scope :scheduled_for_now, -> { where('scheduled_for <= ?', Time.current) }
+  scope :scheduled_for_now, -> { where("scheduled_for <= ?", Time.current) }
   scope :for_user, ->(user) { where(telegram_user: user) }
-  scope :recent, -> { where('created_at > ?', 30.days.ago) }
+  scope :recent, -> { where("created_at > ?", 30.days.ago) }
 
   # Methods
   def mark_as_building!

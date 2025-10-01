@@ -19,7 +19,7 @@ class CreateUserDigests < ActiveRecord::Migration[8.0]
     add_index :user_digests, :status
     add_index :user_digests, :scheduled_for
     add_index :user_digests, :sent_at
-    add_index :user_digests, [:telegram_user_id, :status]
-    add_index :user_digests, [:telegram_user_id, :scheduled_for]
+    add_index :user_digests, [ :telegram_user_id, :status ]
+    add_index :user_digests, [ :telegram_user_id, :scheduled_for ]
   end
 end

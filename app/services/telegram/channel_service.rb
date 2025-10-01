@@ -26,7 +26,7 @@ module Telegram
         # Извлекаем username из URL: t.me/channelname
         username = input.match(%r{^t\.me/([a-zA-Z0-9_]+)})&.[](1)
         return username
-      elsif input.start_with?('@')
+      elsif input.start_with?("@")
         # Убираем @ в начале
         username = input[1..-1]
         return username if valid_username?(username)
@@ -52,25 +52,25 @@ module Telegram
       return nil if username.blank?
 
       # Добавляем @ если его нет
-      chat_id = username.start_with?('@') ? username : "@#{username}"
+      chat_id = username.start_with?("@") ? username : "@#{username}"
 
       begin
         response = @bot.get_chat(chat_id: chat_id)
 
         # Проверяем что это канал
-        if response['ok'] && response['result']
-          chat = response['result']
+        if response["ok"] && response["result"]
+          chat = response["result"]
 
           # Проверяем что это именно канал (не группа, не приватный чат)
-          return nil unless chat['type'] == 'channel'
+          return nil unless chat["type"] == "channel"
 
           {
-            id: chat['id'],
-            title: chat['title'],
-            username: chat['username'],
-            description: chat['description'],
-            invite_link: chat['invite_link'],
-            member_count: chat['member_count'] || 0
+            id: chat["id"],
+            title: chat["title"],
+            username: chat["username"],
+            description: chat["description"],
+            invite_link: chat["invite_link"],
+            member_count: chat["member_count"] || 0
           }
         else
           nil
@@ -92,7 +92,7 @@ module Telegram
       unless username
         return {
           success: false,
-          message: I18n.t('telegram_bot.channels.add.invalid_format')
+          message: I18n.t("telegram_bot.channels.add.invalid_format")
         }
       end
 
@@ -102,7 +102,7 @@ module Telegram
         if current_count >= FREE_CHANNELS_LIMIT
           return {
             success: false,
-            message: I18n.t('telegram_bot.channels.add.limit_reached', limit: FREE_CHANNELS_LIMIT)
+            message: I18n.t("telegram_bot.channels.add.limit_reached", limit: FREE_CHANNELS_LIMIT)
           }
         end
       end
@@ -113,7 +113,7 @@ module Telegram
       unless channel_info
         return {
           success: false,
-          message: I18n.t('telegram_bot.channels.add.not_found', channel: "@#{username}")
+          message: I18n.t("telegram_bot.channels.add.not_found", channel: "@#{username}")
         }
       end
 
@@ -131,7 +131,7 @@ module Telegram
         unless channel.save
           return {
             success: false,
-            message: I18n.t('telegram_bot.channels.add.error', error: channel.errors.full_messages.join(', '))
+            message: I18n.t("telegram_bot.channels.add.error", error: channel.errors.full_messages.join(", "))
           }
         end
       else
@@ -153,7 +153,7 @@ module Telegram
           subscription.activate!
           return {
             success: true,
-            message: I18n.t('telegram_bot.channels.add.success',
+            message: I18n.t("telegram_bot.channels.add.success",
                            channel: "@#{channel.username}",
                            count: user.subscriptions.active.count),
             channel: channel
@@ -161,7 +161,7 @@ module Telegram
         else
           return {
             success: false,
-            message: I18n.t('telegram_bot.channels.add.already_subscribed', channel: "@#{channel.username}")
+            message: I18n.t("telegram_bot.channels.add.already_subscribed", channel: "@#{channel.username}")
           }
         end
       end
@@ -176,7 +176,7 @@ module Telegram
       if subscription.save
         {
           success: true,
-          message: I18n.t('telegram_bot.channels.add.success',
+          message: I18n.t("telegram_bot.channels.add.success",
                          channel: "@#{channel.username}",
                          count: user.subscriptions.active.count),
           channel: channel
@@ -184,7 +184,7 @@ module Telegram
       else
         {
           success: false,
-          message: I18n.t('telegram_bot.channels.add.error', error: subscription.errors.full_messages.join(', '))
+          message: I18n.t("telegram_bot.channels.add.error", error: subscription.errors.full_messages.join(", "))
         }
       end
     rescue StandardError => e
@@ -193,7 +193,7 @@ module Telegram
 
       {
         success: false,
-        message: I18n.t('telegram_bot.channels.add.error', error: e.message)
+        message: I18n.t("telegram_bot.channels.add.error", error: e.message)
       }
     end
   end

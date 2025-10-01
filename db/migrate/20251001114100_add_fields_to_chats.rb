@@ -8,7 +8,7 @@ class AddFieldsToChats < ActiveRecord::Migration[8.0]
     add_column :chats, :messages_count, :integer, default: 0
 
     # Индексы
-    add_index :chats, [:telegram_user_id, :session_type]
+    add_index :chats, [ :telegram_user_id, :session_type ]
     add_index :chats, :status
     add_index :chats, :last_activity_at
     add_index :chats, :context, using: :gin
