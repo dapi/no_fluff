@@ -285,4 +285,104 @@ class TelegramUserTest < ActiveSupport::TestCase
     )
     assert user.valid?
   end
+
+  # Tests for is_admin functionality
+  test "should have is_admin field with default false" do
+    user = TelegramUser.create!(
+      username: "test_admin",
+      timezone: "UTC",
+      language_code: "en"
+    )
+    assert_equal false, user.is_admin
+  end
+
+  test "admins scope should return only admin users" do
+    admin_user = TelegramUser.create!(
+      username: "admin_user",
+      timezone: "UTC",
+      language_code: "en",
+      is_admin: true
+    )
+
+    regular_user = TelegramUser.create!(
+      username: "regular_user",
+      timezone: "UTC",
+      language_code: "en",
+      is_admin: false
+    )
+
+    admin_users = TelegramUser.admins
+    assert_includes admin_users, admin_user
+    assert_not_includes admin_users, regular_user
+  end
+
+  test "any_admins? should return false when no admins exist" do
+    # Create only regular users
+    TelegramUser.create!(
+      username: "regular_user1",
+      timezone: "UTC",
+      language_code: "en",
+      is_admin: false
+    )
+
+    assert_not TelegramUser.any_admins?
+  end
+
+  test "any_admins? should return true when at least one admin exists" do
+    # Create regular users
+    TelegramUser.create!(
+      username: "regular_user1",
+      timezone: "UTC",
+      language_code: "en",
+      is_admin: false
+    )
+
+    # Create admin user
+    TelegramUser.create!(
+      username: "admin_user",
+      timezone: "UTC",
+      language_code: "en",
+      is_admin: true
+    )
+
+    assert TelegramUser.any_admins?
+  end
+
+  test "first_admin! should return first admin when admins exist" do
+    admin1 = TelegramUser.create!(
+      username: "admin_user1",
+      timezone: "UTC",
+      language_code: "en",
+      is_admin: true
+    )
+
+    admin2 = TelegramUser.create!(
+      username: "admin_user2",
+      timezone: "UTC",
+      language_code: "en",
+      is_admin: true
+    )
+
+    first_admin = TelegramUser.first_admin!
+    assert_includes [ admin1, admin2 ], first_admin
+  end
+
+  test "first_admin! should return nil when no admins exist" do
+    assert_nil TelegramUser.first_admin!
+  end
+
+  test "can promote user to admin" do
+    user = TelegramUser.create!(
+      username: "test_user_promote",
+      timezone: "UTC",
+      language_code: "en",
+      is_admin: false
+    )
+
+    user.update!(is_admin: true)
+    user.reload
+
+    assert user.is_admin?
+    assert TelegramUser.any_admins?
+  end
 end

@@ -19,10 +19,21 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
 
   # Команда /start - приветствие и краткая инструкция
   def start!(*)
-    # Отправляем приветственное сообщение с inline кнопками
-    respond_with :message,
-      text: I18n.t("telegram_bot.start.welcome"),
-      reply_markup: start_keyboard
+    # Проверяем, есть ли в системе администраторы
+    unless TelegramUser.any_admins?
+      # Назначаем текущего пользователя администратором
+      current_user.update!(is_admin: true)
+
+      # Отправляем специальное сообщение для первого администратора
+      respond_with :message,
+        text: I18n.t("telegram_bot.start.first_admin") + "\n\n" + I18n.t("telegram_bot.start.welcome"),
+        reply_markup: start_keyboard
+    else
+      # Обычное приветственное сообщение
+      respond_with :message,
+        text: I18n.t("telegram_bot.start.welcome"),
+        reply_markup: start_keyboard
+    end
   end
 
   # Команда /help - список доступных команд

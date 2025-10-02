@@ -40,9 +40,9 @@
 #### 1.1.3. AI/LLM Setup
 - [x] Настроить ruby_llm gem
 - [x] Создать `config/initializers/ruby_llm.rb`
-- [ ] Настроить API ключи (OpenAI/Anthropic/другие)
-- [ ] Создать базовый wrapper `lib/ai/classifier.rb`
-- [ ] Протестировать подключение к AI API
+- [x] Настроить API ключи (OpenAI/Anthropic/другие)
+- [x] Создать базовый wrapper `lib/ai/classifier.rb`
+- [x] Протестировать подключение к AI API
 
 #### 1.1.4. Background Jobs Setup
 - [x] Настроить Solid Queue
@@ -146,62 +146,62 @@
 > Полная AI-инфраструктура с персонализацией будет в Phase 2.
 
 #### 1.4.1. AI Classifier Service (базовая)
-- [ ] Создать `app/services/content/ai_classifier.rb`
-- [ ] Настроить базовое подключение к AI API (OpenAI/Anthropic)
-- [ ] Реализовать `classify(post)` с простым промптом
-- [ ] Базовая классификация: важно/не важно/реклама
-- [ ] Сохранять результаты в `post.importance_score` и `post.is_ad`
-- [ ] Добавить базовое кеширование результатов
-- [ ] Написать service тесты
+- [x] Создать `app/services/content/ai_classifier.rb`
+- [x] Настроить базовое подключение к AI API (OpenAI/Anthropic)
+- [x] Реализовать `classify(post)` с простым промптом
+- [x] Базовая классификация: важно/не важно/реклама
+- [x] Сохранять результаты в `post.importance_score` и `post.is_ad`
+- [x] Добавить базовое кеширование результатов
+- [x] Написать service тесты
 
 #### 1.4.2. Post Model Updates для базовой классификации
 - [x] Добавить `importance_score` (integer, 0-100) в Post модель
 - [x] Добавить `is_ad` (boolean) в Post модель
 - [x] Добавить `classification_reasoning` (text) в Post модель
 - [x] Добавить индексы на новые поля
-- [ ] Обновить scopes:
-  - [ ] `important` - посты с importance_score > порога
-  - [ ] `not_ads` - посты где is_ad = false
-- [ ] Написать unit тесты
+- [x] Обновить scopes:
+  - [x] `important` - посты с importance_score > порога
+  - [x] `not_ads` - посты где is_ad = false
+- [x] Написать unit тесты
 
 #### 1.4.3. Classify Job (базовый)
-- [ ] Создать `app/jobs/content/classify_job.rb`
-- [ ] Вызывать AIClassifier для новых постов
-- [ ] Сохранять результаты классификации
-- [ ] Обрабатывать ошибки AI API с retry логикой
-- [ ] Логировать базовые метрики (success rate, latency)
-- [ ] Написать job тесты
+- [x] Создать `app/jobs/content/classify_job.rb`
+- [x] Вызывать AIClassifier для новых постов
+- [x] Сохранять результаты классификации
+- [x] Обрабатывать ошибки AI API с retry логикой
+- [x] Логировать базовые метрики (success rate, latency)
+- [x] Написать job тесты
 
 ### 1.5. Мониторинг каналов
 
 #### 1.5.1. Channel Fetcher Library
-- [ ] Создать `lib/telegram_client/api_wrapper.rb`
-- [ ] Реализовать метод получения постов из канала
-- [ ] Добавить обработку ошибок (rate limits, недоступность канала)
-- [ ] Создать `lib/telegram_client/channel_fetcher.rb`
-- [ ] Реализовать парсинг постов (текст, медиа, метаданные)
-- [ ] Написать unit тесты
+- [x] Создать `lib/telegram_client/api_wrapper.rb`
+- [x] Реализовать метод получения постов из канала
+- [x] Добавить обработку ошибок (rate limits, недоступность канала)
+- [x] Создать `lib/telegram_client/channel_fetcher.rb`
+- [x] Реализовать парсинг постов (текст, медиа, метаданные)
+- [x] Написать unit тесты
 
 #### 1.5.2. Monitor Job
-- [ ] Создать `app/jobs/channels/monitor_job.rb`
-- [ ] Реализовать логику получения активных каналов
-- [ ] Вызвать ChannelFetcher для каждого канала
-- [ ] Запланировать ProcessPostJob для новых постов
-- [ ] Добавить логирование
-- [ ] Написать job тесты
+- [x] Создать `app/jobs/channels/monitor_job.rb`
+- [x] Реализовать логику получения активных каналов
+- [x] Вызвать ChannelFetcher для каждого канала
+- [x] Запланировать ProcessPostJob для новых постов
+- [x] Добавить логирование
+- [x] Написать job тесты
 
 #### 1.5.3. Schedule Monitor Job
-- [ ] Настроить периодический запуск MonitorJob (каждые 5-10 минут)
-- [ ] Использовать Solid Queue recurring jobs или cron
-- [ ] Протестировать выполнение
+- [x] Настроить периодический запуск MonitorJob (каждые 5-10 минут)
+- [x] Использовать Solid Queue recurring jobs или cron
+- [x] Протестировать выполнение
 
 #### 1.5.4. Process Post Job
-- [ ] Создать `app/jobs/content/process_post_job.rb`
-- [ ] Сохранить пост в БД
-- [ ] Нормализовать контент
-- [ ] Извлечь метаданные
-- [ ] Запланировать ClassifyJob
-- [ ] Написать job тесты
+- [x] Создать `app/jobs/content/process_post_job.rb`
+- [x] Сохранить пост в БД
+- [x] Нормализовать контент
+- [x] Извлечь метаданные
+- [x] Запланировать ClassifyJob
+- [x] Написать job тесты
 
 ### 1.6. Базовая фильтрация контента
 
@@ -209,103 +209,103 @@
 > Расширенная персонализация будет в Phase 2.
 
 #### 1.6.1. Content Filter Service (базовая)
-- [ ] Создать `app/services/content/filter.rb`
-- [ ] Реализовать фильтрацию постов по `importance_score`
-- [ ] Учитывать `filter_strictness` пользователя
-- [ ] Фильтровать рекламу (`is_ad = true`)
-- [ ] Базовая фильтрация по ключевым словам
-- [ ] Написать service тесты
+- [x] Создать `app/services/content/filter.rb`
+- [x] Реализовать фильтрацию постов по `importance_score`
+- [x] Учитывать `filter_strictness` пользователя
+- [x] Фильтровать рекламу (`is_ad = true`)
+- [x] Базовая фильтрация по ключевым словам
+- [x] Написать service тесты
 
 #### 1.6.2. Filtered Posts Query Service
-- [ ] Создать `app/services/content/filtered_posts_query.rb`
-- [ ] Реализовать получение отфильтрованных постов для пользователя
-- [ ] Учитывать время последней отправки
-- [ ] Применять фильтры по важности и рекламе
-- [ ] Сортировать по важности и времени
-- [ ] Написать service тесты
+- [x] Создать `app/services/content/filtered_posts_query.rb`
+- [x] Реализовать получение отфильтрованных постов для пользователя
+- [x] Учитывать время последней отправки
+- [x] Применять фильтры по важности и рекламе
+- [x] Сортировать по важности и времени
+- [x] Написать service тесты
 
 ### 1.7. Фильтрация и форвардинг постов
 
 #### 1.7.1. Content Filter Service
-- [ ] Создать `app/services/content/filter.rb`
-- [ ] Реализовать базовую фильтрацию постов:
-  - [ ] Фильтрация рекламы (простые правила + базовый AI)
-  - [ ] Фильтрация по ключевым словам
-  - [ ] Учет строгости фильтрации пользователя
-- [ ] Написать service тесты
+- [x] Создать `app/services/content/filter.rb`
+- [x] Реализовать базовую фильтрацию постов:
+  - [x] Фильтрация рекламы (простые правила + базовый AI)
+  - [x] Фильтрация по ключевым словам
+  - [x] Учет строгости фильтрации пользователя
+- [x] Написать service тесты
 
 #### 1.7.2. Post Forwarder Service
-- [ ] Создать `app/services/content/forwarder.rb`
-- [ ] Реализовать форвардинг отфильтрованных постов
-- [ ] Использовать `bot.forward_message` для отправки постов
-- [ ] Добавить валидацию прав доступа к каналу
-- [ ] Обрабатывать ошибки (нет прав, пост удален)
-- [ ] Написать service тесты
+- [x] Создать `app/services/content/forwarder.rb`
+- [x] Реализовать форвардинг отфильтрованных постов
+- [x] Использовать `bot.forward_message` для отправки постов
+- [x] Добавить валидацию прав доступа к каналу
+- [x] Обрабатывать ошибки (нет прав, пост удален)
+- [x] Написать service тесты
 
 #### 1.7.3. Deliver Filtered Posts Job
-- [ ] Создать `app/jobs/content/deliver_posts_job.rb`
-- [ ] Получить отфильтрованные посты для пользователя
-- [ ] Отправить посты через forwardMessage в формате списка
-- [ ] Обработать ошибки (нет прав, пост удален, канал недоступен)
-- [ ] Добавить retry логику для временных ошибок
-- [ ] Написать job тесты
+- [x] Создать `app/jobs/content/deliver_posts_job.rb`
+- [x] Получить отфильтрованные посты для пользователя
+- [x] Отправить посты через forwardMessage в формате списка
+- [x] Обработать ошибки (нет прав, пост удален, канал недоступен)
+- [x] Добавить retry логику для временных ошибок
+- [x] Написать job тесты
 
 #### 1.7.4. Content Scheduler Service
-- [ ] Создать `app/services/content/scheduler.rb`
-- [ ] Реализовать логику определения времени отправки
-- [ ] Учитывать delivery_frequency пользователя
-- [ ] Учитывать timezone пользователя
-- [ ] Планировать DeliverFilteredPostsJob для пользователей
-- [ ] Написать service тесты
+- [x] Создать `app/services/content/scheduler.rb`
+- [x] Реализовать логику определения времени отправки
+- [x] Учитывать delivery_frequency пользователя
+- [x] Учитывать timezone пользователя
+- [x] Планировать DeliverFilteredPostsJob для пользователей
+- [x] Написать service тесты
 
 #### 1.7.5. Schedule Content Delivery
-- [ ] Настроить периодический запуск ContentScheduler (каждый час)
-- [ ] Протестировать автоматическую отправку отфильтрованных постов
+- [x] Настроить периодический запуск ContentScheduler (каждый час)
+- [x] Протестировать автоматическую отправку отфильтрованных постов
 
 ### 1.8. Manual Content Command
 
 #### 1.8.1. Content Command
-- [ ] Создать `app/controllers/telegram/commands/content_controller.rb`
-- [ ] Реализовать `/content` команду (получить новые посты сейчас)
-- [ ] Запустить DeliverFilteredPostsJob немедленно
-- [ ] Отправить отфильтрованные посты пользователю
-- [ ] Добавить feedback (успех/пусто/нет новых постов)
-- [ ] Написать integration тесты
+- [x] Создать `app/controllers/telegram/commands/content_controller.rb`
+- [x] Реализовать `/content` команду (получить новые посты сейчас)
+- [x] Запустить DeliverFilteredPostsJob немедленно
+- [x] Отправить отфильтрованные посты пользователю
+- [x] Добавить feedback (успех/пусто/нет новых постов)
+- [x] Написать integration тесты
 
 ### 1.9. Help Command
 
 #### 1.9.1. Help Command
-- [ ] Создать `app/controllers/telegram/commands/help_controller.rb`
-- [ ] Реализовать `/help` команду
-- [ ] Показать список всех доступных команд
-- [ ] Добавить краткое описание функционала
-- [ ] Написать integration тесты
+- [x] Создать `app/controllers/telegram/commands/help_controller.rb`
+- [x] Реализовать `/help` команду
+- [x] Показать список всех доступных команд
+- [x] Добавить краткое описание функционала
+- [x] Написать integration тесты
 
 ### 1.10. Error Handling & Logging
 
 #### 1.10.1. Error Handling
-- [ ] Настроить глобальный rescue для контроллеров
-- [ ] Добавить логирование ошибок
-- [ ] Настроить уведомления об ошибках (опционально: Sentry)
-- [ ] Добавить user-friendly сообщения об ошибках
+- [x] Настроить глобальный rescue для контроллеров
+- [x] Добавить логирование ошибок
+- [x] Настроить уведомления об ошибках (опционально: Bugsnag)
+- [x] Добавить user-friendly сообщения об ошибках
 
 #### 1.10.2. Logging
-- [ ] Настроить structured logging (JSON)
-- [ ] Добавить correlation IDs
-- [ ] Логировать все API запросы (Telegram, AI)
-- [ ] Логировать выполнение jobs
+- [x] Настроить structured logging (JSON)
+- [x] Добавить correlation IDs
+- [x] Логировать все API запросы (Telegram, AI)
+- [x] Логировать выполнение jobs
 
 ### 1.11. Testing & Documentation
 
 #### 1.11.1. Integration Tests
-- [ ] Написать end-to-end тест: онбординг → добавление канала → получение дайджеста
-- [ ] Написать тесты для всех bot команд
-- [ ] Протестировать error scenarios
+- [x] Написать end-to-end тест: онбординг → добавление канала → получение дайджеста
+- [x] Написать тесты для всех bot команд
+- [x] Протестировать error scenarios
 
 #### 1.11.2. Documentation
-- [ ] Обновить README с инструкциями по настройке
-- [ ] Документировать все environment variables
-- [ ] Создать примеры использования команд
+- [x] Обновить README с инструкциями по настройке
+- [x] Документировать все environment variables
+- [x] Создать примеры использования команд
 
 ### 1.12. Deployment Preparation
 
@@ -430,12 +430,12 @@
 
 #### 2.3.1. Feedback Model
 - [x] Создать `app/models/feedback.rb`
-- [ ] Добавить belongs_to :telegram_user, :post
-- [ ] Добавить enum sentiment: { dislike: -1, neutral: 0, like: 1 }
+- [x] Добавить belongs_to :telegram_user, :post
+- [x] Добавить enum sentiment: { dislike: -1, neutral: 0, like: 1 }
 - [ ] Добавить after_create callback для обновления AI Session
 - [ ] Реализовать метод `update_personalization_session`
 - [x] Добавить индексы на telegram_user_id, post_id, created_at
-- [ ] Написать unit тесты
+- [x] Написать unit тесты
 
 #### 2.3.2. Feedback Controller (Telegram Bot)
 - [ ] Создать `app/controllers/telegram/commands/feedback_controller.rb`
@@ -469,17 +469,17 @@
 
 #### 2.3.6. UserPreference Model
 - [x] Создать `app/models/user_preference.rb`
-- [ ] Добавить belongs_to :telegram_user
-- [ ] Добавить JSONB поля для хранения:
+- [x] Добавить belongs_to :telegram_user
+- [x] Добавить JSONB поля для хранения:
   - [x] `topic_weights` - персональные веса тем
   - [x] `channel_weights` - веса каналов
   - [x] `adjusted_importance_threshold` - динамический порог важности
   - [x] `personalization_data` - дополнительные данные персонализации
-- [ ] Реализовать `initialize_topic_weights`
-- [ ] Реализовать `adjust_topic_weight(topic, feedback)`
-- [ ] Реализовать `weighted_importance_score(post)` - пересчет оценки
+- [x] Реализовать `initialize_topic_weights`
+- [x] Реализовать `adjust_topic_weight(topic, feedback)`
+- [x] Реализовать `weighted_importance_score(post)` - пересчет оценки
 - [x] Добавить индексы на topic_weights, channel_weights (GIN)
-- [ ] Написать unit тесты
+- [x] Написать unit тесты
 
 #### 2.3.7. Threshold Adjuster Service
 - [ ] Создать `app/services/personalization/threshold_adjuster.rb`

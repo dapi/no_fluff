@@ -1478,4 +1478,202 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     assert_includes edit_params[:text], "✅ Частота доставки изменена на"
     assert_includes edit_params[:text], "Реальное время"
   end
+
+  # Тесты для функциональности администратора
+
+  test "start command promotes first user to admin" do
+    # Сначала убеждаемся, что в системе нет администраторов
+    TelegramUser.where(is_admin: true).update_all(is_admin: false)
+
+    # Проверяем, что в системе действительно нет администраторов
+    assert_not TelegramUser.any_admins?, "Тест требует отсутствия администраторов в системе"
+
+
+    # Создаем нового пользователя, который станет администратором
+    user_data = {
+      "id" => 999999,  # Используем уникальный ID, которого нет в фикстурах
+      "username" => "first_admin",
+      "first_name" => "First",
+      "last_name" => "Admin",
+      "language_code" => "ru",
+      "is_premium" => false
+    }
+
+    update = {
+      "update_id" => 1001,
+      "message" => {
+        "message_id" => 1001,
+        "from" => user_data,
+        "chat" => { "id" => 999999, "type" => "private" },
+        "text" => "/start"
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { "Content-Type" => "application/json" }
+
+    assert_response :success
+
+    # Проверяем, что пользователь был создан и стал администратором
+    user = TelegramUser.find_by(username: "first_admin")
+    assert_not_nil user
+
+
+    assert user.is_admin?, "User should be admin but is_admin=#{user.is_admin}"  # Главное проверка!
+
+    # Проверяем, что бот отправил сообщение с поздравлением
+    assert_equal 1, @bot.requests.size
+
+    method, params = @bot.requests.first
+    params = params.first
+
+    assert_equal :sendMessage, method
+    assert_equal 999999, params[:chat_id]
+    assert_includes params[:text], "Поздравляю! Ты стал первым администратором"
+    assert_includes params[:text], "Привет! Я No Fluff Bot"
+
+    # Проверяем наличие inline клавиатуры
+    assert_not_nil params[:reply_markup]
+    assert params[:reply_markup].is_a?(Hash)
+    assert params[:reply_markup].key?(:inline_keyboard)
+  end
+
+  test "start command does not promote subsequent users to admin" do
+    # Сначала создаем администратора
+    existing_admin = TelegramUser.create!(
+      username: "existing_admin",
+      first_name: "Existing",
+      language_code: "ru",
+      timezone: "UTC",
+      is_admin: true
+    )
+
+    user_data = {
+      "id" => 123457,
+      "username" => "regular_user",
+      "first_name" => "Regular",
+      "last_name" => "User",
+      "language_code" => "ru",
+      "is_premium" => false
+    }
+
+    update = {
+      "update_id" => 1002,
+      "message" => {
+        "message_id" => 1002,
+        "from" => user_data,
+        "chat" => { "id" => 123457, "type" => "private" },
+        "text" => "/start"
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { "Content-Type" => "application/json" }
+
+    assert_response :success
+
+    # Проверяем, что пользователь был создан, но не стал администратором
+    user = TelegramUser.find_by(username: "regular_user")
+    assert_not_nil user
+    assert_equal "Regular", user.first_name
+    assert_equal "User", user.last_name
+    assert_equal false, user.is_admin  # Главное проверка!
+
+    # Проверяем, что бот отправил обычное приветственное сообщение
+    assert_equal 1, @bot.requests.size
+
+    method, params = @bot.requests.first
+    params = params.first
+
+    assert_equal :sendMessage, method
+    assert_equal 123457, params[:chat_id]
+    assert_includes params[:text], "Привет! Я No Fluff Bot"
+    # Не должно быть сообщения о назначении администратором
+    assert_not_includes params[:text], "Поздравляю! Ты стал первым администратором"
+  end
+
+  test "start command works correctly when user already exists" do
+    # Создаем существующего пользователя
+    existing_user = TelegramUser.create!(
+      username: "existing_user",
+      first_name: "Existing",
+      language_code: "ru",
+      timezone: "UTC",
+      is_admin: false
+    )
+
+    user_data = {
+      "id" => 123458,
+      "username" => "existing_user",
+      "first_name" => "Updated",
+      "last_name" => "Name",
+      "language_code" => "en"
+    }
+
+    update = {
+      "update_id" => 1003,
+      "message" => {
+        "message_id" => 1003,
+        "from" => user_data,
+        "chat" => { "id" => 123458, "type" => "private" },
+        "text" => "/start"
+      }
+    }
+
+    initial_count = TelegramUser.count
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { "Content-Type" => "application/json" }
+
+    assert_response :success
+    assert_equal initial_count, TelegramUser.count
+
+    # Проверяем, что пользователь не стал администратором (поскольку уже есть администраторы в системе)
+    existing_user.reload
+    assert_equal false, existing_user.is_admin
+  end
+
+  test "start command promotes existing user to admin if no admins exist" do
+    # Создаем существующего пользователя без прав администратора
+    existing_user = TelegramUser.create!(
+      username: "existing_promoted",
+      first_name: "WillBeAdmin",
+      language_code: "ru",
+      timezone: "UTC",
+      is_admin: false
+    )
+
+    user_data = {
+      "id" => existing_user.id,  # Используем тот же ID
+      "username" => "existing_promoted",
+      "first_name" => "WillBeAdmin"
+    }
+
+    update = {
+      "update_id" => 1004,
+      "message" => {
+        "message_id" => 1004,
+        "from" => user_data,
+        "chat" => { "id" => existing_user.id, "type" => "private" },
+        "text" => "/start"
+      }
+    }
+
+    post telegram_webhook_path, params: update.to_json,
+      headers: { "Content-Type" => "application/json" }
+
+    assert_response :success
+
+    # Проверяем, что существующий пользователь стал администратором
+    existing_user.reload
+    assert_equal true, existing_user.is_admin
+
+    # Проверяем, что бот отправил сообщение с поздравлением
+    assert_equal 1, @bot.requests.size
+
+    method, params = @bot.requests.first
+    params = params.first
+
+    assert_includes params[:text], "Поздравляю! Ты стал первым администратором"
+  end
 end

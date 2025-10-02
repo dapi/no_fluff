@@ -44,7 +44,18 @@ class TelegramUser < ApplicationRecord
   scope :by_delivery_time, ->(time) { where(delivery_frequency: time) }
   scope :premium, -> { where(is_premium: true) }
   scope :non_bots, -> { where(is_bot: false) }
+  scope :admins, -> { where(is_admin: true) }
 
   # Используем ID записи как telegram_id для Telegram API
   alias_attribute :telegram_id, :id
+
+  # Class methods
+  def self.any_admins?
+    admins.exists?
+  end
+
+  def self.first_admin!
+    return admins.first if any_admins?
+    nil
+  end
 end

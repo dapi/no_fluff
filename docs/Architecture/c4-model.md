@@ -659,7 +659,7 @@ sequenceDiagram
 
 - Structured logging (JSON)
 - Correlation IDs для трейсинга
-- Error tracking (Sentry/Rollbar)
+- Error tracking (Bugsnag/Rollbar)
 - Performance monitoring (New Relic/Datadog)
 
 ---
