@@ -123,6 +123,11 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
     result = service.add_channel_for_user(current_user, channel_input)
 
     respond_with :message, text: result[:message]
+
+    # Если канал успешно добавлен, предлагаем добавить еще один
+    if result[:success]
+      respond_with :message, text: I18n.t("telegram_bot.channels.add.suggest_another")
+    end
   end
 
   # Удаляет канал для текущего пользователя

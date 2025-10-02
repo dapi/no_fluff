@@ -87,6 +87,7 @@ ru:
           t.me/dev_channel
           https://t.me/tech_news
         success: "✅ Канал %{channel} добавлен!\n\nВсего каналов: %{count}"
+        suggest_another: "💪 Отлично! Добавляй следующий канал - присылай ссылку или username:"
         already_subscribed: "ℹ️ Ты уже подписан на канал %{channel}"
         not_found: "❌ Канал %{channel} не найден или недоступен"
         invalid_format: "❌ Неверный формат. Отправь username канала (@channelname) или ссылку (t.me/channelname)"
@@ -113,7 +114,7 @@ ru:
 
       list:
         title: "📋 Мои подписки"
-        empty: "У тебя пока нет подписок. Используй /add чтобы добавить каналы."
+        empty: "У тебя пока нет подписок. Просто накидай каналы в чат списком, и я их добавлю."
         total: "Всего каналов: %{count}"
         channel_info: "• %{channel} (приоритет: %{priority})"
         buttons:
