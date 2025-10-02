@@ -5,8 +5,8 @@ class ApplicationConfig < Anyway::Config
   config_name :no_fluff
   env_prefix :no_fluff
 
-  attr_config :telegram_bot_token,
-              :telegram_bot_username,
+  attr_config :bot_token,
+              :bot_username,
               :openai_api_key,
               :deepseek_api_key
 
@@ -14,6 +14,8 @@ class ApplicationConfig < Anyway::Config
     host: "localhost",
     protocol: "https",
     public_port: "443"
+
+  required :bot_token unless Rails.env.test?
 
   def home_url
     if home_subdomain.present?
@@ -31,12 +33,12 @@ class ApplicationConfig < Anyway::Config
     ":#{public_port}"
   end
 
-  def telegram_bot_url
-    TELEGRAM_LINK_PREFIX + telegram_bot_username
+  def bot_url
+    TELEGRAM_LINK_PREFIX + bot_username
   end
 
-  def telegram_bot_id
-    telegram_bot_token.split(":").first
+  def bot_id
+    bot_token.split(":").first
   end
 
   def default_url_options
