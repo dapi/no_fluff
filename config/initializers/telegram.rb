@@ -3,7 +3,7 @@
 
 Telegram.bots_config = {
   default: {
-    token: ApplicationConfig.bot_token
+    token: ApplicationConfig.bot_token,
     username: ApplicationConfig.bot_username # опционально
   }
 }
