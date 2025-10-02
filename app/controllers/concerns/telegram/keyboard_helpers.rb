@@ -36,7 +36,7 @@ module Telegram::KeyboardHelpers
 
   # Создает inline-клавиатуру из массива кнопок
   def inline_keyboard(*rows)
-    Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: rows)
+    Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: rows).to_h
   end
 
   # Создает row с кнопками

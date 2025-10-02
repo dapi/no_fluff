@@ -61,3 +61,5 @@ gem "minitest", "~> 5.25"
 gem "anyway_config", "~> 2.7"
 
 gem "telegram-bot-types", "~> 0.7.0"
+
+gem "bugsnag", "~> 6.28"

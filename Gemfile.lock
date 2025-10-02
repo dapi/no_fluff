@@ -97,6 +97,8 @@ GEM
       msgpack (~> 1.2)
     brakeman (7.1.0)
       racc
+    bugsnag (6.28.0)
+      concurrent-ruby (~> 1.0)
     builder (3.3.0)
     claude-code-sdk-ruby (0.1.6)
       async (~> 2)
@@ -499,6 +501,7 @@ DEPENDENCIES
   anyway_config (~> 2.7)
   bootsnap
   brakeman
+  bugsnag (~> 6.28)
   claude-on-rails
   debug
   guard
