@@ -6,13 +6,13 @@ ru:
   telegram_bot:
     start:
       welcome: |
-        👋 Привет! Я No Fluff Bot.
+        👋 Привет! Я бот "Без Шелухи"
 
         Ты подписан на десятки Telegram-каналов, но читаешь лишь 10%?
         Я буду следить за ними и присылать тебе только важное.
         Без рекламы. Без шелухи.
 
-        📊 Экономь до 40 минут в день на чтение каналов.
+        📊 Экономь до 30 минут в день на чтение каналов.
 
         Начнём?
       button_start: "🚀 Давай начнём"
@@ -82,10 +82,10 @@ ru:
     channels:
       add:
         prompt: |
-          📢 Отправь мне ссылку или username канала.
+          📢 Отправь мне ссылку или имя канала.
 
           Можешь отправить:
-          • Username: @channelname
+          • Имя: @channelname
           • Ссылку: t.me/channelname или https://t.me/channelname
           • Несколько каналов (каждый с новой строки)
 
@@ -94,19 +94,19 @@ ru:
           t.me/dev_channel
           https://t.me/tech_news
         success: "✅ Канал %{channel} добавлен!\n\nВсего каналов: %{count}"
-        suggest_another: "💪 Отлично! Добавляй следующий канал - присылай ссылку или username:"
-        already_subscribed: "ℹ️ Ты уже подписан на канал %{channel}"
+        suggest_another: "💪 Отлично!\nДобавляй следующий канал - присылай ссылку или имя"
+        already_subscribed: "ℹ️ Ты уже подписан на канал %{channel}. Присылай ссылку на другой"
         not_found: "❌ Канал %{channel} не найден или недоступен"
-        invalid_format: "❌ Неверный формат. Отправь username канала (@channelname) или ссылку (t.me/channelname)"
+        invalid_format: "❌ Неверный формат. Отправь имя канала (@channelname) или ссылку (t.me/channelname)"
         error: "❌ Ошибка при добавлении канала: %{error}"
         limit_reached: "❌ Достигнут лимит каналов (%{limit}). Обновись до Premium для безлимита!"
 
       remove:
         prompt: |
-          📢 Отправь мне username или ссылку на канал для удаления.
+          📢 Отправь мне имя или ссылку на канал для удаления.
 
           Можешь отправить:
-          • Username: @channelname
+          • Имя: @channelname
           • Ссылку: t.me/channelname или https://t.me/channelname
 
           Например:
@@ -116,7 +116,7 @@ ru:
         success: "✅ Канал %{channel} удалён!\n\nВсего каналов: %{count}"
         not_found: "❌ Канал %{channel} не найден в твоих подписках"
         not_subscribed: "ℹ️ Ты не подписан на канал %{channel}"
-        invalid_format: "❌ Неверный формат. Отправь username канала (@channelname) или ссылку (t.me/channelname)"
+        invalid_format: "❌ Неверный формат. Отправь имя канала (@channelname) или ссылку (t.me/channelname)"
         error: "❌ Ошибка при удалении канала: %{error}"
 
       list:
