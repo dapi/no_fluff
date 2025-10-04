@@ -57,6 +57,18 @@
 
 # Инстуркции для claude
 
+## Use context7
+
 Always use context7 when I need code generation, setup or configuration steps, or
 library/API documentation. This means you should automatically use the Context7 MCP
 tools to resolve library id and get library docs without me having to explicitly ask.
+
+## При создании или рефакторинга текста
+
+Никогда не используй в assert куски текстаз из локали. Используй полный текст
+через I18n.t с полным ключем. Это правило действует только если в локали не
+используется интерполяция.
+
+## Разработка телеграм бота
+
+При анализе или разработку кода для телеграм бота предварительно изучай ./docs/gems/telegram-bot.md

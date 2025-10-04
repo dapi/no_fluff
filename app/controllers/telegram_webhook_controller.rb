@@ -5,6 +5,7 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   include Telegram::SubscriptionCommands
   include Telegram::SettingsCommands
   include Telegram::KeyboardHelpers
+  include Telegram::MediaHandlers
 
   # Выполняем перед каждым действием
   before_action :find_or_create_user

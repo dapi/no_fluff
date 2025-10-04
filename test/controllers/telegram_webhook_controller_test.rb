@@ -59,7 +59,8 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     # Проверяем наличие inline клавиатуры
     assert_not_nil params[:reply_markup]
-    assert params[:reply_markup].is_a?(Telegram::Bot::Types::InlineKeyboardMarkup)
+    assert params[:reply_markup].is_a?(Hash)
+    assert params[:reply_markup].key?(:inline_keyboard)
   end
 
   test "start command for existing user does not create duplicate" do
@@ -238,8 +239,7 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     _, edit_params = edit_request
     edit_params = edit_params.first
-    assert_includes edit_params[:text], "No Fluff Bot"
-    assert_includes edit_params[:text], "Начнём?"
+    assert_includes edit_params[:text], I18n.t('telegram_bot.start.welcome')
   end
 
   # Тесты команды /add
@@ -421,7 +421,6 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal :sendMessage, method
     assert_includes params[:text], I18n.t('telegram_bot.channels.list.empty')
-    assert_includes params[:text], "/add"
   end
 
   test "list command with subscriptions shows list with buttons" do
@@ -495,21 +494,22 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     # Проверяем наличие inline клавиатуры
     assert_not_nil params[:reply_markup]
-    assert params[:reply_markup].is_a?(Telegram::Bot::Types::InlineKeyboardMarkup)
+    assert params[:reply_markup].is_a?(Hash)
+    assert params[:reply_markup].key?(:inline_keyboard)
 
     # Проверяем наличие кнопок управления
-    keyboard = params[:reply_markup].inline_keyboard
+    keyboard = params[:reply_markup][:inline_keyboard]
     assert_equal 2, keyboard.length  # Две строки для двух каналов
 
     # Проверяем кнопки для первого канала
     first_row = keyboard.first
     assert_equal 3, first_row.length  # Три кнопки: вверх, вниз, удалить
-    assert_equal "⬆️", first_row[0].text
-    assert_equal "⬇️", first_row[1].text
-    assert_equal "🗑️", first_row[2].text
-    assert_includes first_row[0].callback_data, "priority_up:"
-    assert_includes first_row[1].callback_data, "priority_down:"
-    assert_includes first_row[2].callback_data, "remove_channel:"
+    assert_equal "⬆️", first_row[0][:text]
+    assert_equal "⬇️", first_row[1][:text]
+    assert_equal "🗑️", first_row[2][:text]
+    assert_includes first_row[0][:callback_data], "priority_up:"
+    assert_includes first_row[1][:callback_data], "priority_down:"
+    assert_includes first_row[2][:callback_data], "remove_channel:"
   end
 
   test "callback query my_subscriptions triggers list command" do
@@ -619,15 +619,18 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     # Проверяем наличие кнопок подтверждения
     assert_not_nil edit_params[:reply_markup]
-    keyboard = edit_params[:reply_markup].inline_keyboard
+    assert edit_params[:reply_markup].is_a?(Hash)
+    assert edit_params[:reply_markup].key?(:inline_keyboard)
+
+    keyboard = edit_params[:reply_markup][:inline_keyboard]
     assert_equal 1, keyboard.length
 
     first_row = keyboard.first
     assert_equal 2, first_row.length
-    assert_equal "🗑️", first_row[0].text
-    assert_equal "Отмена", first_row[1].text
-    assert_includes first_row[0].callback_data, "confirm_remove:"
-    assert_equal "my_subscriptions:", first_row[1].callback_data
+    assert_equal "🗑️", first_row[0][:text]
+    assert_equal "Отмена", first_row[1][:text]
+    assert_includes first_row[0][:callback_data], "confirm_remove:"
+    assert_equal "my_subscriptions:", first_row[1][:callback_data]
   end
 
   test "callback query confirm_remove deactivates subscription" do
@@ -878,8 +881,7 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     params = params.first
 
     assert_equal :sendMessage, method
-    assert_includes params[:text], "Отправь мне username или ссылку"
-    assert_includes params[:text], "для удаления"
+    assert_includes params[:text], I18n.t('telegram_bot.channels.remove.prompt')
   end
 
   test "remove command with invalid format returns error" do
@@ -1096,7 +1098,8 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     # Проверяем наличие inline клавиатуры
     assert_not_nil params[:reply_markup]
-    assert params[:reply_markup].is_a?(Telegram::Bot::Types::InlineKeyboardMarkup)
+    assert params[:reply_markup].is_a?(Hash)
+    assert params[:reply_markup].key?(:inline_keyboard)
   end
 
   test "callback query settings shows settings menu" do
@@ -1179,15 +1182,16 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     # Проверяем наличие inline клавиатуры с опциями
     assert_not_nil edit_params[:reply_markup]
-    assert edit_params[:reply_markup].is_a?(Telegram::Bot::Types::InlineKeyboardMarkup)
+    assert edit_params[:reply_markup].is_a?(Hash)
+    assert edit_params[:reply_markup].key?(:inline_keyboard)
 
     # Проверяем что опции находятся в клавиатуре, а не в тексте
-    keyboard = edit_params[:reply_markup].inline_keyboard
+    keyboard = edit_params[:reply_markup][:inline_keyboard]
     assert_not_empty keyboard
 
     # Находим кнопки с опциями
     flat_buttons = keyboard.flatten
-    option_texts = flat_buttons.map(&:text)
+    option_texts = flat_buttons.map { |button| button[:text] }
 
     assert_includes option_texts, "Реальное время"
     assert_includes option_texts, "Раз в день"
@@ -1229,9 +1233,13 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     assert_includes edit_params[:text], "📝 Формат контента"
 
     # Проверяем что опции находятся в клавиатуре
-    keyboard = edit_params[:reply_markup].inline_keyboard
+    assert_not_nil edit_params[:reply_markup]
+    assert edit_params[:reply_markup].is_a?(Hash)
+    assert edit_params[:reply_markup].key?(:inline_keyboard)
+
+    keyboard = edit_params[:reply_markup][:inline_keyboard]
     flat_buttons = keyboard.flatten
-    option_texts = flat_buttons.map(&:text)
+    option_texts = flat_buttons.map { |button| button[:text] }
 
     assert_includes option_texts, "Оригинальные посты"
     assert_includes option_texts, "Саммари"
@@ -1273,9 +1281,13 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     assert_includes edit_params[:text], "🎯 Строгость фильтрации"
 
     # Проверяем что опции находятся в клавиатуре
-    keyboard = edit_params[:reply_markup].inline_keyboard
+    assert_not_nil edit_params[:reply_markup]
+    assert edit_params[:reply_markup].is_a?(Hash)
+    assert edit_params[:reply_markup].key?(:inline_keyboard)
+
+    keyboard = edit_params[:reply_markup][:inline_keyboard]
     flat_buttons = keyboard.flatten
-    option_texts = flat_buttons.map(&:text)
+    option_texts = flat_buttons.map { |button| button[:text] }
 
     assert_includes option_texts, "Ультра"
     assert_includes option_texts, "Высокая"
@@ -1530,7 +1542,7 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     assert_equal :sendMessage, method
     assert_equal 999999, params[:chat_id]
     assert_includes params[:text], I18n.t('telegram_bot.start.first_admin')
-    assert_includes params[:text], "Привет! Я No Fluff Bot"
+    assert_includes params[:text], I18n.t('telegram_bot.start.welcome')
 
     # Проверяем наличие inline клавиатуры
     assert_not_nil params[:reply_markup]
@@ -1587,13 +1599,22 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal :sendMessage, method
     assert_equal 123457, params[:chat_id]
-    assert_includes params[:text], "Привет! Я No Fluff Bot"
+    assert_includes params[:text], I18n.t('telegram_bot.start.welcome')
     # Не должно быть сообщения о назначении администратором
-    assert_not_includes params[:text], "Поздравляю! Ты стал первым администратором"
+    assert_not_includes params[:text], I18n.t('telegram_bot.start.first_admin')
   end
 
   test "start command works correctly when user already exists" do
-    # Создаем существующего пользователя
+    # Создаем администратора в системе, чтобы новый пользователь не стал админом
+    admin_user = TelegramUser.create!(
+      username: "admin_user",
+      first_name: "Admin",
+      language_code: "ru",
+      timezone: "UTC",
+      is_admin: true
+    )
+
+    # Создаем существующего пользователя (не администратор)
     existing_user = TelegramUser.create!(
       username: "existing_user",
       first_name: "Existing",

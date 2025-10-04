@@ -29,3 +29,10 @@
 
 en:
   hello: "Hello world"
+
+  telegram_bot:
+    media:
+      not_supported: |
+        Unfortunately, I don't understand this type of message yet.
+        Please send me a text link to the channel you want to follow
+        to receive announcements about important news only, without the fluff.
