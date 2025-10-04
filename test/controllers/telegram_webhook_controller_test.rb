@@ -679,7 +679,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
       is_admin: false
     )
 
-    session_commands = ['/remember John', '/recall', '/forget', '/session_info']
+    session_commands = [ '/remember John', '/recall', '/forget', '/session_info' ]
 
     session_commands.each do |command|
       @bot.reset

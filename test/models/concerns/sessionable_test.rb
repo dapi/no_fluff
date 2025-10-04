@@ -50,7 +50,7 @@ class SessionableTest < ActiveSupport::TestCase
     model.set_session('string_key', 'string_value')
     model.set_session('number_key', 42)
     model.set_session('boolean_key', true)
-    model.set_session('array_key', [1, 2, 3])
+    model.set_session('array_key', [ 1, 2, 3 ])
     model.set_session('hash_key', { nested: 'value' })
 
     model.reload
@@ -58,7 +58,7 @@ class SessionableTest < ActiveSupport::TestCase
     assert_equal 'string_value', model.get_session('string_key')
     assert_equal 42, model.get_session('number_key')
     assert_equal true, model.get_session('boolean_key')
-    assert_equal [1, 2, 3], model.get_session('array_key')
+    assert_equal [ 1, 2, 3 ], model.get_session('array_key')
     assert_equal({ 'nested' => 'value' }, model.get_session('hash_key'))
   end
 
@@ -171,7 +171,7 @@ class SessionableTest < ActiveSupport::TestCase
     model.set_session('key1', 'value1')
     model.set_session('key2', 'value2')
 
-    assert_equal ['key1', 'key2'], model.session_keys.sort
+    assert_equal [ 'key1', 'key2' ], model.session_keys.sort
   end
 
   test 'should check if session is empty' do
@@ -246,7 +246,7 @@ class SessionableTest < ActiveSupport::TestCase
     model.set_session('key3', 'value3')
     model.set_session('key4', 'value4')
 
-    result = model.delete_session_keys(['key1', 'key3', :key4])
+    result = model.delete_session_keys([ 'key1', 'key3', :key4 ])
     assert result
 
     model.reload
@@ -272,7 +272,7 @@ class SessionableTest < ActiveSupport::TestCase
       include Sessionable
 
       def column_names
-        ['id', 'name'] # Нет session_data
+        [ 'id', 'name' ] # Нет session_data
       end
     end.new
 
