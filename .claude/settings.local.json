@@ -33,7 +33,12 @@
       "Bash(RAILS_ENV=development ./bin/rails:*)",
       "Bash(RAILS_ENV=test ./bin/rails runner:*)",
       "Bash(NO_FLUFF_BOT_TOKEN=test_token NO_FLUFF_BOT_USERNAME=test_bot RAILS_ENV=test ./bin/rails runner \"puts ''Bot configured:''; puts Telegram.bots_config.inspect\")",
-      "Bash(NO_FLUFF_BOT_TOKEN=test_token NO_FLUFF_BOT_USERNAME=test_bot ./bin/rails test test/controllers/telegram_webhook_controller_test.rb -n test_start_command_creates_user_and_sends_welcome_message)"
+      "Bash(NO_FLUFF_BOT_TOKEN=test_token NO_FLUFF_BOT_USERNAME=test_bot ./bin/rails test test/controllers/telegram_webhook_controller_test.rb -n test_start_command_creates_user_and_sends_welcome_message)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "Bash(NO_FLUFF_BOT_TOKEN=test_token NO_FLUFF_BOT_USERNAME=test_bot RAILS_ENV=test ./bin/rails runner \"\nrequire ''./app/controllers/telegram_webhook_controller.rb''\nputs ''Testing unknown command behavior...''\n\")",
+      "Bash(NO_FLUFF_BOT_TOKEN=test_token NO_FLUFF_BOT_USERNAME=test_bot RAILS_ENV=test ./bin/rails runner \"\nputs ''Debug: Testing unknown command behavior''\nrequire ''json''\nupdate = {\n  ''update_id'' => 1,\n  ''message'' => {\n    ''message_id'' => 1,\n    ''from'' => {\n      ''id'' => 123456,\n      ''username'' => ''testuser'',\n      ''first_name'' => ''Test''\n    },\n    ''chat'' => { ''id'' => 123456, ''type'' => ''private'' },\n    ''text'' => ''/unknown_command''\n  }\n}\nputs ''Update created: '' + update.to_json\n\")",
+      "Bash(NO_FLUFF_BOT_TOKEN=test_token NO_FLUFF_BOT_USERNAME=test_bot RAILS_ENV=test ./bin/rails runner \"\nputs ''Testing webhook directly''\nrequire ''net/http''\nrequire ''json''\n\n# Эмулируем webhook запрос\nuri = URI(''http://localhost:3000/telegram_webhook'')\nupdate = {\n  ''update_id'' => 1,\n  ''message'' => {\n    ''message_id'' => 1,\n    ''from'' => {\n      ''id'' => 123456,\n      ''username'' => ''testuser'',\n      ''first_name'' => ''Test''\n    },\n    ''chat'' => { ''id'' => 123456, ''type'' => ''private'' },\n    ''text'' => ''/unknown_command''\n  }\n}\n\n# Создаем HTTP запрос\nhttp = Net::HTTP.new(uri.host, uri.port)\nrequest = Net::HTTP::Post.new(uri)\nrequest[''Content-Type''] = ''application/json''\nrequest.body = update.to_json\n\nbegin\n  response = http.request(request)\n  puts ''Response: '' + response.code\n  puts ''Body: '' + response.body\nrescue => e\n  puts ''Error: '' + e.message\nend\n\")"
     ],
     "deny": [],
     "ask": []
