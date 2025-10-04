@@ -11,6 +11,7 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
 
   # Обработка ошибок
   rescue_from StandardError do |exception|
+    Bugsnag.notify exception { |b| b.metadata = payload }
     Rails.logger.error "Telegram Bot Error: #{exception.class}: #{exception.message}"
     Rails.logger.error exception.backtrace.join("\n")
 
@@ -183,10 +184,6 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
     respond_with :message, text: I18n.t("telegram_bot.channels.remove.success",
                                            channel: "@#{channel.username}",
                                            count: current_user.subscriptions.active.count)
-  rescue StandardError => e
-    Rails.logger.error "Error removing channel: #{e.message}"
-    Rails.logger.error e.backtrace.join("\n")
-    respond_with :message, text: I18n.t("telegram_bot.channels.remove.error", error: e.message)
   end
 
 

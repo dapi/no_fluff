@@ -101,9 +101,6 @@ module Telegram::SettingsCommands
             reply_markup: settings_keyboard
         end
       end
-    rescue StandardError => e
-      Rails.logger.error "Error setting delivery frequency: #{e.message}"
-      respond_with :message, text: I18n.t("telegram_bot.errors.general")
     end
 
     # Callback query: установить формат контента
@@ -136,9 +133,6 @@ module Telegram::SettingsCommands
             reply_markup: settings_keyboard
         end
       end
-    rescue StandardError => e
-      Rails.logger.error "Error setting content format: #{e.message}"
-      respond_with :message, text: I18n.t("telegram_bot.errors.general")
     end
 
     # Callback query: установить строгость фильтрации
@@ -171,9 +165,6 @@ module Telegram::SettingsCommands
             reply_markup: settings_keyboard
         end
       end
-    rescue StandardError => e
-      Rails.logger.error "Error setting filter strictness: #{e.message}"
-      respond_with :message, text: I18n.t("telegram_bot.errors.general")
     end
 
     private

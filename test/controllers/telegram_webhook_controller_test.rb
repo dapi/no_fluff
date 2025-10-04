@@ -7,7 +7,7 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
   end
 
   teardown do
-    @bot.reset
+    @bot.reset if @bot
   end
 
   test "start command creates user and sends welcome message" do
@@ -54,8 +54,8 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal :sendMessage, method
     assert_equal 123456, params[:chat_id]
-    assert_includes params[:text], "Привет!"
-    assert_includes params[:text], "No Fluff Bot"
+    assert_includes params[:text], I18n.t('telegram_bot.start.welcome')
+    assert_includes params[:text], "Без Шелухи"
 
     # Проверяем наличие inline клавиатуры
     assert_not_nil params[:reply_markup]
@@ -123,7 +123,7 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     params = params.first
 
     assert_equal :sendMessage, method
-    assert_includes params[:text], "Доступные команды"
+    assert_includes params[:text], I18n.t('telegram_bot.help.commands')
     assert_includes params[:text], "/start"
     assert_includes params[:text], "/help"
   end
@@ -167,7 +167,7 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     _, edit_params = edit_request
     edit_params = edit_params.first
-    assert_includes edit_params[:text], "Пришли мне ссылки"
+    assert_includes edit_params[:text], I18n.t('telegram_bot.onboarding.add_channels')
   end
 
   test "callback query more_info shows detailed information" do
@@ -202,7 +202,7 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     _, edit_params = edit_request
     edit_params = edit_params.first
-    assert_includes edit_params[:text], "Как это работает?"
+    assert_includes edit_params[:text], I18n.t('telegram_bot.more_info.text')
     assert_includes edit_params[:text], "AI"
   end
 
@@ -270,7 +270,7 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     params = params.first
 
     assert_equal :sendMessage, method
-    assert_includes params[:text], "Отправь мне ссылку"
+    assert_includes params[:text], I18n.t('telegram_bot.channels.add.prompt')
     assert_includes params[:text], "@channelname"
   end
 
@@ -300,7 +300,7 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     params = params.first
 
     assert_equal :sendMessage, method
-    assert_includes params[:text], "Неверный формат"
+    assert_includes params[:text], I18n.t('telegram_bot.channels.add.invalid_format')
   end
 
   test "message with @username triggers add channel" do
@@ -389,7 +389,7 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     params = params.first
 
     assert_equal :sendMessage, method
-    assert_includes params[:text], "Вы написали"
+    assert_includes params[:text], I18n.t('telegram_bot.messages.user_message', text: "Hello world")
   end
 
   # Тесты команды /list
@@ -420,7 +420,7 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     params = params.first
 
     assert_equal :sendMessage, method
-    assert_includes params[:text], "У тебя пока нет подписок"
+    assert_includes params[:text], I18n.t('telegram_bot.channels.list.empty')
     assert_includes params[:text], "/add"
   end
 
@@ -486,8 +486,8 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     params = params.first
 
     assert_equal :sendMessage, method
-    assert_includes params[:text], "Мои подписки"
-    assert_includes params[:text], "Всего каналов: 2"
+    assert_includes params[:text], I18n.t('telegram_bot.channels.list.title')
+    assert_includes params[:text], I18n.t('telegram_bot.channels.list.total', count: 2)
     assert_includes params[:text], "Test Channel 1"
     assert_includes params[:text], "Test Channel 2"
     assert_includes params[:text], "приоритет: 5"
@@ -908,7 +908,7 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     params = params.first
 
     assert_equal :sendMessage, method
-    assert_includes params[:text], "Неверный формат"
+    assert_includes params[:text], I18n.t('telegram_bot.channels.add.invalid_format')
   end
 
   test "remove command with non-existent channel returns error" do
@@ -1088,11 +1088,11 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal :sendMessage, method
     assert_equal 123456, params[:chat_id]
-    assert_includes params[:text], "⚙️ Настройки"
-    assert_includes params[:text], "📋 Текущие настройки"
-    assert_includes params[:text], "⏰ Частота доставки"
-    assert_includes params[:text], "📝 Формат контента"
-    assert_includes params[:text], "🎯 Строгость фильтрации"
+    assert_includes params[:text], I18n.t('telegram_bot.settings.title')
+    assert_includes params[:text], I18n.t('telegram_bot.settings.current_settings')
+    assert_includes params[:text], I18n.t('telegram_bot.settings.delivery_frequency.title')
+    assert_includes params[:text], I18n.t('telegram_bot.settings.content_format.title')
+    assert_includes params[:text], I18n.t('telegram_bot.settings.filter_strictness.title')
 
     # Проверяем наличие inline клавиатуры
     assert_not_nil params[:reply_markup]
@@ -1529,7 +1529,7 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal :sendMessage, method
     assert_equal 999999, params[:chat_id]
-    assert_includes params[:text], "Поздравляю! Ты стал первым администратором"
+    assert_includes params[:text], I18n.t('telegram_bot.start.first_admin')
     assert_includes params[:text], "Привет! Я No Fluff Bot"
 
     # Проверяем наличие inline клавиатуры
@@ -1674,6 +1674,6 @@ class TelegramWebhookControllerTest < ActionDispatch::IntegrationTest
     method, params = @bot.requests.first
     params = params.first
 
-    assert_includes params[:text], "Поздравляю! Ты стал первым администратором"
+    assert_includes params[:text], I18n.t('telegram_bot.start.first_admin')
   end
 end
