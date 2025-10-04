@@ -10,6 +10,15 @@ module ActiveSupport
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
 
+    # Используем транзакции для изоляции тестов
+    setup do
+      ActiveRecord::Base.connection.begin_transaction(joinable: false)
+    end
+
+    teardown do
+      ActiveRecord::Base.connection.rollback_transaction
+    end
+
     # Add more helper methods to be used by all tests here...
   end
 end

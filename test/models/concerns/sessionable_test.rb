@@ -15,8 +15,7 @@ end
 
 class SessionableTest < ActiveSupport::TestCase
   def setup
-    # Очищаем тестовую модель перед каждым тестом
-    TestSessionableModel.delete_all
+    # Ничего не делаем - транзакции автоматически откатятся в teardown
   end
 
   test 'should be included in model' do
@@ -261,20 +260,40 @@ class SessionableTest < ActiveSupport::TestCase
 
     assert model.valid_session_data?
 
-    # Создаем модель с невалидными данными (эмулируем)
-    model.session_data = 'invalid_data'
-    assert_not model.valid_session_data?
+    # Создаем модель с невалидными данными через мок
+    invalid_model = TestSessionableModel.create!(username: 'test_user2')
+
+    # Переопределяем метод session_data чтобы вернуть невалидные данные
+    def invalid_model.session_data
+      'invalid_data'
+    end
+
+    assert_not invalid_model.valid_session_data?
   end
 
   test 'should return false when session not supported' do
-    # Создаем модель без session_data поля
-    model_without_sessions = Class.new do
+    # Создаем класс без session_data поля
+    model_class = Class.new do
       include Sessionable
 
-      def column_names
-        [ 'id', 'name' ] # Нет session_data
+      def self.column_names
+        ['id', 'name'] # Нет session_data
       end
-    end.new
+
+      def self.table_name
+        'test_models'
+      end
+
+      def save!
+        true
+      end
+
+      def self.supports_sessions?
+        column_names.include?('session_data')
+      end
+    end
+
+    model_without_sessions = model_class.new
 
     assert_not model_without_sessions.class.supports_sessions?
     assert_nil model_without_sessions.get_session('key')

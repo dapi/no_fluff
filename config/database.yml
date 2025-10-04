@@ -73,8 +73,21 @@ development:
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
-  <<: *default
-  database: no_fluff_test
+  primary: &primary_test
+    <<: *default
+    database: no_fluff_test
+  cache:
+    <<: *primary_test
+    database: no_fluff_test_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *primary_test
+    database: no_fluff_test_queue
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *primary_test
+    database: no_fluff_test_cable
+    migrations_paths: db/cable_migrate
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is

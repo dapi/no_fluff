@@ -40,6 +40,7 @@ module TelegramClient
         end
 
       rescue StandardError => e
+        Bugsnag.notify(e) { |b| b.metadata = { channel_username: channel_username, action: 'get_channel_posts' } }
         Rails.logger.error "Error fetching posts for #{channel_username}: #{e.message}"
         []
       end
@@ -57,6 +58,7 @@ module TelegramClient
         response = @bot.api.get_chat(chat_id: chat_id)
         response['ok'] && response['result'] && response['result']['type'] == 'channel'
       rescue StandardError => e
+        Bugsnag.notify(e) { |b| b.metadata = { channel_username: channel_username, action: 'channel_available?' } }
         Rails.logger.error "Error checking channel availability for #{channel_username}: #{e.message}"
         false
       end
@@ -87,6 +89,7 @@ module TelegramClient
           nil
         end
       rescue StandardError => e
+        Bugsnag.notify(e) { |b| b.metadata = { channel_username: channel_username, action: 'get_channel_info' } }
         Rails.logger.error "Error getting channel info for #{channel_username}: #{e.message}"
         nil
       end

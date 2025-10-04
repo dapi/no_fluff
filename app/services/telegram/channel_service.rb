@@ -76,6 +76,7 @@ module Telegram
           nil
         end
       rescue StandardError => e
+        Bugsnag.notify(e) { |b| b.metadata = { username: username, action: 'get_channel_info' } }
         Rails.logger.error "Error getting channel info for #{username}: #{e.message}"
         nil
       end
@@ -188,6 +189,7 @@ module Telegram
         }
       end
     rescue StandardError => e
+      Bugsnag.notify(e) { |b| b.metadata = { user_id: user.id, channel_username: channel_username, action: 'add_channel_for_user' } }
       Rails.logger.error "Error adding channel for user #{user.id}: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
 
