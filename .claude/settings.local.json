@@ -30,7 +30,10 @@
       "Bash(xargs:*)",
       "Bash(bundle exec ruby:*)",
       "WebFetch(domain:core.telegram.org)",
-      "Bash(RAILS_ENV=development ./bin/rails:*)"
+      "Bash(RAILS_ENV=development ./bin/rails:*)",
+      "Bash(RAILS_ENV=test ./bin/rails runner:*)",
+      "Bash(NO_FLUFF_BOT_TOKEN=test_token NO_FLUFF_BOT_USERNAME=test_bot RAILS_ENV=test ./bin/rails runner \"puts ''Bot configured:''; puts Telegram.bots_config.inspect\")",
+      "Bash(NO_FLUFF_BOT_TOKEN=test_token NO_FLUFF_BOT_USERNAME=test_bot ./bin/rails test test/controllers/telegram_webhook_controller_test.rb -n test_start_command_creates_user_and_sends_welcome_message)"
     ],
     "deny": [],
     "ask": []

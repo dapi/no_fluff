@@ -171,3 +171,8 @@ ru:
           medium: "Средняя"
           low: "Низкая"
           smart: "Умная"
+
+    messages:
+      user_message: "Вы написали: %{text}"
+      cancel: "Отмена"
+      back: "← Назад"
