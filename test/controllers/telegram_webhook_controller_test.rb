@@ -449,4 +449,291 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     assert_includes message_content[:text], 'Channel 2'
     assert_not_nil message_content[:reply_markup]
   end
+
+  # Тесты для проверки отсутствия сессий в основном контроллере
+  test 'regular message works without session dependencies' do
+    user = TelegramUser.create!(
+      username: 'no_session_user',
+      first_name: 'Test',
+      language_code: 'ru',
+      timezone: 'UTC'
+    )
+
+    update = create_user_update(user_id: user.id, username: 'no_session_user',
+                               command: 'Hello bot!')
+    send_webhook_update(update)
+
+    assert_response :success
+
+    # Проверяем что сообщение обработано без использования сессий
+    message_content = extract_message_content(@bot.requests)
+    assert_not_nil message_content
+    assert_includes message_content[:text], 'Вы написали: Hello bot!'
+  end
+
+  test 'add command works without session dependencies' do
+    user = TelegramUser.create!(
+      username: 'add_user',
+      first_name: 'Test',
+      language_code: 'ru',
+      timezone: 'UTC'
+    )
+
+    update = create_user_update(user_id: user.id, username: 'add_user',
+                               command: '/add @testchannel')
+    send_webhook_update(update)
+
+    assert_response :success
+
+    # Проверяем что команда add обработана без ошибок
+    assert_operator @bot.requests.size, :>=, 1
+  end
+
+  test 'admin sees extended help with session commands' do
+    admin_user = TelegramUser.create!(
+      username: 'admin_help_user',
+      first_name: 'Admin',
+      language_code: 'ru',
+      timezone: 'UTC',
+      is_admin: true
+    )
+
+    update = create_user_update(user_id: admin_user.id, username: admin_user.username,
+                               command: '/help')
+    send_webhook_update(update)
+
+    assert_response :success
+
+    # Проверяем что администратор видит расширенную справку
+    message_content = extract_message_content(@bot.requests)
+    assert_not_nil message_content
+    assert_includes message_content[:text], 'Доступные команды:'
+    assert_includes message_content[:text], 'Команды администратора:'
+    assert_includes message_content[:text], '/remember'
+    assert_includes message_content[:text], '/recall'
+    assert_includes message_content[:text], '/forget'
+    assert_includes message_content[:text], '/session_info'
+  end
+
+  test 'regular user sees basic help without session commands' do
+    regular_user = TelegramUser.create!(
+      username: 'regular_help_user',
+      first_name: 'Regular',
+      language_code: 'ru',
+      timezone: 'UTC',
+      is_admin: false
+    )
+
+    update = create_user_update(user_id: regular_user.id, username: regular_user.username,
+                               command: '/help')
+    send_webhook_update(update)
+
+    assert_response :success
+
+    # Проверяем что обычный пользователь видит базовую справку
+    message_content = extract_message_content(@bot.requests)
+    assert_not_nil message_content
+    assert_includes message_content[:text], 'Доступные команды:'
+    assert_not_includes message_content[:text], 'Команды администратора:'
+    assert_not_includes message_content[:text], '/remember'
+    assert_not_includes message_content[:text], '/recall'
+    assert_not_includes message_content[:text], '/forget'
+    assert_not_includes message_content[:text], '/session_info'
+  end
+
+  test 'unknown session commands are not handled by main controller' do
+    user = TelegramUser.create!(
+      username: 'unknown_command_user',
+      first_name: 'Test',
+      language_code: 'ru',
+      timezone: 'UTC'
+    )
+
+    # Отправляем команду remember, которая теперь только в AdminSessionManagement
+    update = create_user_update(user_id: user.id, username: 'unknown_command_user',
+                               command: '/remember John')
+    send_webhook_update(update)
+
+    assert_response :success
+
+    # Команда не должна обрабатываться основным контроллером
+    # Проверяем что бот получил ответ об отказе в доступе (из AdminSessionManagement)
+    message_content = extract_message_content(@bot.requests)
+    assert_not_nil message_content
+    assert_includes message_content[:text], 'У вас нет прав для выполнения этой команды'
+  end
+
+  # Тесты для AdminSessionManagement concern
+
+  test 'admin can use remember command' do
+    admin_user = TelegramUser.create!(
+      username: 'admin_session_user',
+      first_name: 'Admin',
+      language_code: 'ru',
+      timezone: 'UTC',
+      is_admin: true
+    )
+
+    update = create_user_update(user_id: admin_user.id, username: admin_user.username,
+                               command: '/remember John')
+    send_webhook_update(update)
+
+    assert_response :success
+
+    # Проверяем что данные были сохранены в сессии
+    admin_user.reload
+    assert_equal 'John', admin_user.get_session('user_name')
+
+    # Проверяем ответное сообщение
+    message_content = extract_message_content(@bot.requests)
+    assert_not_nil message_content
+    assert_includes message_content[:text], 'Я запомнил ваше имя: John'
+  end
+
+  test 'admin can use recall command with existing data' do
+    admin_user = TelegramUser.create!(
+      username: 'admin_recall_user',
+      first_name: 'Admin',
+      language_code: 'ru',
+      timezone: 'UTC',
+      is_admin: true
+    )
+
+    # Сначала сохраняем данные в сессии напрямую
+    admin_user.set_session('user_name', 'Alice')
+
+    update = create_user_update(user_id: admin_user.id, username: admin_user.username,
+                               command: '/recall')
+    send_webhook_update(update)
+
+    assert_response :success
+
+    # Проверяем ответное сообщение
+    message_content = extract_message_content(@bot.requests)
+    assert_not_nil message_content
+    assert_includes message_content[:text], 'Привет, Alice! Я помню ваше имя.'
+  end
+
+  test 'admin can use forget command' do
+    admin_user = TelegramUser.create!(
+      username: 'admin_forget_user',
+      first_name: 'Admin',
+      language_code: 'ru',
+      timezone: 'UTC',
+      is_admin: true
+    )
+
+    # Сохраняем данные в сессии
+    admin_user.set_session('user_name', 'Bob')
+    admin_user.set_session('temp_data', 'some_value')
+
+    update = create_user_update(user_id: admin_user.id, username: admin_user.username,
+                               command: '/forget')
+    send_webhook_update(update)
+
+    assert_response :success
+
+    # Проверяем что сессия очищена
+    admin_user.reload
+    assert_empty admin_user.session_data
+
+    # Проверяем ответное сообщение
+    message_content = extract_message_content(@bot.requests)
+    assert_not_nil message_content
+    assert_includes message_content[:text], 'Я все забыл'
+  end
+
+  test 'admin can use session_info command' do
+    admin_user = TelegramUser.create!(
+      username: 'admin_info_user',
+      first_name: 'Admin',
+      language_code: 'ru',
+      timezone: 'UTC',
+      is_admin: true
+    )
+
+    # Сохраняем данные в сессии
+    admin_user.set_session('user_name', 'Charlie')
+    admin_user.set_session('last_command', '/add')
+
+    update = create_user_update(user_id: admin_user.id, username: admin_user.username,
+                               command: '/session_info')
+    send_webhook_update(update)
+
+    assert_response :success
+
+    # Проверяем ответное сообщение
+    message_content = extract_message_content(@bot.requests)
+    assert_not_nil message_content
+    assert_includes message_content[:text], 'Данные сессии:'
+    assert_includes message_content[:text], 'user_name: Charlie'
+    assert_includes message_content[:text], 'last_command: /add'
+  end
+
+  test 'regular user cannot use admin session commands' do
+    regular_user = TelegramUser.create!(
+      username: 'regular_denied_user',
+      first_name: 'Regular',
+      language_code: 'ru',
+      timezone: 'UTC',
+      is_admin: false
+    )
+
+    session_commands = ['/remember John', '/recall', '/forget', '/session_info']
+
+    session_commands.each do |command|
+      @bot.reset
+
+      update = create_user_update(user_id: regular_user.id, username: regular_user.username,
+                                 command: command)
+      send_webhook_update(update)
+
+      assert_response :success
+
+      # Проверяем сообщение об отказе в доступе
+      message_content = extract_message_content(@bot.requests)
+      assert_not_nil message_content
+      assert_includes message_content[:text], 'У вас нет прав для выполнения этой команды'
+    end
+  end
+
+  test 'complete admin session workflow' do
+    admin_user = TelegramUser.create!(
+      username: 'admin_workflow_user',
+      first_name: 'Admin',
+      language_code: 'ru',
+      timezone: 'UTC',
+      is_admin: true
+    )
+
+    # 1. Администратор запоминает имя
+    update1 = create_user_update(user_id: admin_user.id, username: admin_user.username,
+                                command: '/remember Diana')
+    send_webhook_update(update1)
+    assert_response :success
+
+    admin_user.reload
+    assert_equal 'Diana', admin_user.get_session('user_name')
+
+    # 2. Администратор вспоминает имя
+    @bot.reset
+    update2 = create_user_update(user_id: admin_user.id, username: admin_user.username,
+                                command: '/recall')
+    send_webhook_update(update2)
+    assert_response :success
+
+    message_content2 = extract_message_content(@bot.requests)
+    assert_not_nil message_content2
+    assert_includes message_content2[:text], 'Привет, Diana!'
+
+    # 3. Администратор очищает сессию
+    @bot.reset
+    update3 = create_user_update(user_id: admin_user.id, username: admin_user.username,
+                                command: '/forget')
+    send_webhook_update(update3)
+    assert_response :success
+
+    admin_user.reload
+    assert_empty admin_user.session_data
+  end
 end

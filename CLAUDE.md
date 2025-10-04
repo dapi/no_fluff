@@ -77,3 +77,22 @@ tools to resolve library id and get library docs without me having to explicitly
 
 - Создавай новую спецификацию в ./docs/Specs/XXX_{TITLE}_Specification.md
 - Реализовывай в ./docs/Implementation/Spec_XXX_{TITLE}_Implementation.md
+
+## Ruby Linting
+
+при генерации кода учитывай настройки из `.rubocop.yml`
+
+## Error catching
+
+Каждый раз когда мы ловим ошибку через rescue мы отправляем уведомление в
+Bugsnag, по-возмоности указывая контекст который пригодится для расследования в metadata.
+
+## Test Driven Development
+
+Используй minitest вместо rspec.
+
+При создани плана импленетации, после этапа инициализации начинай с создания
+тестов.
+ВАЖНО: любую реализацию в коде начинай с тестов. Tests first! Сначала создаешь
+тесты, смотриш что они красные, добавляешь код, проверяешь что они зеленые. И
+только тогда переходишь к следующему этапу. Tests First - каждый этап функциональности начинается с тестов. RED-GREEN-REFACTOR - классический цикл TDD.

@@ -139,6 +139,13 @@
   - [x] Строгости фильтрации (filter_strictness)
 - [x] Сохранять изменения в БД
 - [x] Написать integration тесты
+- [x] **РЕАЛИЗОВАТЬ SettingsAgent** по спецификации Spec 001:
+  - [x] Создать `app/services/telegram/settings_agent.rb`
+  - [x] Реализовать методы `show_settings` и `update_setting`
+  - [x] Добавить валидацию настроек и значений
+  - [x] Интегрировать с TelegramWebhookController
+  - [x] Написать полные unit тесты (TDD подход)
+  - [x] Добавить кеширование и логирование производительности
 
 ### 1.4. Базовая AI классификация
 

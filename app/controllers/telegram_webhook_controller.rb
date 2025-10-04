@@ -6,13 +6,14 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   include Telegram::SettingsCommands
   include Telegram::KeyboardHelpers
   include Telegram::MediaHandlers
+  include AdminSessionManagement
 
   # Выполняем перед каждым действием
   before_action :find_or_create_user
 
   # Обработка ошибок
   rescue_from StandardError do |exception|
-    Bugsnag.notify exception { |b| b.metadata = payload }
+    Bugsnag.notify(exception) { |b| b.metadata = payload }
     Rails.logger.error "Telegram Bot Error: #{exception.class}: #{exception.message}"
     Rails.logger.error exception.backtrace.join("\n")
 
@@ -40,9 +41,22 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
 
   # Команда /help - список доступных команд
   def help!(*)
-    respond_with :message, text: I18n.t('telegram_bot.help.commands')
+    if current_user&.is_admin?
+      # Показываем расширенную справку для администраторов
+      help_text = I18n.t('telegram_bot.help.commands') + "\n\n" +
+                  I18n.t('telegram_bot.help.admin_commands')
+      respond_with :message, text: help_text
+    else
+      # Обычная справка для пользователей
+      respond_with :message, text: I18n.t('telegram_bot.help.commands')
+    end
   end
 
+  # Команда /settings - показать настройки
+  def settings!(*)
+    agent = Telegram::SettingsAgent.new(bot, current_user)
+    agent.show_settings
+  end
 
   # Команда /add - добавление канала
   def add!(*args)
@@ -92,6 +106,47 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
       reply_markup: start_keyboard
   end
 
+  # Callback query: показать настройки
+  def settings_callback_query(*)
+    answer_callback_query('')
+
+    agent = Telegram::SettingsAgent.new(bot, current_user)
+    # Для callback нужно редактировать сообщение, а не отправлять новое
+    # Но SettingsAgent отправляет новое сообщение, поэтому используем edit_message
+    settings_text = agent.send(:build_settings_text)
+    settings_keyboard = agent.send(:build_settings_keyboard)
+
+    edit_message :text,
+      text: settings_text,
+      reply_markup: settings_keyboard
+  end
+
+  # Callback query: установить частоту доставки
+  def set_delivery_frequency_callback_query(frequency = nil)
+    if frequency
+      agent = Telegram::SettingsAgent.new(bot, current_user)
+      agent.update_setting('delivery_frequency', frequency)
+    end
+    answer_callback_query('')
+  end
+
+  # Callback query: установить формат контента
+  def set_content_format_callback_query(format = nil)
+    if format
+      agent = Telegram::SettingsAgent.new(bot, current_user)
+      agent.update_setting('content_format', format)
+    end
+    answer_callback_query('')
+  end
+
+  # Callback query: установить строгость фильтрации
+  def set_filter_strictness_callback_query(strictness = nil)
+    if strictness
+      agent = Telegram::SettingsAgent.new(bot, current_user)
+      agent.update_setting('filter_strictness', strictness)
+    end
+    answer_callback_query('')
+  end
 
   # Обработка обычных текстовых сообщений
   def message(message)
@@ -102,7 +157,9 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
     if text.start_with?('@') || text.include?('t.me/')
       add_channel(text)
     else
-      respond_with :message, text: "Вы написали: #{text}"
+      # Показываем простое сообщение без использования сессий
+      response_text = I18n.t('telegram_bot.messages.user_message', text: text)
+      respond_with :message, text: response_text
     end
   end
 

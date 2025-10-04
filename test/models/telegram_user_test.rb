@@ -385,4 +385,73 @@ class TelegramUserTest < ActiveSupport::TestCase
     assert user.is_admin?
     assert TelegramUser.any_admins?
   end
+
+  # Session data integration tests (базовые проверки интеграции с Sessionable)
+  test 'should include Sessionable concern' do
+    user = TelegramUser.new(
+      username: 'test_user',
+      timezone: 'UTC',
+      language_code: 'en'
+    )
+
+    assert user.respond_to?(:get_session)
+    assert user.respond_to?(:set_session)
+    assert user.respond_to?(:delete_session)
+    assert user.respond_to?(:clear_session!)
+    assert TelegramUser.supports_sessions?
+  end
+
+  test 'should work with session through concern' do
+    user = TelegramUser.create!(
+      username: 'session_integration_user',
+      timezone: 'UTC',
+      language_code: 'en'
+    )
+
+    # Проверяем базовую функциональность через concern
+    assert user.set_session('test_key', 'test_value')
+    user.reload
+    assert_equal 'test_value', user.get_session('test_key')
+
+    assert user.session_has_key?('test_key')
+    assert_equal 1, user.session_size
+    assert_not user.session_empty?
+
+    assert user.delete_session('test_key')
+    user.reload
+    assert_nil user.get_session('test_key')
+    assert user.session_empty?
+  end
+
+  test 'should support multiple session operations' do
+    user = TelegramUser.create!(
+      username: 'multi_session_user',
+      timezone: 'UTC',
+      language_code: 'en'
+    )
+
+    # Проверяем массовые операции
+    result = user.set_session_data({
+      'name' => 'John',
+      'age' => 30,
+      'preferences' => { theme: 'dark' }
+    })
+    assert result
+
+    user.reload
+    assert_equal 'John', user.get_session('name')
+    assert_equal 30, user.get_session('age')
+    assert_equal({ 'theme' => 'dark' }, user.get_session('preferences'))
+
+    # Проверяем работу с ключами
+    keys = user.session_keys
+    assert_includes keys, 'name'
+    assert_includes keys, 'age'
+    assert_includes keys, 'preferences'
+
+    # Проверяем копию данных
+    copy = user.session_data_copy
+    copy['new_key'] = 'new_value'
+    assert_not user.session_has_key?('new_key')
+  end
 end

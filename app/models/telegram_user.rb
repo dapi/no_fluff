@@ -1,4 +1,6 @@
 class TelegramUser < ApplicationRecord
+  include Sessionable
+
   # Associations
   has_many :subscriptions, dependent: :destroy
   has_many :channels, through: :subscriptions
