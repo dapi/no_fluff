@@ -72,3 +72,8 @@ tools to resolve library id and get library docs without me having to explicitly
 ## Разработка телеграм бота
 
 При анализе или разработку кода для телеграм бота предварительно изучай ./docs/gems/telegram-bot.md
+
+## Отделяй спецификацию от имплементации
+
+- Создавай новую спецификацию в ./docs/Specs/XXX_{TITLE}_Specification.md
+- Реализовывай в ./docs/Implementation/Spec_XXX_{TITLE}_Implementation.md
