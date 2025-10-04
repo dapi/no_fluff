@@ -72,6 +72,9 @@ jobs:
       - name: Run tests
         env:
           RAILS_ENV: test
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432
+          # DATABASE_URL: postgres://postgres:postgres@localhost:5432
+          NO_FLUFF_DATABASE_PASSWORD: postgres
+          NO_FLUFF_DATABASE_USERNAME: postgres
+          NO_FLUFF_DATABASE_HOST: localhost
           # REDIS_URL: redis://localhost:6379/0
         run: bin/rails db:test:prepare test

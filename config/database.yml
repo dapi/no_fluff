@@ -27,9 +27,14 @@ default: &default
   <% end %>
   <% if ENV.key?('NO_FLUFF_DATABASE_URL') %>
   url: <%= ENV['NO_FLUFF_DATABASE_URL'] %>
+  <% elsif ENV.key?('DATABASE_URL') %>
+  url: <%= ENV['DATABASE_URL'] %>
   <% end %>
   <% if ENV.key?('NO_FLUFF_DATABASE_USERNAME') %>
   username: <%= ENV['NO_FLUFF_DATABASE_USERNAME'] %>
+  <% end %>
+  <% if ENV.key?('NO_FLUFF_DATABASE_PASSWORD') %>
+  password: <%= ENV["NO_FLUFF_DATABASE_PASSWORD"] %>
   <% end %>
 
 
@@ -96,7 +101,6 @@ production:
     <<: *default
     database: no_fluff_production
     username: no_fluff
-    password: <%= ENV["NO_FLUFF_DATABASE_PASSWORD"] %>
   cache:
     <<: *primary_production
     database: no_fluff_production_cache
