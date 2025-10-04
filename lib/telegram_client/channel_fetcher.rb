@@ -16,7 +16,7 @@ module TelegramClient
     def get_channel_posts(channel_username, limit: POSTS_LIMIT, offset_id: nil)
       return [] if channel_username.blank?
 
-      chat_id = channel_username.start_with?("@") ? channel_username : "@#{channel_username}"
+      chat_id = channel_username.start_with?('@') ? channel_username : "@#{channel_username}"
 
       begin
         # Проверяем доступность канала
@@ -51,11 +51,11 @@ module TelegramClient
     def channel_available?(channel_username)
       return false if channel_username.blank?
 
-      chat_id = channel_username.start_with?("@") ? channel_username : "@#{channel_username}"
+      chat_id = channel_username.start_with?('@') ? channel_username : "@#{channel_username}"
 
       begin
         response = @bot.api.get_chat(chat_id: chat_id)
-        response["ok"] && response["result"] && response["result"]["type"] == "channel"
+        response['ok'] && response['result'] && response['result']['type'] == 'channel'
       rescue StandardError => e
         Rails.logger.error "Error checking channel availability for #{channel_username}: #{e.message}"
         false
@@ -68,20 +68,20 @@ module TelegramClient
     def get_channel_info(channel_username)
       return nil if channel_username.blank?
 
-      chat_id = channel_username.start_with?("@") ? channel_username : "@#{channel_username}"
+      chat_id = channel_username.start_with?('@') ? channel_username : "@#{channel_username}"
 
       begin
         response = @bot.api.get_chat(chat_id: chat_id)
 
-        if response["ok"] && response["result"] && response["result"]["type"] == "channel"
-          chat = response["result"]
+        if response['ok'] && response['result'] && response['result']['type'] == 'channel'
+          chat = response['result']
           {
-            id: chat["id"],
-            title: chat["title"],
-            username: chat["username"],
-            description: chat["description"],
-            invite_link: chat["invite_link"],
-            member_count: chat["member_count"] || 0
+            id: chat['id'],
+            title: chat['title'],
+            username: chat['username'],
+            description: chat['description'],
+            invite_link: chat['invite_link'],
+            member_count: chat['member_count'] || 0
           }
         else
           nil
@@ -101,19 +101,19 @@ module TelegramClient
       return nil unless message.is_a?(Hash)
 
       # Пропускаем сервисные сообщения
-      return nil if message["text"].blank? && message["caption"].blank?
+      return nil if message['text'].blank? && message['caption'].blank?
 
       # Извлекаем текст
-      text = message["text"] || message["caption"] || ""
+      text = message['text'] || message['caption'] || ''
 
       # Извлекаем медиа URL
       media_urls = extract_media_urls(message)
 
       {
-        telegram_message_id: message["message_id"],
+        telegram_message_id: message['message_id'],
         text: text,
         media_urls: media_urls,
-        published_at: Time.at(message["date"]),
+        published_at: Time.at(message['date']),
         has_media: media_urls.any?
       }
     end
@@ -125,27 +125,27 @@ module TelegramClient
       urls = []
 
       # Фото
-      if message["photo"]
+      if message['photo']
         # Берем самое большое фото
-        photo_sizes = message["photo"].is_a?(Array) ? message["photo"] : [ message["photo"] ]
-        largest_photo = photo_sizes.max_by { |p| p["file_size"] || 0 }
+        photo_sizes = message['photo'].is_a?(Array) ? message['photo'] : [ message['photo'] ]
+        largest_photo = photo_sizes.max_by { |p| p['file_size'] || 0 }
         if largest_photo
           urls << "photo:#{largest_photo["file_id"]}"
         end
       end
 
       # Видео
-      if message["video"]
+      if message['video']
         urls << "video:#{message["video"]["file_id"]}"
       end
 
       # Документ
-      if message["document"]
+      if message['document']
         urls << "document:#{message["document"]["file_id"]}"
       end
 
       # Аудио
-      if message["audio"]
+      if message['audio']
         urls << "audio:#{message["audio"]["file_id"]}"
       end
 
@@ -163,10 +163,10 @@ module TelegramClient
       return [] unless rand < 0.1 # 10% шанс
 
       demo_texts = [
-        "🚀 Новые технологии в искусственном интеллекте меняют подход к разработке ПО. Ученые представили прорывной алгоритм...",
-        "📈 Рынок криптовалют продолжает расти. Биткоин достиг новой отметки, эксперты делятся прогнозами...",
-        "💡 Полезный совет по продуктивности: Как управлять временем эффективно в эпоху цифровых отвлечений...",
-        "🔒 Важные новости о кибербезопасности: Новый вирус обнаружен в популярных приложениях..."
+        '🚀 Новые технологии в искусственном интеллекте меняют подход к разработке ПО. Ученые представили прорывной алгоритм...',
+        '📈 Рынок криптовалют продолжает расти. Биткоин достиг новой отметки, эксперты делятся прогнозами...',
+        '💡 Полезный совет по продуктивности: Как управлять временем эффективно в эпоху цифровых отвлечений...',
+        '🔒 Важные новости о кибербезопасности: Новый вирус обнаружен в популярных приложениях...'
       ]
 
       [ {

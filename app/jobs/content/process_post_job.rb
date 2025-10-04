@@ -42,7 +42,7 @@ class Content::ProcessPostJob < ApplicationJob
     Rails.logger.info "Completed processing post #{post.id}"
   rescue ActiveRecord::RecordInvalid => e
     Rails.logger.error "Error creating post: #{e.message}"
-    Rails.logger.error e.record.errors.full_messages.join(", ")
+    Rails.logger.error e.record.errors.full_messages.join(', ')
   rescue ActiveRecord::RecordNotFound => e
     Rails.logger.error "Channel #{channel_id} not found: #{e.message}"
   rescue StandardError => e

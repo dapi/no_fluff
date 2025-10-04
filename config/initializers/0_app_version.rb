@@ -1,4 +1,4 @@
 # frozen_string_literal: true
 
-require "semver"
+require 'semver'
 AppVersion = SemVer.find

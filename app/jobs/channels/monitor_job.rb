@@ -7,7 +7,7 @@ class Channels::MonitorJob < ApplicationJob
   RUN_INTERVAL = 5.minutes
 
   def perform(*args)
-    Rails.logger.info "Starting channel monitoring"
+    Rails.logger.info 'Starting channel monitoring'
 
     # Получаем все активные каналы, за которыми есть подписки
     channels = Channel.joins(:subscriptions)
@@ -31,6 +31,6 @@ class Channels::MonitorJob < ApplicationJob
       end
     end
 
-    Rails.logger.info "Channel monitoring completed"
+    Rails.logger.info 'Channel monitoring completed'
   end
 end

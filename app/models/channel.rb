@@ -13,8 +13,8 @@ class Channel < ApplicationRecord
   scope :inactive, -> { where(active: false) }
   scope :verified, -> { where(is_verified: true) }
   scope :by_subscribers, -> { order(subscribers_count: :desc) }
-  scope :recently_updated, -> { where("last_post_at > ?", 24.hours.ago) }
-  scope :needs_monitoring, -> { where("monitored_at IS NULL OR monitored_at < ?", 10.minutes.ago) }
+  scope :recently_updated, -> { where('last_post_at > ?', 24.hours.ago) }
+  scope :needs_monitoring, -> { where('monitored_at IS NULL OR monitored_at < ?', 10.minutes.ago) }
 
   # Methods
   def mark_as_monitored!

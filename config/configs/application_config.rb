@@ -10,10 +10,10 @@ class ApplicationConfig < Anyway::Config
               :openai_api_key,
               :deepseek_api_key
 
-  attr_config llm_default_model: "deepseek-chat",
-    host: "localhost",
-    protocol: "https",
-    public_port: "443"
+  attr_config llm_default_model: 'deepseek-chat',
+    host: 'localhost',
+    protocol: 'https',
+    public_port: '443'
 
   required :bot_token unless Rails.env.test?
 
@@ -27,8 +27,8 @@ class ApplicationConfig < Anyway::Config
 
   def port_suffix
     return if public_port.blank?
-    return if public_port.to_s == "80" && protocol == "http"
-    return if public_port.to_s == "443" && protocol == "https"
+    return if public_port.to_s == '80' && protocol == 'http'
+    return if public_port.to_s == '443' && protocol == 'https'
 
     ":#{public_port}"
   end
@@ -38,12 +38,12 @@ class ApplicationConfig < Anyway::Config
   end
 
   def bot_id
-    bot_token.split(":").first
+    bot_token.split(':').first
   end
 
   def default_url_options
     options = { host:, protocol: }
-    unless (public_port.to_s == "80" && protocol == "http") || (public_port.to_s == "443" && protocol == "https")
+    unless (public_port.to_s == '80' && protocol == 'http') || (public_port.to_s == '443' && protocol == 'https')
       options.merge! port: public_port
     end
     options

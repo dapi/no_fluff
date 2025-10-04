@@ -22,7 +22,7 @@ class Content::DeliverPostsJob < ApplicationJob
           message_id: post.telegram_message_id # ID сообщения в канале
         )
 
-        if response["ok"]
+        if response['ok']
           Rails.logger.debug "Successfully forwarded post #{post.id} to user #{user.username}"
         else
           Rails.logger.error "Failed to forward post #{post.id} to user #{user.username}: #{response["description"]}"
@@ -35,7 +35,7 @@ class Content::DeliverPostsJob < ApplicationJob
         Rails.logger.error "Error forwarding post #{post.id} to user #{user.username}: #{e.message}"
 
         # Если ошибка связана с отсутствием прав или удаленным постом, логируем и продолжаем
-        if e.message.include?("Bad Request") || e.message.include?("not found")
+        if e.message.include?('Bad Request') || e.message.include?('not found')
           Rails.logger.warn "Skipping post #{post.id} due to access restrictions or deletion"
           next
         else

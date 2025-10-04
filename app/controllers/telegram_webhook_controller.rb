@@ -16,7 +16,7 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
     Rails.logger.error "Telegram Bot Error: #{exception.class}: #{exception.message}"
     Rails.logger.error exception.backtrace.join("\n")
 
-    respond_with :message, text: I18n.t("telegram_bot.errors.general")
+    respond_with :message, text: I18n.t('telegram_bot.errors.general')
   end
 
   # Команда /start - приветствие и краткая инструкция
@@ -28,19 +28,19 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
 
       # Отправляем специальное сообщение для первого администратора
       respond_with :message,
-        text: I18n.t("telegram_bot.start.first_admin") + "\n\n" + I18n.t("telegram_bot.start.welcome"),
+        text: I18n.t('telegram_bot.start.first_admin') + "\n\n" + I18n.t('telegram_bot.start.welcome'),
         reply_markup: start_keyboard
     else
       # Обычное приветственное сообщение
       respond_with :message,
-        text: I18n.t("telegram_bot.start.welcome"),
+        text: I18n.t('telegram_bot.start.welcome'),
         reply_markup: start_keyboard
     end
   end
 
   # Команда /help - список доступных команд
   def help!(*)
-    respond_with :message, text: I18n.t("telegram_bot.help.commands")
+    respond_with :message, text: I18n.t('telegram_bot.help.commands')
   end
 
 
@@ -48,11 +48,11 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   def add!(*args)
     # Если передан username канала сразу в команде: /add @channelname
     if args.any?
-      channel_input = args.join(" ")
+      channel_input = args.join(' ')
       add_channel(channel_input)
     else
       # Показываем инструкцию
-      respond_with :message, text: I18n.t("telegram_bot.channels.add.prompt")
+      respond_with :message, text: I18n.t('telegram_bot.channels.add.prompt')
     end
   end
 
@@ -60,46 +60,46 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   def remove!(*args)
     # Если передан username канала сразу в команде: /remove @channelname
     if args.any?
-      channel_input = args.join(" ")
+      channel_input = args.join(' ')
       remove_channel(channel_input)
     else
       # Показываем инструкцию
-      respond_with :message, text: I18n.t("telegram_bot.channels.remove.prompt")
+      respond_with :message, text: I18n.t('telegram_bot.channels.remove.prompt')
     end
   end
 
   # Callback query: начать онбординг
   def start_onboarding_callback_query(*)
-    answer_callback_query("")
+    answer_callback_query('')
     edit_message :text,
-      text: I18n.t("telegram_bot.onboarding.add_channels"),
+      text: I18n.t('telegram_bot.onboarding.add_channels'),
       reply_markup: onboarding_keyboard
   end
 
   # Callback query: показать подробную информацию
   def more_info_callback_query(*)
-    answer_callback_query("")
+    answer_callback_query('')
     edit_message :text,
-      text: I18n.t("telegram_bot.more_info.text"),
+      text: I18n.t('telegram_bot.more_info.text'),
       reply_markup: more_info_keyboard
   end
 
   # Callback query: вернуться к началу из подробной информации
   def back_to_start_callback_query(*)
-    answer_callback_query("")
+    answer_callback_query('')
     edit_message :text,
-      text: I18n.t("telegram_bot.start.welcome"),
+      text: I18n.t('telegram_bot.start.welcome'),
       reply_markup: start_keyboard
   end
 
 
   # Обработка обычных текстовых сообщений
   def message(message)
-    text = message["text"]
+    text = message['text']
 
     # Если пользователь отправил текст, пробуем интерпретировать как канал
     # (только если текст начинается с @ или содержит t.me/)
-    if text.start_with?("@") || text.include?("t.me/")
+    if text.start_with?('@') || text.include?('t.me/')
       add_channel(text)
     else
       respond_with :message, text: "Вы написали: #{text}"
@@ -112,14 +112,14 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   def find_or_create_user
     user_data = from
     # Используем username если есть, иначе используем id в качестве username
-    username = user_data["username"] || "user_#{user_data['id']}"
+    username = user_data['username'] || "user_#{user_data['id']}"
 
     @current_user ||= TelegramUser.find_or_create_by(username: username) do |user|
-      user.first_name = user_data["first_name"]
-      user.last_name = user_data["last_name"]
-      user.language_code = user_data["language_code"] || "ru"
-      user.is_premium = user_data["is_premium"] || false
-      user.is_bot = user_data["is_bot"] || false
+      user.first_name = user_data['first_name']
+      user.last_name = user_data['last_name']
+      user.language_code = user_data['language_code'] || 'ru'
+      user.is_premium = user_data['is_premium'] || false
+      user.is_bot = user_data['is_bot'] || false
     end
 
     # Ничего дополнительно обновлять не нужно - telegram_id будет браться из ID записи
@@ -139,7 +139,7 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
 
     # Если канал успешно добавлен, предлагаем добавить еще один
     if result[:success]
-      respond_with :message, text: I18n.t("telegram_bot.channels.add.suggest_another")
+      respond_with :message, text: I18n.t('telegram_bot.channels.add.suggest_another')
     end
   end
 
@@ -149,7 +149,7 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
     username = channel_input.to_s.strip
 
     # Убираем @ в начале если есть
-    username = username[1..-1] if username.start_with?("@")
+    username = username[1..-1] if username.start_with?('@')
 
     # Извлекаем username из URL если нужно
     if username.match?(%r{^https?://t\.me/})
@@ -159,15 +159,15 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
     end
 
     if username.blank? || !username.match?(/\A[a-zA-Z0-9_]{5,32}\z/)
-      respond_with :message, text: I18n.t("telegram_bot.channels.remove.invalid_format")
+      respond_with :message, text: I18n.t('telegram_bot.channels.remove.invalid_format')
       return
     end
 
     # Ищем канал в БД
-    channel = Channel.find_by("username ILIKE ?", username)
+    channel = Channel.find_by('username ILIKE ?', username)
 
     unless channel
-      respond_with :message, text: I18n.t("telegram_bot.channels.remove.not_found", channel: "@#{username}")
+      respond_with :message, text: I18n.t('telegram_bot.channels.remove.not_found', channel: "@#{username}")
       return
     end
 
@@ -175,14 +175,14 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
     subscription = current_user.subscriptions.active.find_by(channel: channel)
 
     unless subscription
-      respond_with :message, text: I18n.t("telegram_bot.channels.remove.not_subscribed", channel: "@#{channel.username}")
+      respond_with :message, text: I18n.t('telegram_bot.channels.remove.not_subscribed', channel: "@#{channel.username}")
       return
     end
 
     # Деактивируем подписку
     subscription.deactivate!
 
-    respond_with :message, text: I18n.t("telegram_bot.channels.remove.success",
+    respond_with :message, text: I18n.t('telegram_bot.channels.remove.success',
                                            channel: "@#{channel.username}",
                                            count: current_user.subscriptions.active.count)
   end
@@ -192,11 +192,11 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   def start_keyboard
     inline_keyboard(
       keyboard_row(
-        callback_button(I18n.t("telegram_bot.start.button_start"), "start_onboarding:"),
-        callback_button(I18n.t("telegram_bot.start.button_more_info"), "more_info:")
+        callback_button(I18n.t('telegram_bot.start.button_start'), 'start_onboarding:'),
+        callback_button(I18n.t('telegram_bot.start.button_more_info'), 'more_info:')
       ),
       keyboard_row(
-        callback_button("⚙️ Настройки", "settings:")
+        callback_button('⚙️ Настройки', 'settings:')
       )
     )
   end
@@ -205,10 +205,10 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   def more_info_keyboard
     inline_keyboard(
       keyboard_row(
-        callback_button(I18n.t("telegram_bot.more_info.button_lets_start"), "start_onboarding:")
+        callback_button(I18n.t('telegram_bot.more_info.button_lets_start'), 'start_onboarding:')
       ),
       keyboard_row(
-        callback_button("← Назад", "back_to_start:")
+        callback_button('← Назад', 'back_to_start:')
       )
     )
   end
@@ -217,7 +217,7 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   def onboarding_keyboard
     inline_keyboard(
       keyboard_row(
-        callback_button(I18n.t("telegram_bot.onboarding.button_my_subscriptions"), "my_subscriptions:")
+        callback_button(I18n.t('telegram_bot.onboarding.button_my_subscriptions'), 'my_subscriptions:')
       )
     )
   end

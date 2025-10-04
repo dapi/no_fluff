@@ -7,8 +7,8 @@ if Rails.env.test?
   # Важно чтобы bots_config шел ПОСЛЕ reset_bots
   Telegram.bots_config = {
     default: {
-      token: "test_token",
-      username: "test_bot"
+      token: 'test_token',
+      username: 'test_bot'
     }
   }
 else
