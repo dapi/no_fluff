@@ -253,6 +253,7 @@ module Telegram
         channel: channel
       }
     rescue StandardError => e
+      Bugsnag.notify(e) { |b| b.metadata = { user_id: user.id, channel_username: channel_username, action: 'remove_channel_for_user' } }
       Rails.logger.error "Error removing channel for user #{user.id}: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
 

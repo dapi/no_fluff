@@ -43,6 +43,7 @@ module Telegram
 
       log_performance('show_settings', Time.current - start_time)
     rescue StandardError => e
+      Bugsnag.notify(e) { |b| b.metadata = { user_id: @user.id, action: 'show_settings' } }
       log_error('show_settings', e)
       send_error(I18n.t('telegram_bot.errors.general'))
     end
@@ -68,12 +69,15 @@ module Telegram
 
       log_performance('update_setting', Time.current - start_time)
     rescue ActiveRecord::RecordInvalid => e
+      Bugsnag.notify(e) { |b| b.metadata = { user_id: @user.id, setting_name: setting_name, value: value, action: 'update_setting' } }
       log_validation_error(setting_name, value, e.message)
       send_error(I18n.t('telegram_bot.errors.validation'))
     rescue Telegram::Bot::Error => e
+      Bugsnag.notify(e) { |b| b.metadata = { user_id: @user.id, setting_name: setting_name, value: value, action: 'update_setting' } }
       log_telegram_error('update_setting', e)
       send_error(I18n.t('telegram_bot.errors.telegram_api'))
     rescue StandardError => e
+      Bugsnag.notify(e) { |b| b.metadata = { user_id: @user.id, setting_name: setting_name, value: value, action: 'update_setting' } }
       log_error('update_setting', e)
       send_error(I18n.t('telegram_bot.errors.general'))
     end

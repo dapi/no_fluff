@@ -18,7 +18,7 @@ class Channels::MonitorJob < ApplicationJob
     Rails.logger.info "Found #{channels.count} channels to monitor"
 
     channels.each do |channel|
-      begin
+      with_error_context(channel_id: channel.id, channel_username: channel.username) do
         # Запускаем задачу для получения постов из канала
         Channels::FetchPostsJob.perform_later(channel.id)
 
@@ -26,8 +26,6 @@ class Channels::MonitorJob < ApplicationJob
         channel.mark_as_monitored!
 
         Rails.logger.debug "Scheduled fetch job for channel #{channel.username}"
-      rescue StandardError => e
-        Rails.logger.error "Error scheduling fetch for channel #{channel.username}: #{e.message}"
       end
     end
 

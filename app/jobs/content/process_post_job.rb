@@ -3,12 +3,35 @@ class Content::ProcessPostJob < ApplicationJob
   queue_as :content
 
   def perform(channel_id, post_data)
-    channel = Channel.find(channel_id)
+    with_error_context(channel_id: channel_id, post_data: post_data, action: 'process_post') do
+      channel = Channel.find(channel_id)
 
-    Rails.logger.info "Processing post #{post_data[:telegram_message_id]} from channel #{channel.username}"
+      Rails.logger.info "Processing post #{post_data[:telegram_message_id]} from channel #{channel.username}"
 
-    # Создаем пост в БД
-    post = channel.posts.create!(
+      # Создаем пост в БД
+      post = create_post(channel, post_data)
+
+      Rails.logger.info "Created post #{post.id} in database"
+
+      # Получаем всех активных подписчиков канала
+      subscribers = channel.telegram_users.joins(:subscriptions)
+                             .where(subscriptions: { active: true })
+
+      Rails.logger.info "Found #{subscribers.count} subscribers for channel #{channel.username}"
+
+      # Для каждого подписчика запускаем задачу доставки поста
+      subscribers.each do |user|
+        schedule_delivery_for_user(user, post)
+      end
+
+      Rails.logger.info "Completed processing post #{post.id}"
+    end
+  end
+
+  private
+
+  def create_post(channel, post_data)
+    channel.posts.create!(
       telegram_message_id: post_data[:telegram_message_id],
       text: post_data[:text],
       media_urls: post_data[:media_urls],
@@ -19,34 +42,20 @@ class Content::ProcessPostJob < ApplicationJob
       is_fluff: false,
       is_duplicate_of: nil
     )
+  end
 
-    Rails.logger.info "Created post #{post.id} in database"
-
-    # Получаем всех активных подписчиков канала
-    subscribers = channel.telegram_users.joins(:subscriptions)
-                           .where(subscriptions: { active: true })
-
-    Rails.logger.info "Found #{subscribers.count} subscribers for channel #{channel.username}"
-
-    # Для каждого подписчика запускаем задачу доставки поста
-    subscribers.each do |user|
-      begin
-        Content::DeliverPostsJob.perform_later(user.id, [ post.id ])
-
-        Rails.logger.debug "Scheduled delivery for post #{post.id} to user #{user.username}"
-      rescue StandardError => e
-        Rails.logger.error "Error scheduling delivery for user #{user.username}: #{e.message}"
-      end
-    end
-
-    Rails.logger.info "Completed processing post #{post.id}"
-  rescue ActiveRecord::RecordInvalid => e
-    Rails.logger.error "Error creating post: #{e.message}"
-    Rails.logger.error e.record.errors.full_messages.join(', ')
-  rescue ActiveRecord::RecordNotFound => e
-    Rails.logger.error "Channel #{channel_id} not found: #{e.message}"
+  def schedule_delivery_for_user(user, post)
+    Content::DeliverPostsJob.perform_later(user.id, [ post.id ])
+    Rails.logger.debug "Scheduled delivery for post #{post.id} to user #{user.username}"
   rescue StandardError => e
-    Rails.logger.error "Error processing post: #{e.message}"
-    raise
+    # Handle individual user scheduling errors without failing the entire job
+    handle_error(e,
+                 metadata: {
+                   user_id: user.id,
+                   post_id: post.id,
+                   action: 'schedule_delivery'
+                 },
+                 severity: :warn,
+                 reraise: false)
   end
 end

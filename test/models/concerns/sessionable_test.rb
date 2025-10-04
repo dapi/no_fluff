@@ -277,7 +277,7 @@ class SessionableTest < ActiveSupport::TestCase
       include Sessionable
 
       def self.column_names
-        ['id', 'name'] # Нет session_data
+        [ 'id', 'name' ] # Нет session_data
       end
 
       def self.table_name
