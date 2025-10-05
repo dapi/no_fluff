@@ -100,7 +100,7 @@ class ChannelTest < ActiveSupport::TestCase
   # Scope tests
   test 'active scope should return only active channels' do
     channel = channels(:one)
-    channel.update(active: true)
+    channel.update(deactivated_at: nil)
 
     active_channels = Channel.active
     assert_includes active_channels, channel
@@ -108,7 +108,7 @@ class ChannelTest < ActiveSupport::TestCase
 
   test 'active scope should not return inactive channels' do
     channel = channels(:one)
-    channel.update(active: false)
+    channel.update(deactivated_at: 1.hour.ago)
 
     active_channels = Channel.active
     assert_not_includes active_channels, channel
@@ -116,7 +116,7 @@ class ChannelTest < ActiveSupport::TestCase
 
   test 'inactive scope should return only inactive channels' do
     channel = channels(:one)
-    channel.update(active: false)
+    channel.update(deactivated_at: 1.hour.ago)
 
     inactive_channels = Channel.inactive
     assert_includes inactive_channels, channel
@@ -124,7 +124,7 @@ class ChannelTest < ActiveSupport::TestCase
 
   test 'inactive scope should not return active channels' do
     channel = channels(:one)
-    channel.update(active: true)
+    channel.update(deactivated_at: nil)
 
     inactive_channels = Channel.inactive
     assert_not_includes inactive_channels, channel
@@ -221,22 +221,68 @@ class ChannelTest < ActiveSupport::TestCase
     end
   end
 
-  test 'deactivate! should set active to false' do
+  test 'deactivate! should set deactivated_at and deactivation_reason' do
     channel = channels(:one)
-    channel.update(active: true)
+    channel.update(deactivated_at: nil, deactivation_reason: nil)
 
-    channel.deactivate!
-    channel.reload
-    assert_not channel.active
+    freeze_time do
+      channel.deactivate!("Test error message")
+      channel.reload
+      assert_not_nil channel.deactivated_at
+      assert_in_delta Time.current, channel.deactivated_at, 1.second
+      assert_equal "Test error message", channel.deactivation_reason
+    end
   end
 
-  test 'activate! should set active to true' do
+  test 'deactivate! should not deactivate already deactivated channel' do
     channel = channels(:one)
-    channel.update(active: false)
+    channel.update(deactivated_at: 1.hour.ago, deactivation_reason: "Previous error")
 
-    channel.activate!
+    original_deactivated_at = channel.deactivated_at
+    original_deactivation_reason = channel.deactivation_reason
+
+    channel.deactivate!("New error message")
     channel.reload
-    assert channel.active
+
+    assert_equal original_deactivated_at, channel.deactivated_at
+    assert_equal original_deactivation_reason, channel.deactivation_reason
+  end
+
+  test 'active? should return true for active channels' do
+    channel = channels(:one)
+    channel.update(deactivated_at: nil)
+
+    assert channel.active?
+  end
+
+  test 'active? should return false for inactive channels' do
+    channel = channels(:one)
+    channel.update(deactivated_at: 1.hour.ago)
+
+    assert_not channel.active?
+  end
+
+  test 'inactive? should return true for inactive channels' do
+    channel = channels(:one)
+    channel.update(deactivated_at: 1.hour.ago)
+
+    assert channel.inactive?
+  end
+
+  test 'inactive? should return false for active channels' do
+    channel = channels(:one)
+    channel.update(deactivated_at: nil)
+
+    assert_not channel.inactive?
+  end
+
+  test 'deactivate! should enqueue notification job' do
+    channel = channels(:one)
+    channel.update(deactivated_at: nil)
+
+    assert_enqueued_jobs(1) do
+      channel.deactivate!("Test error")
+    end
   end
 
   # Edge case tests
@@ -248,7 +294,8 @@ class ChannelTest < ActiveSupport::TestCase
       description: nil,
       subscribers_count: nil,
       is_verified: nil,
-      active: nil,
+      deactivated_at: nil,
+      deactivation_reason: nil,
       last_post_at: nil,
       monitored_at: nil
     )

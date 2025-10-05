@@ -12,7 +12,7 @@ class Channels::MonitorJob < ApplicationJob
     # Получаем все активные каналы, за которыми есть подписки
     channels = Channel.joins(:subscriptions)
                      .where(subscriptions: { active: true })
-                     .where(active: true)
+                     .active
                      .needs_monitoring
 
     Rails.logger.info "Found #{channels.count} channels to monitor"

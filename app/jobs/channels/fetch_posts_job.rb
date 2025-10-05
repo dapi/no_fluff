@@ -19,15 +19,22 @@ class Channels::FetchPostsJob < ApplicationJob
 
       # Проверяем доступность канала
       unless fetcher.channel_available?(channel.username)
-        Rails.logger.warn "Channel #{channel.username} is not available, deactivating"
-        channel.deactivate!
+        error_message = "Channel #{channel.username} is not available for monitoring"
+        Rails.logger.warn "#{error_message}, deactivating"
+        channel.deactivate!(error_message)
         return
       end
 
       # Получаем последние посты
-      posts_data = fetcher.get_channel_posts(channel.username, limit: 20)
-
-      Rails.logger.info "Fetched #{posts_data.count} posts from channel #{channel.username}"
+      begin
+        posts_data = fetcher.get_channel_posts(channel.username, limit: 20)
+        Rails.logger.info "Fetched #{posts_data.count} posts from channel #{channel.username}"
+      rescue StandardError => e
+        error_message = "Failed to fetch posts from channel #{channel.username}: #{e.message}"
+        Rails.logger.error "#{error_message}, deactivating channel"
+        channel.deactivate!(error_message)
+        return
+      end
 
       # Обновляем время последнего поста если есть посты
       if posts_data.any?

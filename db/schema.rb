@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_04_000000) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_05_210627) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -49,12 +49,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_04_000000) do
     t.text "description"
     t.integer "subscribers_count"
     t.boolean "is_verified", default: false
-    t.boolean "active", default: true
     t.datetime "last_post_at"
     t.datetime "monitored_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["active"], name: "index_channels_on_active"
+    t.datetime "deactivated_at"
+    t.string "deactivation_reason"
     t.index ["last_post_at"], name: "index_channels_on_last_post_at"
     t.index ["monitored_at"], name: "index_channels_on_monitored_at"
     t.index ["telegram_id"], name: "index_channels_on_telegram_id", unique: true

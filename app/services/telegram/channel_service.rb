@@ -140,8 +140,7 @@ module Telegram
         channel.update(
           title: channel_info[:title],
           description: channel_info[:description],
-          subscribers_count: channel_info[:member_count],
-          active: true
+          subscribers_count: channel_info[:member_count]
         )
       end
 
