@@ -317,14 +317,14 @@
 ### 1.12. Deployment Preparation
 
 #### 1.12.1. Environment Setup
-- [ ] Настроить production environment
-- [ ] Настроить credentials для API ключей
-- [ ] Настроить database для production
+- [x] Настроить production environment
+- [x] Настроить credentials для API ключей
+- [x] Настроить database для production
 - [ ] Настроить Solid Queue workers
 
 #### 1.12.2. Deploy
-- [ ] Задеплоить на production (Kamal/Heroku/VPS)
-- [ ] Протестировать бота в production
+- [x] Задеплоить на production (Kamal/Heroku/VPS)
+- [x] Протестировать бота в production
 - [ ] Настроить мониторинг (uptime, logs)
 
 ---
