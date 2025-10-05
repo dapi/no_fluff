@@ -51,6 +51,19 @@ class TelegramUser < ApplicationRecord
   # Используем ID записи как telegram_id для Telegram API
   alias_attribute :telegram_id, :id
 
+  # Instance methods
+  def can_add_channel?
+    is_premium || channels_count < Telegram::ChannelService::FREE_CHANNELS_LIMIT
+  end
+
+  def channels_count
+    subscriptions.count
+  end
+
+  def channels_limit_reached?
+    !is_premium && channels_count >= Telegram::ChannelService::FREE_CHANNELS_LIMIT
+  end
+
   # Class methods
   def self.any_admins?
     admins.exists?
