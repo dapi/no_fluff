@@ -53,7 +53,7 @@ class TelegramUser < ApplicationRecord
 
   # Instance methods
   def can_add_channel?
-    is_premium || channels_count < Telegram::ChannelService::FREE_CHANNELS_LIMIT
+    is_premium || channels_count < ApplicationConfig.free_channels_limit
   end
 
   def channels_count
@@ -61,7 +61,7 @@ class TelegramUser < ApplicationRecord
   end
 
   def channels_limit_reached?
-    !is_premium && channels_count >= Telegram::ChannelService::FREE_CHANNELS_LIMIT
+    !is_premium && channels_count >= ApplicationConfig.free_channels_limit
   end
 
   # Class methods

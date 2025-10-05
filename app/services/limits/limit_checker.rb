@@ -1,8 +1,6 @@
 # Сервис для проверки лимитов подписок пользователей
 module Limits
   class LimitChecker
-    # Лимит бесплатных каналов
-    FREE_CHANNELS_LIMIT = 10
 
     def initialize(user)
       @user = user
@@ -13,7 +11,7 @@ module Limits
     def can_add_channel?
       return true if @user.is_premium?
 
-      @user.channels_count < FREE_CHANNELS_LIMIT
+      @user.channels_count < ApplicationConfig.free_channels_limit
     end
 
     # Проверяет достигнут ли лимит каналов для пользователя
@@ -21,7 +19,7 @@ module Limits
     def limit_reached?
       return false if @user.is_premium?
 
-      @user.channels_count >= FREE_CHANNELS_LIMIT
+      @user.channels_count >= ApplicationConfig.free_channels_limit
     end
 
     # Возвращает текущее количество каналов пользователя
@@ -35,7 +33,7 @@ module Limits
     def remaining_free_channels
       return 0 if @user.is_premium?
 
-      remaining = FREE_CHANNELS_LIMIT - @user.channels_count
+      remaining = ApplicationConfig.free_channels_limit - @user.channels_count
       remaining > 0 ? remaining : 0
     end
 
@@ -44,7 +42,7 @@ module Limits
     def limit_status
       {
         current_count: current_channels_count,
-        limit: FREE_CHANNELS_LIMIT,
+        limit: ApplicationConfig.free_channels_limit,
         remaining: remaining_free_channels,
         is_premium: @user.is_premium?,
         can_add_more: can_add_channel?,
@@ -58,14 +56,14 @@ module Limits
     def can_add_channels?(requested_count)
       return true if @user.is_premium?
 
-      (@user.channels_count + requested_count) <= FREE_CHANNELS_LIMIT
+      (@user.channels_count + requested_count) <= ApplicationConfig.free_channels_limit
     end
 
     # Возвращает сообщение о достижении лимита
     # @return [String] - локализованное сообщение
     def limit_reached_message
       I18n.t('telegram_bot.channels.add.limit_reached',
-              limit: FREE_CHANNELS_LIMIT,
+              limit: ApplicationConfig.free_channels_limit,
               current: current_channels_count)
     end
 

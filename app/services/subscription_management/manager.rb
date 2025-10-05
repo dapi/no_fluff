@@ -43,7 +43,7 @@ module SubscriptionManagement
           {
             success: true,
             message: I18n.t('telegram_bot.subscription.deactivated_with_limit_warning',
-                           limit: Limits::LimitChecker::FREE_CHANNELS_LIMIT,
+                           limit: ApplicationConfig.free_channels_limit,
                            current: limit_checker.current_channels_count),
             user: @user,
             warning: true
@@ -74,7 +74,7 @@ module SubscriptionManagement
       {
         is_premium: @user.is_premium?,
         channels_count: limit_checker.current_channels_count,
-        limit: Limits::LimitChecker::FREE_CHANNELS_LIMIT,
+        limit: ApplicationConfig.free_channels_limit,
         can_add_more: limit_checker.can_add_channel?,
         remaining_free: limit_checker.remaining_free_channels,
         limit_reached: limit_checker.limit_reached?
@@ -94,11 +94,11 @@ module SubscriptionManagement
 
       {
         current_channels: limit_checker.current_channels_count,
-        limit: Limits::LimitChecker::FREE_CHANNELS_LIMIT,
-        exceeded_by: limit_checker.current_channels_count - Limits::LimitChecker::FREE_CHANNELS_LIMIT,
+        limit: ApplicationConfig.free_channels_limit,
+        exceeded_by: limit_checker.current_channels_count - ApplicationConfig.free_channels_limit,
         message: I18n.t('telegram_bot.subscription.offer_message',
                        current: limit_checker.current_channels_count,
-                       limit: Limits::LimitChecker::FREE_CHANNELS_LIMIT),
+                       limit: ApplicationConfig.free_channels_limit),
         activate_button_text: I18n.t('telegram_bot.subscription.activate_button')
       }
     end
