@@ -9,6 +9,5 @@ Rails.application.routes.draw do
   # Telegram Bot webhook
   telegram_webhook TelegramWebhookController
 
-  # Defines the root path route ("/")
-  # root "posts#index"
+  mount SolidQueueDashboard::Engine, at: "/solid-queue"
 end

@@ -69,3 +69,5 @@ gem 'slim-rails'
 
 # JavaScript with importmap
 gem 'importmap-rails'
+
+# Solid Queue Dashboard removed - custom implementation instead
