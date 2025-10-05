@@ -37,7 +37,8 @@
       "Bash(RAILS_ENV=test ./bin/rails test:*)",
       "Bash(gem search:*)",
       "Bash(gem specification:*)",
-      "Read(//home/danil/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/solid_queue_dashboard-0.2.0/**)"
+      "Read(//home/danil/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/solid_queue_dashboard-0.2.0/**)",
+      "Bash(createdb:*)"
     ],
     "deny": [],
     "ask": []
