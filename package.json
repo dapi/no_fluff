@@ -1,0 +1,19 @@
+{
+  "name": "no-fluff",
+  "private": "true",
+  "dependencies": {
+    "sass": "^1.69.5",
+    "postcss": "^8.4.32",
+    "postcss-import": "^15.1.0",
+    "postcss-preset-env": "^9.3.0",
+    "autoprefixer": "^10.4.16",
+    "@hotwired/turbo-rails": "^7.3.0",
+    "@hotwired/stimulus": "^3.2.2"
+  },
+  "scripts": {
+    "build": "npm run build:css",
+    "build:css": "sass ./app/assets/stylesheets/application.scss ./app/assets/builds/application.css --no-source-map --load-path=node_modules"
+  },
+  "devDependencies": {
+  }
+}

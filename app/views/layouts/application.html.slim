@@ -1,0 +1,22 @@
+doctype html
+html
+  head
+    title NoFluff
+    meta charset="utf-8"
+    meta name="viewport" content="width=device-width, initial-scale=1"
+    = csrf_meta_tags
+    = csp_meta_tag
+
+    = stylesheet_link_tag "application", "data-turbo-track": "reload"
+    = javascript_importmap_tags
+
+  body
+    header
+      nav
+        h1 NoFluff Bot
+
+    main
+      = yield
+
+    footer
+      p &copy; 2024 NoFluff - Telegram Bot for Content Filtering

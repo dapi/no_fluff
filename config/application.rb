@@ -31,9 +31,6 @@ module NoFluff
     # Set default locale to Russian
     config.i18n.default_locale = :ru
 
-    # Only loads a smaller set of middleware suitable for API only apps.
-    # Middleware like session, flash, cookies can be added back manually.
-    # Skip views, helpers and assets when generating a new resource.
-    config.api_only = true
+    # Full Rails application with views, helpers and assets enabled
   end
 end
