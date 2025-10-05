@@ -11,13 +11,45 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   # Выполняем перед каждым действием
   before_action :find_or_create_user
 
-  # Обработка ошибок
+  # Обработка стандартных ошибок
   rescue_from StandardError do |exception|
-    Bugsnag.notify(exception) { |b| b.metadata = payload }
-    Rails.logger.error "Telegram Bot Error: #{exception.class}: #{exception.message}"
-    Rails.logger.error exception.backtrace.join("\n")
+    log_error("StandardError", exception)
+    ErrorNotificationService.notify_telegram_error(exception,
+      user: current_user,
+      action: action_name,
+      metadata: {
+        controller: self.class.name,
+        error_type: "StandardError"
+      }
+    )
+    respond_with :message, text: I18n.t("telegram_bot.errors.general")
+  end
 
-    respond_with :message, text: I18n.t('telegram_bot.errors.general')
+  # Обработка ошибок базы данных
+  rescue_from ActiveRecord::RecordInvalid do |exception|
+    log_error("Validation Error", exception)
+    ErrorNotificationService.notify_telegram_error(exception,
+      user: current_user,
+      action: action_name,
+      metadata: {
+        error_type: "Validation Error",
+        validation_errors: exception.record&.errors&.full_messages
+      }
+    )
+    respond_with :message, text: I18n.t("telegram_bot.errors.validation")
+  end
+
+  rescue_from ActiveRecord::RecordNotFound do |exception|
+    log_error("Record Not Found", exception)
+    ErrorNotificationService.notify_telegram_error(exception,
+      user: current_user,
+      action: action_name,
+      metadata: {
+        error_type: "Record Not Found",
+        model: exception.model&.name
+      }
+    )
+    respond_with :message, text: I18n.t("telegram_bot.errors.not_found")
   end
 
   # Команда /start - приветствие и краткая инструкция
@@ -277,5 +309,17 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
         callback_button(I18n.t('telegram_bot.onboarding.button_my_subscriptions'), 'my_subscriptions:')
       )
     )
+  end
+
+  private
+
+  # Логирует ошибку с контекстом
+  def log_error(error_type, exception)
+    user_context = current_user ? "User: #{current_user.id}/#{current_user.username}" : "No user"
+    command_context = action_name ? "Action: #{action_name}" : "No action"
+
+    Rails.logger.error "Telegram Bot #{error_type}: #{exception.class}: #{exception.message}"
+    Rails.logger.error "Context: #{user_context}, #{command_context}"
+    Rails.logger.error exception.backtrace.first(10).join("\n")
   end
 end
