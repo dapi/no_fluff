@@ -1,5 +1,5 @@
 # Сервис для удобной отправки ошибок в Bugsnag с контекстом
-class BugsnagService
+class ErrorNotificationService
   class << self
     # Отправить ошибку с базовым контекстом
     def notify(exception, context: nil, user: nil, metadata: {})
