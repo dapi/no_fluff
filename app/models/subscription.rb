@@ -5,12 +5,11 @@ class Subscription < ApplicationRecord
 
   # Validations
   validates :telegram_user_id, uniqueness: { scope: :channel_id }
-  validates :priority, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 1, less_than_or_equal_to: 10 }
 
   # Scopes
   scope :active, -> { where(active: true) }
   scope :inactive, -> { where(active: false) }
-  scope :by_priority, -> { order(priority: :desc) }
+  scope :by_created_at, -> { order(created_at: :desc) }
   scope :for_user, ->(user) { where(telegram_user: user) }
   scope :for_channel, ->(channel) { where(channel: channel) }
 

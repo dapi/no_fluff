@@ -3,15 +3,13 @@
 one:
   telegram_user: one
   channel: one
-  priority: 1
   active: false
   last_digest_sent_at: 2025-10-01 14:37:48
-  settings: 
+  settings:
 
 two:
   telegram_user: two
   channel: two
-  priority: 1
   active: false
   last_digest_sent_at: 2025-10-01 14:37:48
   settings: 

@@ -39,8 +39,7 @@ class SubscriptionTest < ActiveSupport::TestCase
   test 'should be valid with valid attributes' do
     subscription = Subscription.new(
       telegram_user: telegram_users(:one),
-      channel: channels(:two),
-      priority: 5
+      channel: channels(:two)
     )
     assert subscription.valid?
   end
@@ -49,8 +48,7 @@ class SubscriptionTest < ActiveSupport::TestCase
     existing_subscription = subscriptions(:one)
     subscription = Subscription.new(
       telegram_user: existing_subscription.telegram_user,
-      channel: existing_subscription.channel,
-      priority: 5
+      channel: existing_subscription.channel
     )
     assert_not subscription.valid?
     assert subscription.errors[:telegram_user_id].present?
@@ -64,8 +62,7 @@ class SubscriptionTest < ActiveSupport::TestCase
 
     subscription2 = Subscription.new(
       telegram_user: user,
-      channel: channel2,
-      priority: 5
+      channel: channel2
     )
     assert subscription2.valid?
   end
@@ -79,68 +76,9 @@ class SubscriptionTest < ActiveSupport::TestCase
 
     subscription2 = Subscription.new(
       telegram_user: user2,
-      channel: channel,
-      priority: 5
+      channel: channel
     )
     assert subscription2.valid?
-  end
-
-  test 'should require priority' do
-    subscription = Subscription.new(
-      telegram_user: telegram_users(:one),
-      channel: channels(:two),
-      priority: nil
-    )
-    assert_not subscription.valid?
-    assert subscription.errors[:priority].present?
-  end
-
-  test 'should require priority to be an integer' do
-    subscription = Subscription.new(
-      telegram_user: telegram_users(:one),
-      channel: channels(:two),
-      priority: 5.5
-    )
-    assert_not subscription.valid?
-    assert subscription.errors[:priority].present?
-  end
-
-  test 'should require priority to be greater than or equal to 1' do
-    subscription = Subscription.new(
-      telegram_user: telegram_users(:one),
-      channel: channels(:two),
-      priority: 0
-    )
-    assert_not subscription.valid?
-    assert subscription.errors[:priority].present?
-  end
-
-  test 'should require priority to be less than or equal to 10' do
-    subscription = Subscription.new(
-      telegram_user: telegram_users(:one),
-      channel: channels(:two),
-      priority: 11
-    )
-    assert_not subscription.valid?
-    assert subscription.errors[:priority].present?
-  end
-
-  test 'should accept priority of 1' do
-    subscription = Subscription.new(
-      telegram_user: telegram_users(:one),
-      channel: channels(:two),
-      priority: 1
-    )
-    assert subscription.valid?
-  end
-
-  test 'should accept priority of 10' do
-    subscription = Subscription.new(
-      telegram_user: telegram_users(:one),
-      channel: channels(:two),
-      priority: 10
-    )
-    assert subscription.valid?
   end
 
   # Scope tests
@@ -176,14 +114,15 @@ class SubscriptionTest < ActiveSupport::TestCase
     assert_not_includes inactive_subscriptions, subscription
   end
 
-  test 'by_priority scope should order subscriptions by priority descending' do
+  test 'by_created_at scope should order subscriptions by created_at descending' do
     subscription1 = subscriptions(:one)
-    subscription1.update(priority: 3)
-
     subscription2 = subscriptions(:two)
-    subscription2.update(priority: 8)
 
-    ordered_subscriptions = Subscription.by_priority
+    # Ensure they have different created_at timestamps
+    subscription1.update!(created_at: 2.hours.ago)
+    subscription2.update!(created_at: 1.hour.ago)
+
+    ordered_subscriptions = Subscription.by_created_at
     assert_equal subscription2, ordered_subscriptions.first
     assert_equal subscription1, ordered_subscriptions.second
   end
@@ -269,7 +208,6 @@ class SubscriptionTest < ActiveSupport::TestCase
     subscription = Subscription.new(
       telegram_user: telegram_users(:one),
       channel: channels(:two),
-      priority: 5,
       active: nil,
       last_digest_sent_at: nil,
       settings: nil
@@ -290,7 +228,6 @@ class SubscriptionTest < ActiveSupport::TestCase
     subscription = Subscription.new(
       telegram_user: telegram_users(:one),
       channel: channels(:two),
-      priority: 5,
       settings: nil
     )
     assert subscription.valid?

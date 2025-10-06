@@ -165,7 +165,6 @@ class Telegram::ChannelServiceTest < ActiveSupport::TestCase
     subscription = Subscription.create!(
       telegram_user: @user,
       channel: channel,
-      priority: 5,
       active: true
     )
 
@@ -197,7 +196,6 @@ class Telegram::ChannelServiceTest < ActiveSupport::TestCase
       subscription = Subscription.create!(
         telegram_user: @user,
         channel: channel,
-        priority: 5,
         active: true
       )
 
