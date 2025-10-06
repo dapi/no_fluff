@@ -75,8 +75,7 @@ class ChannelTest < ActiveSupport::TestCase
       username: 'test_channel_destroy'
     )
     subscription = channel.subscriptions.create!(
-      telegram_user: telegram_users(:one),
-      priority: 5
+      telegram_user: telegram_users(:one)
     )
     assert_difference 'Subscription.count', -1 do
       channel.destroy

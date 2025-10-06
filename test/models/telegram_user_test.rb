@@ -98,8 +98,7 @@ class TelegramUserTest < ActiveSupport::TestCase
       language_code: 'en'
     )
     subscription = user.subscriptions.create!(
-      channel: channels(:one),
-      priority: 5
+      channel: channels(:one)
     )
     assert_difference 'Subscription.count', -1 do
       user.destroy

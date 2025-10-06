@@ -52,8 +52,8 @@ class TelegramListCommandTest < ActionDispatch::IntegrationTest
     channel1 = Channel.create!(telegram_id: 1001, username: 'channel1', title: 'First Channel')
     channel2 = Channel.create!(telegram_id: 1002, username: 'channel2', title: 'Second Channel')
 
-    Subscription.create!(telegram_user: @user, channel: channel1, priority: 10, active: true)
-    Subscription.create!(telegram_user: @user, channel: channel2, priority: 5, active: true)
+    Subscription.create!(telegram_user: @user, channel: channel1, active: true)
+    Subscription.create!(telegram_user: @user, channel: channel2, active: true)
 
     # Отправляем команду /list
     update = create_user_update(command: '/list')

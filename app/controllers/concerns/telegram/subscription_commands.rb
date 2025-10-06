@@ -74,7 +74,7 @@ module Telegram::SubscriptionCommands
         subscription.deactivate!
 
 # Получаем обновленный список подписок
-        remaining_subscriptions = current_user.subscriptions.includes(:channel).active.by_priority
+        remaining_subscriptions = current_user.subscriptions.includes(:channel).active.by_created_at
 
         if remaining_subscriptions.empty?
           # Если больше нет подписок, показываем пустое сообщение

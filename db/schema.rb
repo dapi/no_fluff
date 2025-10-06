@@ -185,7 +185,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_04_000000) do
   create_table "subscriptions", force: :cascade do |t|
     t.bigint "telegram_user_id", null: false
     t.bigint "channel_id", null: false
-    t.integer "priority", default: 5, null: false
     t.boolean "active", default: true, null: false
     t.datetime "last_digest_sent_at"
     t.jsonb "settings", default: {}
@@ -194,7 +193,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_04_000000) do
     t.index ["active"], name: "index_subscriptions_on_active"
     t.index ["channel_id"], name: "index_subscriptions_on_channel_id"
     t.index ["last_digest_sent_at"], name: "index_subscriptions_on_last_digest_sent_at"
-    t.index ["priority"], name: "index_subscriptions_on_priority"
     t.index ["telegram_user_id", "channel_id"], name: "index_subscriptions_on_telegram_user_id_and_channel_id", unique: true
     t.index ["telegram_user_id"], name: "index_subscriptions_on_telegram_user_id"
   end

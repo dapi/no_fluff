@@ -245,7 +245,6 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     subscription = Subscription.create!(
       telegram_user: user,
       channel: channel,
-      priority: 5,
       active: true
     )
 
@@ -433,8 +432,8 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     channel1 = Channel.create!(telegram_id: 1001, username: 'channel1', title: 'Channel 1')
     channel2 = Channel.create!(telegram_id: 1002, username: 'channel2', title: 'Channel 2')
 
-    Subscription.create!(telegram_user: user, channel: channel1, priority: 1, active: true)
-    Subscription.create!(telegram_user: user, channel: channel2, priority: 2, active: true)
+    Subscription.create!(telegram_user: user, channel: channel1, active: true)
+    Subscription.create!(telegram_user: user, channel: channel2, active: true)
 
     # Проверяем список подписок
     update = create_user_update(user_id: user.id, username: 'subscriber',
