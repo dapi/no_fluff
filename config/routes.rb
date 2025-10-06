@@ -8,6 +8,4 @@ Rails.application.routes.draw do
 
   # Telegram Bot webhook
   telegram_webhook TelegramWebhookController
-
-  mount SolidQueueDashboard::Engine, at: "/solid-queue"
 end

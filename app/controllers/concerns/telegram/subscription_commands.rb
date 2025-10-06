@@ -73,12 +73,25 @@ module Telegram::SubscriptionCommands
         channel = subscription.channel
         subscription.deactivate!
 
-        edit_message :text,
-          text: I18n.t('telegram_bot.channels.list.remove_success', channel: "@#{channel.username}"),
-          reply_markup: subscriptions_keyboard(current_user.subscriptions.active.by_created_at)
+# Получаем обновленный список подписок
+        remaining_subscriptions = current_user.subscriptions.includes(:channel).active.by_priority
+
+        if remaining_subscriptions.empty?
+          # Если больше нет подписок, показываем пустое сообщение
+          edit_message :text, text: I18n.t('telegram_bot.channels.list.empty')
+        else
+          # Показываем сообщение об удалении + обновленный список
+          text = I18n.t('telegram_bot.channels.list.remove_success', channel: "@#{channel.username}")
+          text += "\n\n" + build_subscriptions_list(remaining_subscriptions)
+
+          edit_message :text,
+            text: text,
+            reply_markup: subscriptions_keyboard(remaining_subscriptions)
+        end
       end
     end
 
+  
     private
 
     # Построить текст списка подписок

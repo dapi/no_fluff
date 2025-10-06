@@ -130,9 +130,9 @@ ru:
         title: "📋 Мои подписки"
         empty: "У тебя пока нет подписок. Просто накидай каналы в чат списком, и я их добавлю."
         total: "Всего каналов: %{count}"
+        channel_info: "• %{channel}"
         buttons:
           remove: "🗑️"
-          settings: "⚙️"
         confirm_remove: "Удалить %{channel} из подписок?"
         remove_success: "Канал %{channel} удалён из подписок"
 
