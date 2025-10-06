@@ -6,7 +6,7 @@ module Telegram::SubscriptionCommands
   included do
     # Команда /list - показать список подписок
     def list!(*)
-      subscriptions = current_user.subscriptions.includes(:channel).active.by_priority
+      subscriptions = current_user.subscriptions.includes(:channel).active.by_created_at
 
       if subscriptions.empty?
         respond_with :message, text: I18n.t('telegram_bot.channels.list.empty')
@@ -20,7 +20,7 @@ module Telegram::SubscriptionCommands
     # Callback query: мои подписки
     def my_subscriptions_callback_query(*)
       answer_callback_query('')
-      subscriptions = current_user.subscriptions.includes(:channel).active.by_priority
+      subscriptions = current_user.subscriptions.includes(:channel).active.by_created_at
 
       if subscriptions.empty?
         if payload['message']
@@ -75,49 +75,7 @@ module Telegram::SubscriptionCommands
 
         edit_message :text,
           text: I18n.t('telegram_bot.channels.list.remove_success', channel: "@#{channel.username}"),
-          reply_markup: subscriptions_keyboard(current_user.subscriptions.active.by_priority)
-      end
-    end
-
-    # Callback query: увеличить приоритет канала
-    def priority_up_callback_query(channel_id)
-      answer_callback_query('')
-      subscription = current_user.subscriptions.active.find_by(channel_id: channel_id)
-      if subscription && subscription.priority < 10
-        subscription.update(priority: subscription.priority + 1)
-
-        # Обновляем сообщение с новым списком
-        subscriptions = current_user.subscriptions.includes(:channel).active.by_priority
-        if payload['message']
-          edit_message :text,
-            text: build_subscriptions_list(subscriptions),
-            reply_markup: subscriptions_keyboard(subscriptions)
-        else
-          respond_with :message,
-            text: build_subscriptions_list(subscriptions),
-            reply_markup: subscriptions_keyboard(subscriptions)
-        end
-      end
-    end
-
-    # Callback query: уменьшить приоритет канала
-    def priority_down_callback_query(channel_id)
-      answer_callback_query('')
-      subscription = current_user.subscriptions.active.find_by(channel_id: channel_id)
-      if subscription && subscription.priority > 1
-        subscription.update(priority: subscription.priority - 1)
-
-        # Обновляем сообщение с новым списком
-        subscriptions = current_user.subscriptions.includes(:channel).active.by_priority
-        if payload['message']
-          edit_message :text,
-            text: build_subscriptions_list(subscriptions),
-            reply_markup: subscriptions_keyboard(subscriptions)
-        else
-          respond_with :message,
-            text: build_subscriptions_list(subscriptions),
-            reply_markup: subscriptions_keyboard(subscriptions)
-        end
+          reply_markup: subscriptions_keyboard(current_user.subscriptions.active.by_created_at)
       end
     end
 
@@ -130,9 +88,7 @@ module Telegram::SubscriptionCommands
 
       subscriptions.each do |subscription|
         channel = subscription.channel
-        text += I18n.t('telegram_bot.channels.list.channel_info',
-          channel: channel.title.present? ? channel.title : "@#{channel.username}",
-          priority: subscription.priority)
+        text += "• #{channel.title.present? ? channel.title : "@#{channel.username}"}"
         text += "\n"
       end
 
@@ -145,14 +101,6 @@ module Telegram::SubscriptionCommands
 
       keyboard = subscriptions.map do |subscription|
         keyboard_row(
-          callback_button(
-            I18n.t('telegram_bot.channels.list.buttons.priority_up'),
-            "priority_up:#{subscription.channel_id}"
-          ),
-          callback_button(
-            I18n.t('telegram_bot.channels.list.buttons.priority_down'),
-            "priority_down:#{subscription.channel_id}"
-          ),
           callback_button(
             I18n.t('telegram_bot.channels.list.buttons.remove'),
             "remove_channel:#{subscription.channel_id}"

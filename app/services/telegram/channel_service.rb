@@ -170,7 +170,6 @@ module Telegram
       # Создаем подписку
       subscription = user.subscriptions.build(
         channel: channel,
-        priority: 5, # средний приоритет по умолчанию
         active: true
       )
 

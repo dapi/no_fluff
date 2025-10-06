@@ -130,14 +130,10 @@ ru:
         title: "📋 Мои подписки"
         empty: "У тебя пока нет подписок. Просто накидай каналы в чат списком, и я их добавлю."
         total: "Всего каналов: %{count}"
-        channel_info: "• %{channel} (приоритет: %{priority})"
         buttons:
           remove: "🗑️"
-          priority_up: "⬆️"
-          priority_down: "⬇️"
           settings: "⚙️"
         confirm_remove: "Удалить %{channel} из подписок?"
-        priority_updated: "Приоритет %{channel} изменён на %{priority}"
         remove_success: "Канал %{channel} удалён из подписок"
 
     settings:
