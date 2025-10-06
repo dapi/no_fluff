@@ -81,6 +81,7 @@ ru:
       admin_commands: |
         🔐 Команды администратора:
 
+        /channels — список всех каналов системы
         /remember <имя> — запомнить данные в сессии
         /recall — вспомнить данные из сессии
         /forget — очистить сессию
@@ -200,3 +201,27 @@ ru:
       user_message: "Вы написали: %{text}"
       cancel: "Отмена"
       back: "← Назад"
+
+    channels:
+      list:
+        title: "📊 Список каналов системы"
+        total_channels: "Всего каналов: %{count}"
+        active_channels: "Активных каналов: %{count}"
+        no_channels: "📭 В системе пока нет ни одного канала.\n\nИспользуйте команду /add для добавления первого канала."
+        access_denied: "⛔️ У вас нет прав для выполнения этой команды.\nДоступ к команде /channels имеют только администраторы системы."
+        channel_format: "%{verification} @{username} — %{subscribers}"
+        subscribers_count:
+          one: "%{count} подписчик"
+          few: "%{count} подписчика"
+          many: "%{count} подписчиков"
+          other: "%{count} подписчиков"
+        status:
+          active: "Активен"
+          inactive: "Неактивен"
+        verified: "✅"
+        not_verified: "⭕"
+        last_post:
+          never: "Постов пока не было"
+          recently: "Последний пост: %{time}"
+        errors:
+          general: "Произошла ошибка при получении списка каналов. Попробуйте позже."

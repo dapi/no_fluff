@@ -1,15 +1,36 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
+# Подписчики для популярных каналов
 one:
   telegram_user: one
   channel: one
-  active: false
+  priority: 1
+  active: true
   last_digest_sent_at: 2025-10-01 14:37:48
   settings:
 
 two:
   telegram_user: two
+  channel: one
+  priority: 1
+  active: true
+  last_digest_sent_at: 2025-10-01 14:37:48
+  settings:
+
+# Подписчики для medium канала
+three:
+  telegram_user: one
   channel: two
+  priority: 1
+  active: true
+  last_digest_sent_at: 2025-10-01 14:37:48
+  settings:
+
+# Подписчики для inactive канала
+four:
+  telegram_user: two
+  channel: inactive
+  priority: 1
   active: false
   last_digest_sent_at: 2025-10-01 14:37:48
   settings: 

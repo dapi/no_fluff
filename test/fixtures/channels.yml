@@ -1,23 +1,48 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
+# Каналы с разным количеством подписчиков для тестирования сортировки
 one:
   telegram_id: 1001234567890
-  username: test_channel_one
-  title: Test Channel One
-  description: MyText
-  subscribers_count: 1
-  is_verified: false
-  active: false
-  last_post_at: 2025-10-01 14:36:11
-  monitored_at: 2025-10-01 14:36:11
+  username: popular_channel
+  title: Popular Channel
+  description: Most popular channel
+  subscribers_count: 1000
+  is_verified: true
+  active: true
+  last_post_at: <%= 1.hour.ago %>
+  monitored_at: <%= 1.hour.ago %>
 
 two:
   telegram_id: 1001234567891
-  username: test_channel_two
-  title: Test Channel Two
-  description: MyText
-  subscribers_count: 1
+  username: medium_channel
+  title: Medium Channel
+  description: Medium popularity channel
+  subscribers_count: 500
+  is_verified: false
+  active: true
+  last_post_at: <%= 5.hours.ago %>
+  monitored_at: <%= 5.hours.ago %>
+
+# Канал без подписчиков
+empty:
+  telegram_id: 1001234567892
+  username: empty_channel
+  title: Empty Channel
+  description: Channel with no subscribers
+  subscribers_count: 0
   is_verified: false
   active: false
-  last_post_at: 2025-10-01 14:36:11
-  monitored_at: 2025-10-01 14:36:11
+  last_post_at: <%= 1.day.ago %>
+  monitored_at: <%= 1.day.ago %>
+
+# Неактивный канал
+inactive:
+  telegram_id: 1001234567893
+  username: inactive_channel
+  title: Inactive Channel
+  description: Inactive channel
+  subscribers_count: 200
+  is_verified: false
+  active: false
+  last_post_at: <%= 2.days.ago %>
+  monitored_at: <%= 2.days.ago %>

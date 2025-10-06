@@ -52,6 +52,14 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
     end
   end
 
+  # Команда /channels - показать список каналов (только для админов)
+  def channels!(*)
+    service = Telegram::ChannelsListService.new(bot, current_user)
+    result = service.execute
+
+    respond_with :message, text: result[:message]
+  end
+
   # Команда /settings - показать настройки
   def settings!(*)
     agent = Telegram::SettingsAgent.new(bot, current_user)

@@ -736,4 +736,96 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     admin_user.reload
     assert_empty admin_user.session_data
   end
+
+  # Тесты для команды /channels
+  test 'admin can use channels command' do
+    admin_user = TelegramUser.create!(
+      username: 'admin_channels_user',
+      first_name: 'Admin',
+      language_code: 'ru',
+      timezone: 'UTC',
+      is_admin: true
+    )
+
+    # Создаем тестовые каналы
+    channel1 = Channel.create!(
+      telegram_id: 1001,
+      username: 'test_channel_1',
+      title: 'Test Channel 1',
+      subscribers_count: 100,
+      is_verified: true,
+      active: true,
+      last_post_at: 1.hour.ago
+    )
+
+    channel2 = Channel.create!(
+      telegram_id: 1002,
+      username: 'test_channel_2',
+      title: 'Test Channel 2',
+      subscribers_count: 50,
+      is_verified: false,
+      active: true,
+      last_post_at: 2.hours.ago
+    )
+
+    update = create_user_update(user_id: admin_user.id, username: admin_user.username,
+                               command: '/channels')
+    send_webhook_update(update)
+
+    assert_response :success
+
+    message_content = extract_message_content(@bot.requests)
+    assert_not_nil message_content
+    assert_includes message_content[:text], I18n.t('telegram_bot.channels.list.title')
+    assert_includes message_content[:text], '@test_channel_1'
+    assert_includes message_content[:text], '@test_channel_2'
+    assert_includes message_content[:text], 'подписчиков'
+
+    # Очищаем тестовые данные
+    channel1.destroy
+    channel2.destroy
+  end
+
+  test 'regular user cannot use channels command' do
+    regular_user = TelegramUser.create!(
+      username: 'regular_channels_user',
+      first_name: 'Regular',
+      language_code: 'ru',
+      timezone: 'UTC',
+      is_admin: false
+    )
+
+    update = create_user_update(user_id: regular_user.id, username: regular_user.username,
+                               command: '/channels')
+    send_webhook_update(update)
+
+    assert_response :success
+
+    message_content = extract_message_content(@bot.requests)
+    assert_not_nil message_content
+    assert_includes message_content[:text], I18n.t('telegram_bot.channels.list.access_denied')
+  end
+
+  test 'channels command works with empty channels list' do
+    admin_user = TelegramUser.create!(
+      username: 'admin_empty_channels_user',
+      first_name: 'Admin',
+      language_code: 'ru',
+      timezone: 'UTC',
+      is_admin: true
+    )
+
+    # Убедимся что нет каналов
+    Channel.delete_all
+
+    update = create_user_update(user_id: admin_user.id, username: admin_user.username,
+                               command: '/channels')
+    send_webhook_update(update)
+
+    assert_response :success
+
+    message_content = extract_message_content(@bot.requests)
+    assert_not_nil message_content
+    assert_includes message_content[:text], I18n.t('telegram_bot.channels.list.no_channels')
+  end
 end
