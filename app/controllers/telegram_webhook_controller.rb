@@ -13,6 +13,7 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   # Выполняем перед каждым действием
   before_action :find_or_create_user
 
+
   # Команда /start - приветствие и краткая инструкция
   def start!(*)
     # Проверяем, есть ли в системе администраторы
@@ -49,6 +50,27 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   def settings!(*)
     agent = Telegram::SettingsAgent.new(bot, current_user)
     agent.show_settings
+  end
+
+  # Команда /debug - переключение режима отладки
+  def debug!(*)
+    unless current_user&.is_admin?
+      respond_with :message, text: I18n.t('telegram_bot.debug.access_denied')
+      return
+    end
+
+    # Переключаем режим отладки
+    new_status = DebugNotifier.toggle!
+
+    if new_status
+      respond_with :message, text: I18n.t('telegram_bot.debug.enabled')
+    else
+      respond_with :message, text: I18n.t('telegram_bot.debug.disabled')
+    end
+  rescue StandardError => e
+    Bugsnag.notify(e) { |b| b.metadata = { user_id: current_user&.id, action: 'debug_command' } }
+    Rails.logger.error "Debug command error: #{e.message}"
+    respond_with :message, text: I18n.t('telegram_bot.debug.error')
   end
 
   # Команда /add - добавление канала

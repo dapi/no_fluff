@@ -76,6 +76,4 @@ gem 'sprockets-rails'
 # SASS support
 gem 'sassc-rails'
 
-# Solid Queue Dashboard removed - custom implementation instead
-
 gem 'solid_queue_dashboard', '~> 0.2.0'
