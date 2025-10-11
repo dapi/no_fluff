@@ -447,7 +447,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     assert_not_nil message_content
     assert_includes message_content[:text], 'Channel 1'
     assert_includes message_content[:text], 'Channel 2'
-    assert_not_nil message_content[:reply_markup]
+    assert_nil message_content[:reply_markup]
   end
 
   # Тесты для проверки отсутствия сессий в основном контроллере
