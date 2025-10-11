@@ -303,9 +303,54 @@
 - [x] Добавить краткое описание функционала
 - [x] Написать integration тесты
 
-### 1.10. Error Handling & Logging
+### 1.10. Telegram Bot Commands Management
 
-#### 1.10.1. Error Handling
+#### 1.10.1. Commands Scanner Service
+- [x] Создать `app/services/telegram/commands_scanner.rb`
+- [x] Реализовать автоматическое сканирование контроллеров и concerns
+- [x] Извлекать методы команд (заканчивающиеся на `!`)
+- [x] Определять пользовательские и административные команды
+- [x] Получать описания из локализации
+- [x] Написать unit тесты
+
+#### 1.10.2. Commands Manager Service
+- [x] Создать `app/services/telegram/commands_manager.rb`
+- [x] Реализовать установку команд через Telegram Bot API
+- [x] Добавить валидацию формата команд
+- [x] Обработку ошибок API и логирование
+- [x] Синхронизацию команд при необходимости
+- [x] Написать unit тесты
+
+#### 1.10.3. Admin Commands Integration
+- [x] Добавить команду `/set_commands` в TelegramWebhookController
+- [x] Добавить callback `show_commands` для просмотра команд
+- [x] Реализовать защиту прав доступа (только для администраторов)
+- [x] Добавить клавиатуру для управления командами
+- [x] Написать integration тесты
+
+#### 1.10.4. Rake Tasks
+- [x] Создать `lib/tasks/telegram.rake`
+- [x] Реализовать задачи `telegram:set_commands`, `telegram:show_commands`
+- [x] Добавить валидацию `telegram:validate_commands`
+- [x] Добавить синхронизацию `telegram:sync_commands`
+- [x] Добавить комплексную настройку `telegram:setup`
+- [x] Поддержка DRY_RUN模式和 переменных окружения
+
+#### 1.10.5. Localization
+- [x] Добавить описания команд в `config/locales/ru.yml`
+- [x] Создать ключи для всех команд (start, help, settings, add, remove, list, debug, channels, set_commands)
+- [x] Добавить локализацию для сообщений об успехе/ошибках
+- [x] Обновить help команду с новыми административными командами
+
+#### 1.10.6. Documentation
+- [x] Создать спецификацию `docs/Specs/045_Telegram_Bot_Commands_Specification.md`
+- [x] Создать документацию реализации `docs/Implementation/Spec_045_Telegram_Bot_Commands_Implementation.md`
+- [x] Обновить ROADMAP с выполненными задачами
+- [x] Создать comprehensive тесты для всех компонентов
+
+### 1.11. Error Handling & Logging
+
+#### 1.11.1. Error Handling
 - [x] Настроить глобальный rescue для контроллеров
 - [x] Добавить логирование ошибок
 - [x] Настроить уведомления об ошибках (опционально: Bugsnag)

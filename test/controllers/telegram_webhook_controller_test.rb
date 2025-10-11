@@ -735,4 +735,95 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     admin_user.reload
     assert_empty admin_user.session_data
   end
+
+  # Тесты для команды /set_commands
+  test 'admin can use set_commands command' do
+    admin_user = TelegramUser.create!(
+      username: 'admin_commands_user',
+      first_name: 'Admin',
+      language_code: 'ru',
+      timezone: 'UTC',
+      is_admin: true
+    )
+
+    update = create_user_update(user_id: admin_user.id, username: admin_user.username,
+                               command: '/set_commands')
+    send_webhook_update(update)
+
+    assert_response :success
+
+    # Проверяем что было отправлено сообщение об установке
+    message_content = extract_message_content(@bot.requests)
+    assert_not_nil message_content
+    assert_includes message_content[:text], 'Устанавливаю команды бота'
+    assert_not_nil message_content[:reply_markup]
+  end
+
+  test 'regular user cannot use set_commands command' do
+    regular_user = TelegramUser.create!(
+      username: 'regular_commands_denied_user',
+      first_name: 'Regular',
+      language_code: 'ru',
+      timezone: 'UTC',
+      is_admin: false
+    )
+
+    update = create_user_update(user_id: regular_user.id, username: regular_user.username,
+                               command: '/set_commands')
+    send_webhook_update(update)
+
+    assert_response :success
+
+    # Проверяем сообщение об отказе в доступе
+    message_content = extract_message_content(@bot.requests)
+    assert_not_nil message_content
+    assert_includes message_content[:text], 'У вас нет прав для выполнения этой команды'
+  end
+
+  test 'show_commands callback works for admin' do
+    admin_user = TelegramUser.create!(
+      username: 'admin_show_commands_user',
+      first_name: 'Admin',
+      language_code: 'ru',
+      timezone: 'UTC',
+      is_admin: true
+    )
+
+    update = create_callback_update(user_id: admin_user.id, username: admin_user.username,
+                                   data: 'show_commands:')
+    send_webhook_update(update)
+
+    assert_response :success
+
+    # Проверяем что callback query был обработан
+    answer_request = @bot.requests.find { |method, _| method == :answerCallbackQuery }
+    assert_not_nil answer_request
+
+    # Проверяем что сообщение было обновлено
+    edit_content = extract_edited_message_content(@bot.requests)
+    assert_not_nil edit_content
+    assert_includes edit_content[:text], '📋 Список команд бота'
+    assert_not_nil edit_content[:reply_markup]
+  end
+
+  test 'regular user cannot use show_commands callback' do
+    regular_user = TelegramUser.create!(
+      username: 'regular_show_commands_denied_user',
+      first_name: 'Regular',
+      language_code: 'ru',
+      timezone: 'UTC',
+      is_admin: false
+    )
+
+    update = create_callback_update(user_id: regular_user.id, username: regular_user.username,
+                                   data: 'show_commands:')
+    send_webhook_update(update)
+
+    assert_response :success
+
+    # Проверяем что callback query был обработан с отказом
+    answer_request = @bot.requests.find { |method, _| method == :answerCallbackQuery }
+    assert_not_nil answer_request
+    assert_equal I18n.t('telegram_bot.debug.access_denied'), answer_request[1][:text]
+  end
 end

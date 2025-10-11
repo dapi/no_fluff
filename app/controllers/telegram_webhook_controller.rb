@@ -73,6 +73,54 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
     respond_with :message, text: I18n.t('telegram_bot.debug.error')
   end
 
+  # Команда /set_commands - установить команды бота
+  def set_commands!(*)
+    unless current_user&.is_admin?
+      respond_with :message, text: I18n.t('telegram_bot.debug.access_denied')
+      return
+    end
+
+    respond_with :message, text: '🔧 Устанавливаю команды бота...'
+
+    manager = Telegram::CommandsManager.new(bot: bot)
+    result = manager.set_commands!
+
+    if result[:success]
+      respond_with :message,
+        text: "#{result[:message]}\n\n📊 Установлено команд: #{result[:commands_count]}",
+        reply_markup: set_commands_keyboard
+    else
+      respond_with :message, text: result[:message]
+    end
+  rescue StandardError => e
+    Bugsnag.notify(e) { |b| b.metadata = { user_id: current_user&.id, action: 'set_commands_command' } }
+    Rails.logger.error "Set commands error: #{e.message}"
+    respond_with :message, text: I18n.t('telegram_bot.debug.error')
+  end
+
+  # Callback query: показать команды
+  def show_commands_callback_query(*)
+    unless current_user&.is_admin?
+      answer_callback_query(I18n.t('telegram_bot.debug.access_denied'))
+      return
+    end
+
+    answer_callback_query('')
+
+    manager = Telegram::CommandsManager.new(bot: bot)
+    commands_text = manager.format_all_commands_for_display
+
+    if payload['message']
+      edit_message :text, text: commands_text, reply_markup: set_commands_keyboard
+    else
+      respond_with :message, text: commands_text, reply_markup: set_commands_keyboard
+    end
+  rescue StandardError => e
+    Bugsnag.notify(e) { |b| b.metadata = { user_id: current_user&.id, action: 'show_commands_callback' } }
+    Rails.logger.error "Show commands error: #{e.message}"
+    answer_callback_query(I18n.t('telegram_bot.debug.error'))
+  end
+
   # Команда /add - добавление канала
   def add!(*args)
     # Если передан username канала сразу в команде: /add @channelname
@@ -364,6 +412,16 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
     inline_keyboard(
       keyboard_row(
         callback_button(I18n.t('telegram_bot.onboarding.button_my_subscriptions'), 'my_subscriptions:')
+      )
+    )
+  end
+
+  # Inline клавиатура для управления командами
+  def set_commands_keyboard
+    inline_keyboard(
+      keyboard_row(
+        callback_button('📋 Показать команды', 'show_commands:'),
+        callback_button('🔄 Обновить команды', 'set_commands:')
       )
     )
   end
