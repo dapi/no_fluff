@@ -1,9 +1,6 @@
 # Сервис для работы с Telegram каналами
 module Telegram
   class ChannelService
-    # Лимит бесплатных каналов
-    FREE_CHANNELS_LIMIT = 10
-
     def initialize(bot)
       @bot = bot
     end
@@ -98,14 +95,14 @@ module Telegram
       end
 
       # Проверяем лимит каналов для бесплатных пользователей
-      unless user.is_premium
-        current_count = user.subscriptions.count
-        if current_count >= FREE_CHANNELS_LIMIT
-          return {
-            success: false,
-            message: I18n.t('telegram_bot.channels.add.limit_reached', limit: FREE_CHANNELS_LIMIT)
-          }
-        end
+      limit_checker = Limits::LimitChecker.new(user)
+      unless limit_checker.can_add_channel?
+        return {
+          success: false,
+          message: I18n.t('telegram_bot.channels.add.limit_reached',
+                         limit: ApplicationConfig.free_channels_limit,
+                         current: limit_checker.current_channels_count)
+        }
       end
 
       # Получаем информацию о канале
@@ -148,10 +145,22 @@ module Telegram
       subscription = user.subscriptions.find_by(channel: channel)
 
       if subscription
-        return {
-          success: false,
-          message: I18n.t('telegram_bot.channels.add.already_subscribed', channel: "@#{channel.username}")
-        }
+        # Если подписка существует но неактивна - активируем
+        if !subscription.active
+          subscription.activate!
+          return {
+            success: true,
+            message: I18n.t('telegram_bot.channels.add.success',
+                           channel: "@#{channel.username}",
+                           count: user.channels_count),
+            channel: channel
+          }
+        else
+          return {
+            success: false,
+            message: I18n.t('telegram_bot.channels.add.already_subscribed', channel: "@#{channel.username}")
+          }
+        end
       end
 
       # Создаем подписку
@@ -162,7 +171,7 @@ module Telegram
           success: true,
           message: I18n.t('telegram_bot.channels.add.success',
                          channel: "@#{channel.username}",
-                         count: user.subscriptions.count),
+                         count: user.channels_count),
           channel: channel
         }
       else
@@ -224,7 +233,7 @@ module Telegram
         success: true,
         message: I18n.t('telegram_bot.channels.remove.success',
                        channel: "@#{channel.username}",
-                       count: user.subscriptions.count),
+                       count: user.channels_count),
         channel: channel
       }
     rescue StandardError => e

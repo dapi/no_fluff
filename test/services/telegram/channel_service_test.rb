@@ -155,6 +155,9 @@ class Telegram::ChannelServiceTest < ActiveSupport::TestCase
   end
 
   test 'remove_channel_for_user successfully removes subscribed channel' do
+    # Удаляем все существующие подписки пользователя
+    @user.subscriptions.destroy_all
+
     # Создаем канал и подписку
     channel = Channel.create!(
       telegram_id: 3002,

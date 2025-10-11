@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_05_210627) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_05_214327) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -193,6 +193,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_05_210627) do
     t.index ["active"], name: "index_subscriptions_on_active"
     t.index ["channel_id"], name: "index_subscriptions_on_channel_id"
     t.index ["last_digest_sent_at"], name: "index_subscriptions_on_last_digest_sent_at"
+    t.index ["telegram_user_id", "active"], name: "index_subscriptions_on_user_and_active"
     t.index ["telegram_user_id", "channel_id"], name: "index_subscriptions_on_telegram_user_id_and_channel_id", unique: true
     t.index ["telegram_user_id"], name: "index_subscriptions_on_telegram_user_id"
   end
