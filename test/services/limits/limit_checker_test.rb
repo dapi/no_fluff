@@ -23,8 +23,7 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     15.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 1000 + i, username: "channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
@@ -38,8 +37,7 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     5.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 2000 + i, username: "channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
@@ -53,8 +51,7 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     10.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 3000 + i, username: "channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
@@ -68,8 +65,7 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     12.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 4000 + i, username: "channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
@@ -84,8 +80,7 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     20.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 5000 + i, username: "channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
@@ -99,8 +94,7 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     8.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 6000 + i, username: "channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
@@ -114,8 +108,7 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     10.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 7000 + i, username: "channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
@@ -132,8 +125,7 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     5.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 8000 + i, username: "active_channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
@@ -141,8 +133,7 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     3.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 8500 + i, username: "inactive_channel_#{i}"),
-        priority: 5,
-        active: false
+                active: false
       )
     end
 
@@ -157,8 +148,7 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     5.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 9000 + i, username: "channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
@@ -172,8 +162,7 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     3.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 10000 + i, username: "channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
@@ -187,8 +176,7 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     10.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 11000 + i, username: "channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
@@ -202,8 +190,7 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     12.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 12000 + i, username: "channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
@@ -218,8 +205,7 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     5.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 13000 + i, username: "channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
@@ -240,8 +226,7 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     15.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 14000 + i, username: "channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
@@ -263,8 +248,7 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     8.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 15000 + i, username: "channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
@@ -280,8 +264,7 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     7.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 16000 + i, username: "channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
@@ -297,8 +280,7 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     7.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 17000 + i, username: "channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
@@ -314,8 +296,7 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     12.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 18000 + i, username: "channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
@@ -332,16 +313,14 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     6.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 19000 + i, username: "active_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
     4.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 19500 + i, username: "inactive_#{i}"),
-        priority: 5,
-        active: false
+                active: false
       )
     end
 
@@ -358,8 +337,7 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     10.times do |i|
       @user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 20000 + i, username: "boundary_channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 

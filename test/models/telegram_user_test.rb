@@ -467,7 +467,6 @@ class TelegramUserTest < ActiveSupport::TestCase
     11.times do |i|
       user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 1000 + i, username: "channel_#{i}"),
-        priority: 5,
         active: true
       )
     end
@@ -487,7 +486,6 @@ class TelegramUserTest < ActiveSupport::TestCase
     5.times do |i|
       user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 2000 + i, username: "channel_#{i}"),
-        priority: 5,
         active: true
       )
     end
@@ -507,8 +505,7 @@ class TelegramUserTest < ActiveSupport::TestCase
     10.times do |i|
       user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 3000 + i, username: "channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
@@ -527,16 +524,14 @@ class TelegramUserTest < ActiveSupport::TestCase
     5.times do |i|
       user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 4000 + i, username: "active_channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
     5.times do |i|
       user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 5000 + i, username: "inactive_channel_#{i}"),
-        priority: 5,
-        active: false
+                active: false
       )
     end
 
@@ -557,22 +552,19 @@ class TelegramUserTest < ActiveSupport::TestCase
     # Добавляем подписки с разным статусом
     user.subscriptions.create!(
       channel: Channel.create!(telegram_id: 6001, username: 'channel_1'),
-      priority: 5,
-      active: true
+            active: true
     )
     assert_equal 1, user.channels_count
 
     user.subscriptions.create!(
       channel: Channel.create!(telegram_id: 6002, username: 'channel_2'),
-      priority: 5,
-      active: false
+            active: false
     )
     assert_equal 2, user.channels_count
 
     user.subscriptions.create!(
       channel: Channel.create!(telegram_id: 6003, username: 'channel_3'),
-      priority: 5,
-      active: true
+            active: true
     )
     assert_equal 3, user.channels_count
   end
@@ -589,8 +581,7 @@ class TelegramUserTest < ActiveSupport::TestCase
     10.times do |i|
       user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 7000 + i, username: "channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
@@ -609,8 +600,7 @@ class TelegramUserTest < ActiveSupport::TestCase
     15.times do |i|
       user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 8000 + i, username: "channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 
@@ -629,8 +619,7 @@ class TelegramUserTest < ActiveSupport::TestCase
     5.times do |i|
       user.subscriptions.create!(
         channel: Channel.create!(telegram_id: 9000 + i, username: "channel_#{i}"),
-        priority: 5,
-        active: true
+                active: true
       )
     end
 

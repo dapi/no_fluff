@@ -91,14 +91,17 @@ module SubscriptionManagement
     # @return [Hash] - данные для UI предложения подписки
     def subscription_offer
       limit_checker = Limits::LimitChecker.new(@user)
+      current_count = limit_checker.current_channels_count
+      limit = ApplicationConfig.free_channels_limit
+      exceeded_by = [current_count - limit, 0].max
 
       {
-        current_channels: limit_checker.current_channels_count,
-        limit: ApplicationConfig.free_channels_limit,
-        exceeded_by: limit_checker.current_channels_count - ApplicationConfig.free_channels_limit,
+        current_channels: current_count,
+        limit: limit,
+        exceeded_by: exceeded_by,
         message: I18n.t('telegram_bot.subscription.offer_message',
-                       current: limit_checker.current_channels_count,
-                       limit: ApplicationConfig.free_channels_limit),
+                       current: current_count,
+                       limit: limit),
         activate_button_text: I18n.t('telegram_bot.subscription.activate_button')
       }
     end
