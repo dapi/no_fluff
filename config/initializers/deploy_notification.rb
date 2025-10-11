@@ -11,9 +11,8 @@ Rails.application.config.after_initialize do
   begin
     version = AppVersion.to_s
 
-    DeployNotification.find_or_create_by(version: version) do |record|
-      record.metadata = { deployed_at: Time.current.iso8601 }
-    end
+    DeployNotification.find_or_create_by(version: version)
+  end
   rescue => e
     Bugsnag.notify(e, { context: "deploy_notification_initializer" })
     Rails.logger.error "Deploy notification initialization failed: #{e.message}"
