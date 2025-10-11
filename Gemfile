@@ -71,5 +71,5 @@ gem 'slim-rails'
 gem 'importmap-rails'
 
 # Solid Queue Dashboard removed - custom implementation instead
-# Temporarily disabled due to Rails 8 compatibility issues
-# gem "solid_queue_dashboard", "~> 0.2.0"
+
+gem "solid_queue_dashboard", "~> 0.2.0"
