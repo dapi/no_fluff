@@ -219,3 +219,30 @@ ru:
       user_message: "Вы написали: %{text}"
       cancel: "Отмена"
       back: "← Назад"
+
+    channel_deactivation:
+      notification:
+        title: "📢 Канал %{channel_name} деактивирован"
+        message: |
+          К сожалению, канал %{channel_name} был деактивирован.
+          %{reason_text}
+
+          Вы можете найти другие интересные каналы в каталоге.
+        actions:
+          browse_channels: "🔍 Посмотреть каталог каналов"
+          notification_settings: "⚙️ Настройки уведомлений"
+        reasons:
+          admin_decision: "Решение администратора"
+          inactive: "Канал неактивен длительное время"
+          violation: "Нарушение правил платформы"
+          technical: "Технические проблемы"
+
+      admin_notification:
+        title: "✅ Канал %{channel_name} деактивирован"
+        message: |
+          Канал %{channel_name} был успешно деактивирован.
+
+          📊 Статистика отправки уведомлений:
+          📤 Отправлено: %{sent_count}
+          ❌ Ошибок: %{error_count}
+          👥 Всего подписчиков: %{total_subscribers}
