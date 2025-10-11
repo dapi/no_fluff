@@ -9,5 +9,7 @@ Rails.application.routes.draw do
   # Telegram Bot webhook
   telegram_webhook TelegramWebhookController
 
-  mount SolidQueueDashboard::Engine, at: '/solid-queue'
+# Solid Queue Dashboard - TEMPORARILY COMMENTED (Rails 8 compatibility issue)
+  # Will return when solid_queue_dashboard gem supports Rails 8
+  # mount SolidQueueDashboard::Engine, at: "/solid-queue"
 end
