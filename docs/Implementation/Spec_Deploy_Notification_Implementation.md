@@ -11,6 +11,7 @@
 - Добавить валидации и скоупы в `app/models/deploy_notification.rb`
 - Настроить jsonb поле для metadata
 - Добавить индексы для оптимизации
+- Добавить `after_commit :notify_admins, on: :create` callback
 
 ## Этап 2: Создание Job для отправки уведомлений
 
@@ -121,6 +122,24 @@ class CreateDeployNotifications < ActiveRecord::Migration[8.0]
 end
 ```
 
+```ruby
+# Модель
+class DeployNotification < ApplicationRecord
+  validates :version, presence: true, uniqueness: true
+
+  scope :recent, -> { order(created_at: :desc) }
+  scope :by_version, ->(version) { find_by(version: version) }
+
+  after_commit :notify_admins, on: :create
+
+  private
+
+  def notify_admins
+    DeployNotificationJob.perform_later(version, created_at, metadata)
+  end
+end
+```
+
 ### Шаг 2: Job реализация
 ```ruby
 class DeployNotificationJob < ApplicationJob
@@ -165,16 +184,8 @@ Rails.application.config.after_initialize do
 
   version = determine_app_version
 
-  deploy_notification = DeployNotification.find_or_create_by(version: version) do |record|
+  DeployNotification.find_or_create_by(version: version) do |record|
     record.metadata = build_metadata
-  end
-
-  if deploy_notification.just_created?
-    DeployNotificationJob.perform_later(
-      deploy_notification.version,
-      deploy_notification.created_at,
-      deploy_notification.metadata
-    )
   end
 rescue => e
   Bugsnag.notify(e, { context: "deploy_notification_initializer" })
@@ -204,6 +215,7 @@ default: &default
 - [ ] Создать модель DeployNotification
 - [ ] Создать миграцию
 - [ ] Добавить валидации и скоупы
+- [ ] Добавить `after_commit` callback в модель
 - [ ] Создать DeployNotificationJob
 - [ ] Реализовать отправку уведомлений
 - [ ] Добавить обработку ошибок
@@ -211,6 +223,7 @@ default: &default
 - [ ] Создать инициализатор
 - [ ] Реализовать определение версии
 - [ ] Добавить тесты для модели
+- [ ] Добавить тесты для callback
 - [ ] Добавить тесты для job
 - [ ] Добавить integration тесты
 - [ ] Обновить документацию
