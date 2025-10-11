@@ -12,7 +12,7 @@
   },
   "scripts": {
     "build": "npm run build:css",
-    "build:css": "sass ./app/assets/stylesheets/application.scss ./app/assets/builds/application.css --no-source-map --load-path=node_modules"
+    "build:css": "sass ./app/assets/stylesheets/application.scss --load-path=node_modules"
   },
   "devDependencies": {
   }

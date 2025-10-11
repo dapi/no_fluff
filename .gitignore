@@ -41,3 +41,6 @@ claude-swarm.log
 
 /config/*.local.yml
 /config/credentials/local.*
+
+.sass-cache
+public/assets/
