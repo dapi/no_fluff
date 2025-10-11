@@ -15,7 +15,8 @@
 
 2. **Модель данных**
    - `DeployNotification` - модель для хранения уведомлений о деплое
-   - Поля: `version` (string, unique), `deployed_at` (datetime), `metadata` (jsonb)
+   - Поля: `version` (string, unique), `metadata` (jsonb)
+   - `created_at` используется как время деплоя
 
 3. **Фоновая задача**
    - После создания записи должна запускаться job для отправки уведомлений
@@ -40,9 +41,8 @@
 # app/models/deploy_notification.rb
 class DeployNotification < ApplicationRecord
   validates :version, presence: true, uniqueness: true
-  validates :deployed_at, presence: true
 
-  scope :recent, -> { order(deployed_at: :desc) }
+  scope :recent, -> { order(created_at: :desc) }
   scope :by_version, ->(version) { find_by(version: version) }
 end
 ```
@@ -55,7 +55,6 @@ class CreateDeployNotifications < ActiveRecord::Migration[8.0]
   def change
     create_table :deploy_notifications do |t|
       t.string :version, null: false, index: { unique: true }
-      t.datetime :deployed_at, null: false
       t.jsonb :metadata, default: {}
       t.timestamps
     end
@@ -70,7 +69,7 @@ end
 class DeployNotificationJob < ApplicationJob
   queue_as :notifications
 
-  def perform(version, deployed_at, metadata = {})
+  def perform(version, created_at, metadata = {})
     # Найти всех администраторов
     # Отправить уведомления каждому
     # Логировать результаты

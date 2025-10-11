@@ -4,7 +4,7 @@
 
 ### 1.1 Создание модели DeployNotification
 ```bash
-./bin/rails g model DeployNotification version:string:uniq deployed_at:datetime metadata:jsonb
+./bin/rails g model DeployNotification version:string:uniq metadata:jsonb
 ```
 
 ### 1.2 Настройка модели
@@ -111,13 +111,12 @@ class CreateDeployNotifications < ActiveRecord::Migration[8.0]
   def change
     create_table :deploy_notifications do |t|
       t.string :version, null: false
-      t.datetime :deployed_at, null: false
       t.jsonb :metadata, default: {}
       t.timestamps
     end
 
     add_index :deploy_notifications, :version, unique: true
-    add_index :deploy_notifications, :deployed_at
+    add_index :deploy_notifications, :created_at
   end
 end
 ```
@@ -127,12 +126,12 @@ end
 class DeployNotificationJob < ApplicationJob
   queue_as :notifications
 
-  def perform(version, deployed_at, metadata = {})
+  def perform(version, created_at, metadata = {})
     Rails.logger.info "Starting deploy notification for version #{version}"
 
     TelegramUser.where(admin: true).find_each do |admin|
       begin
-        send_notification(admin, version, deployed_at, metadata)
+        send_notification(admin, version, created_at, metadata)
       rescue => e
         Bugsnag.notify(e, {
           admin_id: admin.id,
@@ -148,12 +147,12 @@ class DeployNotificationJob < ApplicationJob
 
   private
 
-  def send_notification(admin, version, deployed_at, metadata)
-    message = build_notification_message(version, deployed_at, metadata)
+  def send_notification(admin, version, created_at, metadata)
+    message = build_notification_message(version, created_at, metadata)
     # Telegram API call here
   end
 
-  def build_notification_message(version, deployed_at, metadata)
+  def build_notification_message(version, created_at, metadata)
     # Format message
   end
 end
@@ -165,19 +164,17 @@ Rails.application.config.after_initialize do
   next unless defined?(Rails::Server) || Rails.env.production?
 
   version = determine_app_version
-  deployed_at = Time.current
 
   existing = DeployNotification.find_by(version: version)
   if existing.nil?
     deploy_notification = DeployNotification.create!(
       version: version,
-      deployed_at: deployed_at,
       metadata: build_metadata
     )
 
     DeployNotificationJob.perform_later(
       deploy_notification.version,
-      deploy_notification.deployed_at,
+      deploy_notification.created_at,
       deploy_notification.metadata
     )
   end
