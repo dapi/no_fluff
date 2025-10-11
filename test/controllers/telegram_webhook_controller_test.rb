@@ -754,14 +754,14 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
 
     # Проверяем что было отправлено сообщение об установке
     # Сначала проверяем что есть вообще запросы
-    assert_operator @bot.requests.size, :>=, 1, "Should have at least one bot request"
+    assert_operator @bot.requests.size, :>=, 1, 'Should have at least one bot request'
 
     # Ищем sendMessage запросы
     send_message_requests = @bot.requests.select { |method, _| method == :sendMessage }
-    refute_empty send_message_requests, "Should have at least one sendMessage request"
+    refute_empty send_message_requests, 'Should have at least one sendMessage request'
 
     message_content = extract_message_content(@bot.requests)
-    assert_not_nil message_content, "Should find message content"
+    assert_not_nil message_content, 'Should find message content'
 
     # Проверяем что есть хотя бы сообщение об установке команд или сообщение об ошибке
     assert(
