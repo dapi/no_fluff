@@ -13,7 +13,20 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
 
   # Обработка ошибок
   rescue_from StandardError do |exception|
+    # Отправляем в Bugsnag
     Bugsnag.notify(exception) { |b| b.metadata = payload }
+
+    # Отправляем debug уведомление если включен режим отладки
+    if DebugNotifier.enabled?
+      debug_context = {
+        controller: self.class.name,
+        payload: payload,
+        timestamp: Time.current.iso8601
+      }
+      DebugNotifier.notify_error(exception, debug_context, "Telegram Bot Error: #{exception.message}")
+    end
+
+    # Логируем ошибку
     Rails.logger.error "Telegram Bot Error: #{exception.class}: #{exception.message}"
     Rails.logger.error exception.backtrace.join("\n")
 
@@ -56,6 +69,27 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   def settings!(*)
     agent = Telegram::SettingsAgent.new(bot, current_user)
     agent.show_settings
+  end
+
+  # Команда /debug - переключение режима отладки
+  def debug!(*)
+    unless current_user&.is_admin?
+      respond_with :message, text: I18n.t('telegram_bot.debug.access_denied')
+      return
+    end
+
+    # Переключаем режим отладки
+    new_status = DebugNotifier.toggle!
+
+    if new_status
+      respond_with :message, text: I18n.t('telegram_bot.debug.enabled')
+    else
+      respond_with :message, text: I18n.t('telegram_bot.debug.disabled')
+    end
+  rescue StandardError => e
+    Bugsnag.notify(e) { |b| b.metadata = { user_id: current_user&.id, action: 'debug_command' } }
+    Rails.logger.error "Debug command error: #{e.message}"
+    respond_with :message, text: I18n.t('telegram_bot.debug.error')
   end
 
   # Команда /add - добавление канала

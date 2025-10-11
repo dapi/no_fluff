@@ -44,6 +44,17 @@ module Telegram
       log_performance('show_settings', Time.current - start_time)
     rescue StandardError => e
       Bugsnag.notify(e) { |b| b.metadata = { user_id: @user.id, action: 'show_settings' } }
+
+      # Отправляем debug уведомление если включен режим отладки
+      if DebugNotifier.enabled?
+        DebugNotifier.notify_error(e, {
+          service: self.class.name,
+          user_id: @user.id,
+          action: 'show_settings',
+          timestamp: Time.current.iso8601
+        }, "Error showing settings for user #{@user.id}: #{e.message}")
+      end
+
       log_error('show_settings', e)
       send_error(I18n.t('telegram_bot.errors.general'))
     end
@@ -78,6 +89,19 @@ module Telegram
       send_error(I18n.t('telegram_bot.errors.telegram_api'))
     rescue StandardError => e
       Bugsnag.notify(e) { |b| b.metadata = { user_id: @user.id, setting_name: setting_name, value: value, action: 'update_setting' } }
+
+      # Отправляем debug уведомление если включен режим отладки
+      if DebugNotifier.enabled?
+        DebugNotifier.notify_error(e, {
+          service: self.class.name,
+          user_id: @user.id,
+          setting_name: setting_name,
+          value: value,
+          action: 'update_setting',
+          timestamp: Time.current.iso8601
+        }, "Error updating setting #{setting_name} to #{value} for user #{@user.id}: #{e.message}")
+      end
+
       log_error('update_setting', e)
       send_error(I18n.t('telegram_bot.errors.general'))
     end

@@ -26,7 +26,7 @@ class ApplicationJob < ActiveJob::Base
 
   private
 
-  # Unified error handling with Bugsnag notification and logging
+  # Unified error handling with Bugsnag notification, debug notifications and logging
   def handle_error(exception, metadata: {}, action: nil, severity: :error, reraise: true)
     # Build metadata for Bugsnag and logging
     error_metadata = build_error_metadata(metadata.merge(action: action))
@@ -35,6 +35,17 @@ class ApplicationJob < ActiveJob::Base
     Bugsnag.notify(exception) do |b|
       b.metadata = error_metadata
       b.severity = severity
+    end
+
+    # Send debug notification if debug mode is enabled
+    if DebugNotifier.enabled?
+      debug_message = "#{severity.to_s.capitalize} in #{self.class.name}: #{exception.message}"
+      debug_context = error_metadata.merge(
+        severity: severity,
+        action: action,
+        timestamp: Time.current.iso8601
+      )
+      DebugNotifier.notify_error(exception, debug_context, debug_message)
     end
 
     # Log the error with context

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_04_000000) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_11_143804) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -197,6 +197,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_04_000000) do
     t.index ["priority"], name: "index_subscriptions_on_priority"
     t.index ["telegram_user_id", "channel_id"], name: "index_subscriptions_on_telegram_user_id_and_channel_id", unique: true
     t.index ["telegram_user_id"], name: "index_subscriptions_on_telegram_user_id"
+  end
+
+  create_table "system_settings", force: :cascade do |t|
+    t.string "key", null: false
+    t.jsonb "value"
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["key"], name: "index_system_settings_on_key", unique: true
   end
 
   create_table "telegram_users", force: :cascade do |t|
