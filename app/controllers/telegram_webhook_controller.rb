@@ -6,6 +6,7 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   include Telegram::SettingsCommands
   include Telegram::KeyboardHelpers
   include Telegram::MediaHandlers
+  include Telegram::AdminCommands
   include AdminSessionManagement
   include ControllerErrorHandling
 
