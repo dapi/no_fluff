@@ -189,7 +189,7 @@ class ChannelTest < ActiveSupport::TestCase
     end
   end
 
-  
+
   # Edge case tests
   test 'should handle nil values for optional fields' do
     channel = Channel.new(
