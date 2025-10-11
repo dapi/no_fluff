@@ -63,13 +63,19 @@ class Channels::FetchPostsJob < ApplicationJob
     Rails.logger.debug "Scheduled processing for post #{post_data[:telegram_message_id]}"
   rescue StandardError => e
     # Handle individual post processing errors without failing the entire job
-    handle_error(e,
-                 metadata: {
-                   channel_id: channel.id,
-                   message_id: post_data[:telegram_message_id],
-                   action: 'process_single_post'
-                 },
-                 severity: :warn,
-                 reraise: false)
+    Rails.logger.error "Error processing post #{post_data[:telegram_message_id]}: #{e.message}"
+
+    ErrorNotificationService.notify_job_error(e,
+      job_class: self.class,
+      job_id: job_id,
+      metadata: {
+        error_type: "Post Processing Error",
+        channel_id: channel.id,
+        channel_username: channel.username,
+        message_id: post_data[:telegram_message_id],
+        action: 'process_single_post',
+        severity: 'warning'
+      }
+    )
   end
 end

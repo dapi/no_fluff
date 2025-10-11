@@ -73,7 +73,15 @@ module Telegram
           nil
         end
       rescue StandardError => e
-        Bugsnag.notify(e) { |b| b.metadata = { username: username, action: 'get_channel_info' } }
+        ErrorNotificationService.notify_service_error(e,
+        service: self.class,
+        method: "get_channel_info",
+        metadata: {
+          username: username,
+          error_class: e.class.name,
+          error_message: e.message
+        }
+      )
         Rails.logger.error "Error getting channel info for #{username}: #{e.message}"
         nil
       end
@@ -181,7 +189,17 @@ module Telegram
         }
       end
     rescue StandardError => e
-      Bugsnag.notify(e) { |b| b.metadata = { user_id: user.id, channel_username: channel_username, action: 'add_channel_for_user' } }
+      ErrorNotificationService.notify_service_error(e,
+        service: self.class,
+        method: "add_channel_for_user",
+        user: user,
+        metadata: {
+          user_id: user.id,
+          channel_username: channel_username,
+          error_class: e.class.name,
+          error_message: e.message
+        }
+      )
       Rails.logger.error "Error adding channel for user #{user.id}: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
 
@@ -237,7 +255,17 @@ module Telegram
         channel: channel
       }
     rescue StandardError => e
-      Bugsnag.notify(e) { |b| b.metadata = { user_id: user.id, channel_username: channel_username, action: 'remove_channel_for_user' } }
+      ErrorNotificationService.notify_service_error(e,
+        service: self.class,
+        method: "remove_channel_for_user",
+        user: user,
+        metadata: {
+          user_id: user.id,
+          channel_username: channel_username,
+          error_class: e.class.name,
+          error_message: e.message
+        }
+      )
       Rails.logger.error "Error removing channel for user #{user.id}: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
 

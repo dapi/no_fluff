@@ -7,18 +7,10 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   include Telegram::KeyboardHelpers
   include Telegram::MediaHandlers
   include AdminSessionManagement
+  include ControllerErrorHandling
 
   # Выполняем перед каждым действием
   before_action :find_or_create_user
-
-  # Обработка ошибок
-  rescue_from StandardError do |exception|
-    Bugsnag.notify(exception) { |b| b.metadata = payload }
-    Rails.logger.error "Telegram Bot Error: #{exception.class}: #{exception.message}"
-    Rails.logger.error exception.backtrace.join("\n")
-
-    respond_with :message, text: I18n.t('telegram_bot.errors.general')
-  end
 
   # Команда /start - приветствие и краткая инструкция
   def start!(*)

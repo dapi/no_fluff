@@ -1,6 +1,6 @@
-require_relative 'boot'
+require_relative "boot"
 
-require 'rails/all'
+require "rails/all"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -31,6 +31,9 @@ module NoFluff
     # Set default locale to Russian
     config.i18n.default_locale = :ru
 
-    # Full Rails application with views, helpers and assets enabled
+    # Only loads a smaller set of middleware suitable for API only apps.
+    # Middleware like session, flash, cookies can be added back manually.
+    # Skip views, helpers and assets when generating a new resource.
+    config.api_only = true
   end
 end
