@@ -68,124 +68,64 @@
 - Система должна обрабатывать одновременную деактивацию до 100 каналов
 - Поддержка до 10000 подписчиков на один канал
 
-## Текстовые сообщения
+## Текстовые сообщений
+
+Текстовые сообщения для уведомлений добавлены в локали `config/locales/ru.yml`:
 
 ### Уведомление пользователю
-```yaml
-channel.deactivated.notification:
-  title: "Канал {channel_name} деактивирован"
-  message: >
-    К сожалению, канал {channel_name} был деактивирован.
-    {reason, select,
-      other {Причина: {reason_text}}
-      none {}}
+- Ключ: `telegram_bot.channel_deactivation.notification`
+- Включает заголовок, сообщение с причиной деактивации и кнопки действий
 
-    Вы можете найти другие интересные каналы в каталоге.
-  actions:
-    - text: "Посмотреть каталог каналов"
-      action: "browse_channels"
-    - text: "Настройки уведомлений"
-      action: "notification_settings"
-```
+### Уведомление администратору
+- Ключ: `telegram_bot.channel_deactivation.admin_notification`
+- Включает статистику отправки уведомлений подписчикам
 
-### Уведомление администратора
-```yaml
-channel.deactivated.admin_notification:
-  title: "Канал {channel_name} деактивирован"
-  message: >
-    Канал {channel_name} был успешно деактивирован.
+Все тексты поддерживают интерполяцию параметров для персонализации.
+## Существующие модели данных
 
-    Отправлено уведомлений: {sent_count}
-    Ошибок отправки: {error_count}
-    Всего подписчиков: {total_subscribers}
-```
-
-## Модель данных
-
-### Subscription (подписка)
-```ruby
-class Subscription < ApplicationRecord
-  belongs_to :user
-  belongs_to :channel
-  enum :status, { active: 0, inactive: 1, paused: 2 }
-end
-```
+В системе уже существуют следующие модели:
 
 ### Channel (канал)
-```ruby
-class Channel < ApplicationRecord
-  has_many :subscriptions, dependent: :destroy
-  enum :status, { active: 0, inactive: 1 }
+- Имеет поле `active` (boolean) для отслеживания статуса
+- Метод `deactivate!` уже реализован
+- Связи: `has_many :subscriptions`, `has_many :telegram_users, through: :subscriptions`
 
-  # Добавляем поле для причины деактивации
-  attribute :deactivation_reason, :string
-end
-```
+### Subscription (подписка)
+- Имеет поле `active` (boolean)
+- Связи: `belongs_to :telegram_user`, `belongs_to :channel`
+- Scope: `active` для фильтрации активных подписок
 
-### NotificationLog (лог уведомлений)
-```ruby
-class NotificationLog < ApplicationRecord
-  belongs_to :user
-  belongs_to :channel
-  attribute :notification_type, :string
-  attribute :status, :string # sent, failed, pending
-  attribute :error_message, :text
-  attribute :sent_at, :datetime
-end
-```
-
-## API endpoints
-
-### Внутренний API
-```ruby
-# POST /api/internal/channels/:id/deactivate
-# Параметры:
-# - reason: string (опционально)
-# - notify_subscribers: boolean (по умолчанию true)
-
-# Response:
-{
-  "channel_id": 123,
-  "status": "deactivated",
-  "subscribers_notified": 150,
-  "notification_errors": 2
-}
-```
+### TelegramUser (пользователь)
+- Основная модель пользователей системы
 
 ## Сервисы
 
-### ChannelDeactivationService
+### Расширение ChannelService
+Будем расширять существующий `Telegram::ChannelService` добавлением метода для деактивации с уведомлениями.
+
+### ChannelDeactivationNotificationJob
 ```ruby
-class ChannelDeactivationService
-  def initialize(channel, reason: nil, notify_subscribers: true)
-    @channel = channel
-    @reason = reason
-    @notify_subscribers = notify_subscribers
-  end
+class ChannelDeactivationNotificationJob < ApplicationJob
+  queue_as :notifications
 
-  def call
-    # Деактивация канала
-    # Отправка уведомлений подписчикам
-    # Логирование результатов
-  end
-
-  private
-
-  def notify_subscribers
-    # Найти всех активных подписчиков
-    # Создать фоновые задачи для отправки уведомлений
+  def perform(channel, reason: nil)
+    # Найти всех активных подписчиков канала
+    # Отправить уведомления через Telegram
+    # Логировать результаты
   end
 end
 ```
 
-### ChannelNotificationJob
+### TelegramNotificationService
 ```ruby
-class ChannelNotificationJob < ApplicationJob
-  queue_as :notifications
+class TelegramNotificationService
+  def initialize(bot)
+    @bot = bot
+  end
 
-  def perform(user, channel, reason)
-    # Отправить уведомление пользователю через Telegram
-    # Залогировать результат
+  def send_channel_deactivation_notification(user, channel, reason = nil)
+    # Отправка уведомления пользователю
+    # Обработка ошибок доставки
   end
 end
 ```
@@ -194,29 +134,43 @@ end
 
 ### При деактивации канала
 - Канал должен существовать
-- Канал должен быть активен
-- Администратор должен иметь права на деактивацию
+- Канал должен быть активен (`channel.active == true`)
+- Проверка прав доступа администратора
 
 ### При отправке уведомлений
-- Пользователь должен быть активен
-- Подписка должна быть активной
-- У пользователя должен быть подключен Telegram
+- Пользователь должен быть активным
+- Подписка должна быть активной (`subscription.active == true`)
+- У пользователя должен быть доступен Telegram chat_id
+
+## Интеграция с существующей архитектурой
+
+### Использование Solid Queue
+- Уведомления отправляются через фоновые задачи в очереди `:notifications`
+- Поддержка retry механизма при ошибках отправки
+
+### Интеграция с Telegram::ChannelService
+- Расширение существующего сервиса для поддержки деактивации с уведомлениями
+- Использование существующих методов работы с каналами
+
+### Логирование через Bugsnag
+- Отправка ошибок в Bugsnag с контекстом
+- Структурированное логирование результатов отправки
 
 ## Тестирование
 
 ### Unit тесты
-- Тестирование ChannelDeactivationService
-- Тестирование ChannelNotificationJob
-- Тестирование модели Subscription
-- Тестирование модели NotificationLog
+- Тестирование расширения Telegram::ChannelService
+- Тестирование ChannelDeactivationNotificationJob
+- Тестирование TelegramNotificationService
+- Тестирование существующих моделей Channel и Subscription
 
 ### Integration тесты
-- Тестирование полного процесса деактивации
-- Тестирование отправки уведомлений
-- Тестирование обработки ошибок
+- Тестирование полного процесса деактивации с уведомлениями
+- Тестирование отправки уведомлений через Solid Queue
+- Тестирование обработки ошибок доставки
 
 ### Performance тесты
-- Тестирование производительности при большом количестве подписчиков
+- Тестирование производительности при большом количестве подписчиков (до 10000)
 - Тестирование одновременной деактивации нескольких каналов
 
 ## Логирование и мониторинг
