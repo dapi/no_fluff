@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_04_000000) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_11_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -54,8 +54,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_04_000000) do
     t.datetime "monitored_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "last_successful_update_at", precision: nil
     t.index ["active"], name: "index_channels_on_active"
     t.index ["last_post_at"], name: "index_channels_on_last_post_at"
+    t.index ["last_successful_update_at"], name: "index_channels_on_last_successful_update_at"
     t.index ["monitored_at"], name: "index_channels_on_monitored_at"
     t.index ["telegram_id"], name: "index_channels_on_telegram_id", unique: true
     t.index ["username"], name: "index_channels_on_username", unique: true
@@ -185,7 +187,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_04_000000) do
   create_table "subscriptions", force: :cascade do |t|
     t.bigint "telegram_user_id", null: false
     t.bigint "channel_id", null: false
-    t.integer "priority", default: 5, null: false
     t.boolean "active", default: true, null: false
     t.datetime "last_digest_sent_at"
     t.jsonb "settings", default: {}
@@ -194,7 +195,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_04_000000) do
     t.index ["active"], name: "index_subscriptions_on_active"
     t.index ["channel_id"], name: "index_subscriptions_on_channel_id"
     t.index ["last_digest_sent_at"], name: "index_subscriptions_on_last_digest_sent_at"
-    t.index ["priority"], name: "index_subscriptions_on_priority"
     t.index ["telegram_user_id", "channel_id"], name: "index_subscriptions_on_telegram_user_id_and_channel_id", unique: true
     t.index ["telegram_user_id"], name: "index_subscriptions_on_telegram_user_id"
   end

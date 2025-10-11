@@ -39,6 +39,9 @@ class Channels::FetchPostsJob < ApplicationJob
         process_single_post(channel, post_data)
       end
 
+      # Отмечаем успешное обновление канала
+      channel.mark_as_successfully_updated
+
       Rails.logger.info "Completed fetching posts for channel #{channel.username}"
     end
   end
