@@ -2,6 +2,13 @@
 
 ru:
   hello: "Привет мир"
+  time:
+    formats:
+      short: "%d %b %H:%M"
+  activerecord:
+    errors:
+      messages:
+        record_invalid: "Ошибка валидации: %{errors}"
 
   telegram_bot:
     start:
@@ -233,6 +240,13 @@ ru:
       cancel: "Отмена"
       back: "← Назад"
 
+  channels:
+    never_updated: 'Никогда не обновлялся'
+    last_update: 'Последнее обновление'
+    status:
+      fresh: 'Актуальный'
+      stale: 'Устаревший'
+      never_updated: 'Без обновлений'
     channel_deactivation:
       notification:
         title: "📢 Канал %{channel_name} деактивирован"

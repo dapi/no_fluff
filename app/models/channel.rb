@@ -1,4 +1,5 @@
 class Channel < ApplicationRecord
+  include ChannelUpdatable
   # Associations
   has_many :subscriptions, dependent: :destroy
   has_many :telegram_users, through: :subscriptions
