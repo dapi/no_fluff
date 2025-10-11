@@ -99,6 +99,8 @@ class DebugNotifier
     # @param context [Hash] дополнительный контекст
     # @param message [String] дополнительное сообщение
     def notify_error(error, context = {}, message = nil)
+      return unless enabled?
+
       error_type = case error
                    when Telegram::Bot::Error
                      'telegram_api_error'

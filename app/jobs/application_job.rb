@@ -38,15 +38,13 @@ class ApplicationJob < ActiveJob::Base
     end
 
     # Send debug notification if debug mode is enabled
-    if DebugNotifier.enabled?
-      debug_message = "#{severity.to_s.capitalize} in #{self.class.name}: #{exception.message}"
-      debug_context = error_metadata.merge(
-        severity: severity,
-        action: action,
-        timestamp: Time.current.iso8601
-      )
-      DebugNotifier.notify_error(exception, debug_context, debug_message)
-    end
+    debug_message = "#{severity.to_s.capitalize} in #{self.class.name}: #{exception.message}"
+    debug_context = error_metadata.merge(
+      severity: severity,
+      action: action,
+      timestamp: Time.current.iso8601
+    )
+    DebugNotifier.notify_error(exception, debug_context, debug_message)
 
     # Log the error with context
     log_error(exception, error_metadata, severity)

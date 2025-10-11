@@ -17,14 +17,12 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
     Bugsnag.notify(exception) { |b| b.metadata = payload }
 
     # Отправляем debug уведомление если включен режим отладки
-    if DebugNotifier.enabled?
-      debug_context = {
-        controller: self.class.name,
-        payload: payload,
-        timestamp: Time.current.iso8601
-      }
-      DebugNotifier.notify_error(exception, debug_context, "Telegram Bot Error: #{exception.message}")
-    end
+    debug_context = {
+      controller: self.class.name,
+      payload: payload,
+      timestamp: Time.current.iso8601
+    }
+    DebugNotifier.notify_error(exception, debug_context, "Telegram Bot Error: #{exception.message}")
 
     # Логируем ошибку
     Rails.logger.error "Telegram Bot Error: #{exception.class}: #{exception.message}"
