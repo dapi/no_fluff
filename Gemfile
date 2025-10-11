@@ -80,4 +80,4 @@ gem 'sprockets-rails'
 gem 'sassc-rails'
 
 # Solid Queue Dashboard
-gem "solid_queue_dashboard", "~> 0.2.0"
+gem 'solid_queue_dashboard', '~> 0.2.0'

@@ -11,7 +11,7 @@ class DeployNotificationJob < ApplicationJob
         Bugsnag.notify(e, {
           admin_id: admin.id,
           version: version,
-          context: "deploy_notification"
+          context: 'deploy_notification'
         })
         Rails.logger.error "Failed to notify admin #{admin.id}: #{e.message}"
       end
