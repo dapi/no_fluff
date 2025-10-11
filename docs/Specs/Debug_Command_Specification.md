@@ -19,7 +19,7 @@
 ### 1. Команда /debug
 
 - **Команда**: `/debug`
-- **Доступ**: Только для разработчиков (проверка через `developer_telegram_id`)
+- **Доступ**: Только для администраторов (проверка по `is_admin: true` в `telegram_users`)
 - **Функционал**: Переключение режима отладки (вкл/выкл)
 - **Ответ**: Текущее состояние режима отладки
 
@@ -37,7 +37,6 @@
 
 **Настройки**:
 - `debug_mode` (boolean) - режим отладки
-- `debug_recipient_id` (integer) - Telegram ID получателя дебаг-сообщений
 
 ### 3. Дебаг-сообщения
 
@@ -58,8 +57,8 @@
 ## Нефункциональные требования
 
 ### Безопасность
-- Команда доступна только для разработчика
-- Проверка по `developer_telegram_id` из `ApplicationConfig`
+- Команда доступна только для администраторов
+- Проверка по полю `is_admin: true` в модели `TelegramUser`
 
 ### Производительность
 - Отправка дебаг-сообщений не должна блокировать основную логику
@@ -106,10 +105,11 @@ class DebugNotifier
   def self.notify(message_type, context = {})
     return unless enabled?
 
-    recipient_id = SystemSetting.get('debug_recipient_id')
-    return unless recipient_id
+    # Получаем всех администраторов
+    admin_users = TelegramUser.where(is_admin: true)
+    return if admin_users.empty?
 
-    # Отправка через фоновую задачу
+    # Отправка через фоновую задачу всем администраторам
   end
 end
 ```
