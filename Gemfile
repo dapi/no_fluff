@@ -80,6 +80,6 @@ gem 'sprockets-rails'
 gem 'sassc-rails'
 
 # Solid Queue Dashboard removed - custom implementation instead
-# The original solid_queue_dashboard gem is not compatible with Rails 8
-# We created a custom Rails-compatible dashboard instead
+# TEMPORARILY COMMENTED: solid_queue_dashboard gem is not compatible with Rails 8
+# Will return when gem is updated to support Rails 8
 # gem "solid_queue_dashboard", "~> 0.2.0"
