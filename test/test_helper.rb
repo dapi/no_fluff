@@ -11,7 +11,7 @@ module ActiveSupport
     # parallelize(workers: :number_of_processors)
 
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
-    # fixtures :all
+    fixtures :all
 
     # Используем транзакции для изоляции тестов
     setup do
@@ -33,7 +33,6 @@ end
 
 module ActionDispatch
   class IntegrationTest
-    # Отключаем fixtures для integration тестов
     # fixtures :all
   end
 end
