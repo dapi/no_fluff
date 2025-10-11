@@ -7,7 +7,6 @@ one:
   description: MyText
   subscribers_count: 1
   is_verified: false
-  active: false
   last_post_at: 2025-10-01 14:36:11
   monitored_at: 2025-10-01 14:36:11
 
@@ -18,6 +17,5 @@ two:
   description: MyText
   subscribers_count: 1
   is_verified: false
-  active: false
   last_post_at: 2025-10-01 14:36:11
   monitored_at: 2025-10-01 14:36:11

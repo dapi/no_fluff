@@ -70,5 +70,10 @@ gem 'slim-rails'
 # JavaScript with importmap
 gem 'importmap-rails'
 
-# Solid Queue Dashboard - temporarily commented due to Rails 8 compatibility
-# gem "solid_queue_dashboard", "~> 0.2.0"
+# Asset Pipeline for Rails 8
+gem 'sprockets-rails'
+
+# SASS support
+gem 'sassc-rails'
+
+gem 'solid_queue_dashboard', '~> 0.2.0'

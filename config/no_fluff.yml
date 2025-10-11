@@ -1,0 +1,5 @@
+# Тестовая конфигурация для разработки
+bot_token: "123456:dummy_token_for_development"
+bot_username: "test_bot"
+openai_api_key: "dummy_openai_key"
+deepseek_api_key: "dummy_deepseek_key"

@@ -210,6 +210,21 @@
 - [x] Запланировать ClassifyJob
 - [x] Написать job тесты
 
+#### 1.5.5. Channel Update Timestamp (Spec FETCHPOSTJOB_TIMESTAMP)
+- [x] Создать спецификацию `docs/Specs/FETCHPOSTJOB_TIMESTAMP_Specification.md`
+- [x] Создать план реализации `docs/Implementation/Spec_FETCHPOSTJOB_TIMESTAMP_Implementation.md`
+- [x] Создать миграцию для добавления `last_successful_update_at` в Channel модель
+- [x] Создать Concern `ChannelUpdatable` с методами:
+  - [x] `mark_as_successfully_updated` - обновление времени
+  - [x] `stale?` - проверка актуальности канала
+  - [x] `last_update_formatted` - форматированное время
+  - [x] `freshness_status` - статус актуальности
+- [x] Подключить Concern к модели Channel
+- [x] Модифицировать `Channels::FetchPostsJob` для сохранения времени после успешного выполнения
+- [x] Добавить локализацию в `config/locales/ru.yml`
+- [x] Провести тестирование функциональности
+- [x] **РЕАЛИЗАЦИЯ ЗАВЕРШЕНА** - время успешного обновления сохраняется для всех каналов
+
 ### 1.6. Базовая фильтрация контента
 
 > **ПРИМЕЧАНИЕ:** Простая фильтрация на основе базовой AI-классификации.

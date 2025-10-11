@@ -98,8 +98,7 @@ class TelegramUserTest < ActiveSupport::TestCase
       language_code: 'en'
     )
     subscription = user.subscriptions.create!(
-      channel: channels(:one),
-      priority: 5
+      channel: channels(:one)
     )
     assert_difference 'Subscription.count', -1 do
       user.destroy
@@ -453,5 +452,177 @@ class TelegramUserTest < ActiveSupport::TestCase
     copy = user.session_data_copy
     copy['new_key'] = 'new_value'
     assert_not user.session_has_key?('new_key')
+  end
+
+  # Tests for subscription limits functionality
+  test 'can_add_channel? should return true for premium users' do
+    user = TelegramUser.create!(
+      username: 'premium_user',
+      timezone: 'UTC',
+      language_code: 'en',
+      is_premium: true
+    )
+
+    # У премиум пользователя должно быть 100+ подписок
+    11.times do |i|
+      user.subscriptions.create!(
+        channel: Channel.create!(telegram_id: 1000 + i, username: "channel_#{i}"),
+        active: true
+      )
+    end
+
+    assert user.can_add_channel?
+  end
+
+  test 'can_add_channel? should return true for regular users with less than 10 channels' do
+    user = TelegramUser.create!(
+      username: 'regular_user',
+      timezone: 'UTC',
+      language_code: 'en',
+      is_premium: false
+    )
+
+    # Добавляем 5 подписок
+    5.times do |i|
+      user.subscriptions.create!(
+        channel: Channel.create!(telegram_id: 2000 + i, username: "channel_#{i}"),
+        active: true
+      )
+    end
+
+    assert user.can_add_channel?
+  end
+
+  test 'can_add_channel? should return false for regular users with 10 or more channels' do
+    user = TelegramUser.create!(
+      username: 'limited_user',
+      timezone: 'UTC',
+      language_code: 'en',
+      is_premium: false
+    )
+
+    # Добавляем 10 подписок
+    10.times do |i|
+      user.subscriptions.create!(
+        channel: Channel.create!(telegram_id: 3000 + i, username: "channel_#{i}"),
+                active: true
+      )
+    end
+
+    assert_not user.can_add_channel?
+  end
+
+  test 'can_add_channel? should count all subscriptions regardless of active status' do
+    user = TelegramUser.create!(
+      username: 'mixed_status_user',
+      timezone: 'UTC',
+      language_code: 'en',
+      is_premium: false
+    )
+
+    # Добавляем 5 активных и 5 неактивных подписок
+    5.times do |i|
+      user.subscriptions.create!(
+        channel: Channel.create!(telegram_id: 4000 + i, username: "active_channel_#{i}"),
+                active: true
+      )
+    end
+
+    5.times do |i|
+      user.subscriptions.create!(
+        channel: Channel.create!(telegram_id: 5000 + i, username: "inactive_channel_#{i}"),
+                active: false
+      )
+    end
+
+    # Всего 10 подписок, но только 5 активных - лимит все равно достигнут
+    assert_not user.can_add_channel?
+    assert_equal 10, user.channels_count
+  end
+
+  test 'channels_count should return total number of subscriptions' do
+    user = TelegramUser.create!(
+      username: 'counter_user',
+      timezone: 'UTC',
+      language_code: 'en'
+    )
+
+    assert_equal 0, user.channels_count
+
+    # Добавляем подписки с разным статусом
+    user.subscriptions.create!(
+      channel: Channel.create!(telegram_id: 6001, username: 'channel_1'),
+            active: true
+    )
+    assert_equal 1, user.channels_count
+
+    user.subscriptions.create!(
+      channel: Channel.create!(telegram_id: 6002, username: 'channel_2'),
+            active: false
+    )
+    assert_equal 2, user.channels_count
+
+    user.subscriptions.create!(
+      channel: Channel.create!(telegram_id: 6003, username: 'channel_3'),
+            active: true
+    )
+    assert_equal 3, user.channels_count
+  end
+
+  test 'channels_limit_reached? should return true for regular users with 10+ channels' do
+    user = TelegramUser.create!(
+      username: 'limit_user',
+      timezone: 'UTC',
+      language_code: 'en',
+      is_premium: false
+    )
+
+    # Добавляем 10 подписок
+    10.times do |i|
+      user.subscriptions.create!(
+        channel: Channel.create!(telegram_id: 7000 + i, username: "channel_#{i}"),
+                active: true
+      )
+    end
+
+    assert user.channels_limit_reached?
+  end
+
+  test 'channels_limit_reached? should return false for premium users regardless of channel count' do
+    user = TelegramUser.create!(
+      username: 'premium_limit_user',
+      timezone: 'UTC',
+      language_code: 'en',
+      is_premium: true
+    )
+
+    # Добавляем 15 подписок
+    15.times do |i|
+      user.subscriptions.create!(
+        channel: Channel.create!(telegram_id: 8000 + i, username: "channel_#{i}"),
+                active: true
+      )
+    end
+
+    assert_not user.channels_limit_reached?
+  end
+
+  test 'channels_limit_reached? should return false for regular users with less than 10 channels' do
+    user = TelegramUser.create!(
+      username: 'no_limit_user',
+      timezone: 'UTC',
+      language_code: 'en',
+      is_premium: false
+    )
+
+    # Добавляем 5 подписок
+    5.times do |i|
+      user.subscriptions.create!(
+        channel: Channel.create!(telegram_id: 9000 + i, username: "channel_#{i}"),
+                active: true
+      )
+    end
+
+    assert_not user.channels_limit_reached?
   end
 end
