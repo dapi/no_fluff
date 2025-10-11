@@ -228,20 +228,20 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
       return
     end
 
-    # Ищем активную подписку
-    subscription = current_user.subscriptions.active.find_by(channel: channel)
+    # Ищем подписку
+    subscription = current_user.subscriptions.find_by(channel: channel)
 
     unless subscription
       respond_with :message, text: I18n.t('telegram_bot.channels.remove.not_subscribed', channel: "@#{channel.username}")
       return
     end
 
-    # Деактивируем подписку
-    subscription.deactivate!
+    # Удаляем подписку
+    subscription.destroy
 
     respond_with :message, text: I18n.t('telegram_bot.channels.remove.success',
                                            channel: "@#{channel.username}",
-                                           count: current_user.subscriptions.active.count)
+                                           count: current_user.subscriptions.count)
   end
 
 

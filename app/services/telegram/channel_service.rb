@@ -99,7 +99,7 @@ module Telegram
 
       # Проверяем лимит каналов для бесплатных пользователей
       unless user.is_premium
-        current_count = user.subscriptions.active.count
+        current_count = user.subscriptions.count
         if current_count >= FREE_CHANNELS_LIMIT
           return {
             success: false,
@@ -140,8 +140,7 @@ module Telegram
         channel.update(
           title: channel_info[:title],
           description: channel_info[:description],
-          subscribers_count: channel_info[:member_count],
-          active: true
+          subscribers_count: channel_info[:member_count]
         )
       end
 
@@ -149,36 +148,21 @@ module Telegram
       subscription = user.subscriptions.find_by(channel: channel)
 
       if subscription
-        # Если подписка существует но неактивна - активируем
-        if !subscription.active
-          subscription.activate!
-          return {
-            success: true,
-            message: I18n.t('telegram_bot.channels.add.success',
-                           channel: "@#{channel.username}",
-                           count: user.subscriptions.active.count),
-            channel: channel
-          }
-        else
-          return {
-            success: false,
-            message: I18n.t('telegram_bot.channels.add.already_subscribed', channel: "@#{channel.username}")
-          }
-        end
+        return {
+          success: false,
+          message: I18n.t('telegram_bot.channels.add.already_subscribed', channel: "@#{channel.username}")
+        }
       end
 
       # Создаем подписку
-      subscription = user.subscriptions.build(
-        channel: channel,
-        active: true
-      )
+      subscription = user.subscriptions.build(channel: channel)
 
       if subscription.save
         {
           success: true,
           message: I18n.t('telegram_bot.channels.add.success',
                          channel: "@#{channel.username}",
-                         count: user.subscriptions.active.count),
+                         count: user.subscriptions.count),
           channel: channel
         }
       else
@@ -223,7 +207,7 @@ module Telegram
         }
       end
 
-      # Ищем любую подписку (активную или неактивную)
+      # Ищем подписку
       subscription = user.subscriptions.find_by(channel: channel)
 
       unless subscription
@@ -233,22 +217,14 @@ module Telegram
         }
       end
 
-      # Если подписка неактивна
-      unless subscription.active?
-        return {
-          success: false,
-          message: I18n.t('telegram_bot.channels.remove.not_subscribed', channel: "@#{channel.username}")
-        }
-      end
-
-      # Деактивируем подписку
-      subscription.deactivate!
+      # Удаляем подписку
+      subscription.destroy
 
       {
         success: true,
         message: I18n.t('telegram_bot.channels.remove.success',
                        channel: "@#{channel.username}",
-                       count: user.subscriptions.active.count),
+                       count: user.subscriptions.count),
         channel: channel
       }
     rescue StandardError => e
