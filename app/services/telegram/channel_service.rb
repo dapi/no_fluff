@@ -261,5 +261,41 @@ module Telegram
         message: I18n.t('telegram_bot.channels.remove.error', error: e.message)
       }
     end
+
+    # Деактивирует канал и отправляет уведомления всем подписчикам
+    # @param channel [Channel] - канал для деактивации
+    # @param reason [String, nil] - причина деактивации
+    # @return [Hash] - результат операции { success: true/false, message: String, subscribers_count: Integer }
+    def deactivate_channel_with_notifications!(channel, reason: nil)
+      return {
+        success: false,
+        message: I18n.t('telegram_bot.channels.deactivate.already_inactive', channel: "@#{channel.username}")
+      } unless channel.active?
+
+      active_subscribers_count = channel.subscriptions.active.count
+
+      # Деактивируем канал
+      channel.deactivate!
+
+      # Отправляем уведомления в фоновом режиме
+      ChannelDeactivationNotificationJob.perform_later(channel, reason: reason)
+
+      {
+        success: true,
+        message: I18n.t('telegram_bot.channels.deactivate.success',
+                       channel: "@#{channel.username}",
+                       count: active_subscribers_count),
+        subscribers_count: active_subscribers_count
+      }
+    rescue StandardError => e
+      Bugsnag.notify(e) { |b| b.metadata = { channel_id: channel.id, reason: reason, action: 'deactivate_channel_with_notifications!' } }
+      Rails.logger.error "Error deactivating channel #{channel.id}: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+
+      {
+        success: false,
+        message: I18n.t('telegram_bot.channels.deactivate.error', error: e.message)
+      }
+    end
   end
 end

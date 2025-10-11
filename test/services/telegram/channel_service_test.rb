@@ -212,4 +212,183 @@ class Telegram::ChannelServiceTest < ActiveSupport::TestCase
       assert_not subscription.active
     end
   end
+
+  # Тесты деактивации каналов с уведомлениями
+
+  test 'deactivate_channel_with_notifications! successfully deactivates active channel and enqueues notifications' do
+    # Создаем канал и подписчиков
+    channel = Channel.create!(
+      telegram_id: 4001,
+      username: 'testchannel_active',
+      title: 'Test Channel Active',
+      active: true
+    )
+
+    # Создаем подписчиков
+    users = []
+    3.times do |i|
+      user = TelegramUser.create!(
+        telegram_id: 2000 + i,
+        username: "user#{i}",
+        first_name: "User #{i}",
+        language_code: 'ru'
+      )
+      users << user
+      Subscription.create!(
+        telegram_user: user,
+        channel: channel,
+        active: true
+      )
+    end
+
+    # Мокаем очередь
+    ChannelDeactivationNotificationJob.expects(:perform_later)
+      .with(channel, reason: 'admin_decision')
+      .once
+
+    result = @service.deactivate_channel_with_notifications!(channel, reason: 'admin_decision')
+
+    assert result[:success]
+    assert_includes result[:message], 'Канал @testchannel_active деактивирован'
+    assert_includes result[:message], '3 подписчиков'
+
+    # Проверяем что канал деактивирован
+    channel.reload
+    assert_not channel.active
+  end
+
+  test 'deactivate_channel_with_notifications! returns error for already inactive channel' do
+    channel = Channel.create!(
+      telegram_id: 4002,
+      username: 'testchannel_inactive',
+      title: 'Test Channel Inactive',
+      active: false
+    )
+
+    result = @service.deactivate_channel_with_notifications!(channel)
+
+    assert_not result[:success]
+    assert_includes result[:message], 'уже неактивен'
+  end
+
+  test 'deactivate_channel_with_notifications! works without reason' do
+    channel = Channel.create!(
+      telegram_id: 4003,
+      username: 'testchannel_no_reason',
+      title: 'Test Channel No Reason',
+      active: true
+    )
+
+    # Создаем подписчика
+    user = TelegramUser.create!(
+      telegram_id: 2003,
+      username: 'user3',
+      first_name: 'User 3',
+      language_code: 'ru'
+    )
+    Subscription.create!(
+      telegram_user: user,
+      channel: channel,
+      active: true
+    )
+
+    # Мокаем очередь
+    ChannelDeactivationNotificationJob.expects(:perform_later)
+      .with(channel, reason: nil)
+      .once
+
+    result = @service.deactivate_channel_with_notifications!(channel)
+
+    assert result[:success]
+    assert_includes result[:message], 'Канал @testchannel_no_reason деактивирован'
+  end
+
+  test 'deactivate_channel_with_notifications! counts only active subscriptions' do
+    channel = Channel.create!(
+      telegram_id: 4004,
+      username: 'testchannel_mixed',
+      title: 'Test Channel Mixed',
+      active: true
+    )
+
+    # Создаем активных подписчиков
+    2.times do |i|
+      user = TelegramUser.create!(
+        telegram_id: 2004 + i,
+        username: "user_active#{i}",
+        first_name: "User Active #{i}",
+        language_code: 'ru'
+      )
+      Subscription.create!(
+        telegram_user: user,
+        channel: channel,
+        active: true
+      )
+    end
+
+    # Создаем неактивных подписчиков
+    2.times do |i|
+      user = TelegramUser.create!(
+        telegram_id: 2006 + i,
+        username: "user_inactive#{i}",
+        first_name: "User Inactive #{i}",
+        language_code: 'ru'
+      )
+      Subscription.create!(
+        telegram_user: user,
+        channel: channel,
+        active: false
+      )
+    end
+
+    # Мокаем очередь
+    ChannelDeactivationNotificationJob.expects(:perform_later)
+      .with(channel, reason: nil)
+      .once
+
+    result = @service.deactivate_channel_with_notifications!(channel)
+
+    assert result[:success]
+    assert_includes result[:message], '2 подписчиков'  # Только активные
+  end
+
+  test 'deactivate_channel_with_notifications! handles channel with no subscribers' do
+    channel = Channel.create!(
+      telegram_id: 4005,
+      username: 'testchannel_empty',
+      title: 'Test Channel Empty',
+      active: true
+    )
+
+    # Мокаем очередь
+    ChannelDeactivationNotificationJob.expects(:perform_later)
+      .with(channel, reason: nil)
+      .once
+
+    result = @service.deactivate_channel_with_notifications!(channel)
+
+    assert result[:success]
+    assert_includes result[:message], '0 подписчиков'
+  end
+
+  test 'deactivate_channel_with_notifications! handles errors gracefully' do
+    channel = Channel.create!(
+      telegram_id: 4006,
+      username: 'testchannel_error',
+      title: 'Test Channel Error',
+      active: true
+    )
+
+    # Мокаем канал чтобы вызвать ошибку при деактивации
+    channel.stubs(:deactivate!).raises(StandardError.new('Database error'))
+
+    result = @service.deactivate_channel_with_notifications!(channel)
+
+    assert_not result[:success]
+    assert_includes result[:message], 'Ошибка при деактивации канала'
+    assert_includes result[:message], 'Database error'
+
+    # Проверяем что уведомления не отправлялись
+    ChannelDeactivationNotificationJob.expects(:perform_later).never
+  end
 end

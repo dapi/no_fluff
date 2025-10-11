@@ -44,6 +44,7 @@
 | `REALTIME_CONCURRENCY` | Количество процессов для срочных задач (realtime очередь) | `2` |
 | `DIGEST_CONCURRENCY` | Количество процессов для дайджестов (digest, default очереди) | `3` |
 | `CONTENT_CONCURRENCY` | Количество процессов для обработки контента (content, channels очереди) | `2` |
+| `NOTIFICATIONS_CONCURRENCY` | Количество процессов для уведомлений (notifications очередь) | `1` |
 | `BACKGROUND_CONCURRENCY` | Количество процессов для фоновых задач (ai, low_priority очереди) | `1` |
 
 ### Другое
@@ -58,3 +59,23 @@
 - [Функциональность](./docs/Product/features.md)
 - [Фоновые задачи и очереди](./docs/background-jobs-queues.md)
 - [Дорожная карта проекта](./docs/ROADMAP.md)
+
+### Уведомления о деактивации каналов
+
+Система автоматически уведомляет всех подписчиков при деактивации канала:
+
+- **Спецификация**: [docs/Specs/Channel_Deactivation_Notification_Specification.md](./docs/Specs/Channel_Deactivation_Notification_Specification.md)
+- **Реализация**: [docs/Implementation/Spec_Channel_Deactivation_Notification_Implementation.md](./docs/Implementation/Spec_Channel_Deactivation_Notification_Implementation.md)
+
+**Основные возможности**:
+- Автоматическая рассылка уведомлений всем активным подписчикам
+- Поддержка различных причин деактивации
+- Фоновая обработка через Solid Queue
+- Retry механизм при ошибках
+- Отчеты администраторам о результатах рассылки
+
+**Пример использования**:
+```ruby
+service = Telegram::ChannelService.new(Telegram.bot)
+result = service.deactivate_channel_with_notifications!(channel, reason: 'admin_decision')
+```

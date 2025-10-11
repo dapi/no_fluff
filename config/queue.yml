@@ -15,6 +15,12 @@ default: &default
       processes: <%= ENV.fetch("CONTENT_CONCURRENCY", 2) %>
       polling_interval: 0.5
 
+    # Notifications (channel deactivation, user notifications)
+    - queues: "notifications"
+      threads: 2
+      processes: <%= ENV.fetch("NOTIFICATIONS_CONCURRENCY", 1) %>
+      polling_interval: 0.3
+
 development:
   <<: *default
 
