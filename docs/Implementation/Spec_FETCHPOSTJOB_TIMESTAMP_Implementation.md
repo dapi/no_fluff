@@ -26,14 +26,14 @@ end
 ./bin/rails db:migrate
 ```
 
-## Шаг 2: Обновление модели Channel
+## Шаг 2: Создание Concern для обновлений канала
 
-### 2.1 Добавление методов в модель Channel
+### 2.1 Создание файла Concern
 ```ruby
-# app/models/channel.rb
+# app/models/concerns/channel_updatable.rb
 
-class Channel < ApplicationRecord
-  # ... существующий код ...
+module ChannelUpdatable
+  extend ActiveSupport::Concern
 
   # Обновление времени успешного обновления
   def mark_as_successfully_updated
@@ -59,6 +59,17 @@ class Channel < ApplicationRecord
     return 'stale' if stale?
     'fresh'
   end
+end
+```
+
+### 2.2 Подключение Concern к модели Channel
+```ruby
+# app/models/channel.rb
+
+class Channel < ApplicationRecord
+  include ChannelUpdatable
+
+  # ... существующий код ...
 end
 ```
 
