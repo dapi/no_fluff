@@ -13,21 +13,31 @@ class DeployNotificationJobTest < ActiveJob::TestCase
     # Проверяем что админ находится в скоупе
     assert_includes TelegramUser.admins, admin
 
-    # Создаем mock API который ожидает вызов send_message
-    mock_api = Minitest::Mock.new
-    mock_api.expect(:send_message, nil, [{ chat_id: admin.id, text: String, parse_mode: 'HTML' }])
+    # Отслеживаем вызовы send_message
+    send_message_calls = []
 
-    # Создаем mock bot который возвращает наш API
-    mock_bot = Minitest::Mock.new
-    mock_bot.expect(:api, mock_api)
+    # Создаем mock API
+    mock_api = Object.new
+    mock_api.define_singleton_method(:send_message) do |chat_id:, text:, parse_mode:|
+      send_message_calls << { chat_id: chat_id, text: text, parse_mode: parse_mode }
+    end
 
-    # Используем правильный stub для Telegram.bot
+    # Создаем mock bot
+    mock_bot = Object.new
+    mock_bot.define_singleton_method(:api) { mock_api }
+
+    # Подменяем Telegram.bot
     Telegram.stub(:bot, mock_bot) do
       DeployNotificationJob.perform_now('1.0.0', Time.current, { deployed_at: Time.current.iso8601 })
     end
 
-    assert_mock mock_bot
-    assert_mock mock_api
+    # Проверяем что send_message был вызван
+    assert_equal 1, send_message_calls.length
+    call = send_message_calls.first
+    assert_equal admin.id, call[:chat_id]
+    assert_includes call[:text], '1.0.0'
+    assert_includes call[:text], '🚀'
+    assert_equal 'HTML', call[:parse_mode]
   end
 
   test 'should build notification message' do
