@@ -100,25 +100,20 @@ class CreateChannelUpdateLogs < ActiveRecord::Migration[7.0]
 end
 ```
 
-## Сервисы
+## Использование
 
-### ChannelUpdateLogger
-Сервис для унифицированного создания записей в журнале.
+Для создания записей в журнале используется прямой вызов `ChannelUpdateLog.create`:
 
 ```ruby
-class ChannelUpdateLogger
-  def self.log(source:, message:, status: :info, channel: nil, job_id: nil, execution_time_ms: nil, data: {})
-    ChannelUpdateLog.create!(
-      source: source,
-      message: message,
-      status: status,
-      channel: channel,
-      job_id: job_id,
-      execution_time_ms: execution_time_ms,
-      data: data
-    )
-  end
-end
+ChannelUpdateLog.create!(
+  source: 'FetchPostsJob',
+  message: 'Successfully processed 15 posts',
+  status: 'success',
+  channel: channel,
+  job_id: job_id,
+  execution_time_ms: 1250,
+  data: { posts_count: 15, new_posts: 3 }
+)
 ```
 
 ## Интеграция с существующими Job
@@ -135,10 +130,7 @@ end
 ## План тестирования
 
 ### Unit тесты
-1. Тест создания ChannelUpdateLog
-2. Тест валидаций модели
-3. Тест scopes
-4. Тест сервиса ChannelUpdateLogger
+1. Простой тест модели ChannelUpdateLog на загружаемость из фикстуры
 
 ### Integration тесты
 1. Тест интеграции с FetchPostsJob
