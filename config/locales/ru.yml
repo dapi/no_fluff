@@ -119,6 +119,7 @@ ru:
       no_commands_found: "📭 Команды не найдены"
       commands_list: "📋 Список команд бота:"
       commands_total: "Всего команд: %{count}"
+      commands_up_to_date: "✅ Команды бота актуальны"
 
     debug:
       enabled: "🔍 Режим отладки включен"

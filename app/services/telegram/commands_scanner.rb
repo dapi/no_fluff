@@ -126,7 +126,9 @@ module Telegram
       @commands.values.map do |cmd|
         {
           command: cmd[:command],
-          description: cmd[:description]
+          description: cmd[:description],
+          admin_only: cmd[:admin_only],
+          source: cmd[:source]
         }
       end.sort_by { |cmd| cmd[:command] }
     end

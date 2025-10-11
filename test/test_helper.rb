@@ -2,6 +2,9 @@ ENV['RAILS_ENV'] ||= 'test'
 require_relative '../config/environment'
 require 'rails/test_help'
 
+# Configure Mocha for mocking and stubbing
+require 'mocha/minitest'
+
 module ActiveSupport
   class TestCase
     # Отключаем параллельный запуск для тестов telegram-bot

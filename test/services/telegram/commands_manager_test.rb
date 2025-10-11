@@ -79,8 +79,13 @@ module Telegram
         { command: 'help', description: 'Show help' }
       ]
 
+      remote_commands = [
+        { 'command' => 'start', 'description' => 'Start the bot' },
+        { 'command' => 'help', 'description' => 'Show help' }
+      ]
+
       @manager.stubs(:all_commands).returns(commands)
-      @manager.stubs(:current_commands).returns(commands)
+      @manager.stubs(:current_commands).returns(remote_commands)
 
       refute @manager.commands_outdated?
     end

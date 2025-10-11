@@ -50,6 +50,9 @@ group :development, :test do
   # Guard for automatic test running
   gem 'guard', require: false
   gem 'guard-minitest', require: false
+
+  # Mocking and stubbing for tests
+  gem 'mocha', require: false
 end
 
 gem 'telegram-bot', '~> 0.16.7'
