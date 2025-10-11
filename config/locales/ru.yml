@@ -88,6 +88,7 @@ ru:
       admin_commands: |
         🔐 Команды администратора:
 
+        /channels — список всех каналов в системе
         /remember <имя> — запомнить данные в сессии
         /recall — вспомнить данные из сессии
         /forget — очистить сессию
@@ -113,7 +114,10 @@ ru:
         not_found: "❌ Канал %{channel} не найден или недоступен"
         invalid_format: "❌ Неверный формат. Отправь имя канала (@channelname) или ссылку (t.me/channelname)"
         error: "❌ Ошибка при добавлении канала: %{error}"
-        limit_reached: "❌ Достигнут лимит каналов (%{limit}). Обновись до Premium для безлимита!"
+        limit_reached: |
+          ❌ Достигнут лимит бесплатных каналов (%{limit} из %{current}).
+
+          💎 Оформи подписку для добавления неограниченного количества каналов!
 
       remove:
         prompt: |
@@ -142,6 +146,18 @@ ru:
           settings: "⚙️"
         confirm_remove: "Удалить %{channel} из подписок?"
         remove_success: "Канал %{channel} удалён из подписок"
+
+      list:
+        title: "📊 Список каналов в системе (всего: %{count})"
+        admin_only: "🚫 У вас нет прав для выполнения этой команды. Доступно только администраторам."
+        empty: "📭 В системе пока нет каналов."
+        pagination_info: "Страница %{current} из %{total}"
+        previous_page: "← Предыдущая"
+        next_page: "Следующая →"
+        close: "✖️ Закрыть"
+        closed: "Список каналов закрыт"
+        subscribers: "подписчиков"
+        last_post: "Последний пост:"
 
     settings:
       title: "⚙️ Настройки"
@@ -203,6 +219,22 @@ ru:
         data: |
           📊 Данные сессии:
           %{data}
+    subscription:
+      success: "🎉 Подписка активирована! Теперь вы можете добавлять неограниченное количество каналов."
+      deactivated: "✅ Подписка деактивирована."
+      deactivated_with_limit_warning: |
+        ⚠️ Подписка деактивирована.
+
+        У вас %{current} каналов, что превышает бесплатный лимит (%{limit}).
+        Некоторые функции могут быть ограничены.
+      error: "❌ Ошибка при работе с подпиской: %{error}"
+      offer_message: |
+        💡 У вас уже %{current} каналов из %{limit} бесплатных.
+
+        🚀 Хотите добавлять неограниченное количество каналов?
+      activate_button: "💎 Оформить подписку"
+      channels_count: "Всего каналов: %{count}"
+
     messages:
       user_message: "Вы написали: %{text}"
       cancel: "Отмена"
@@ -215,3 +247,29 @@ ru:
       fresh: 'Актуальный'
       stale: 'Устаревший'
       never_updated: 'Без обновлений'
+    channel_deactivation:
+      notification:
+        title: "📢 Канал %{channel_name} деактивирован"
+        message: |
+          К сожалению, канал %{channel_name} был деактивирован.
+          %{reason_text}
+
+          Вы можете найти другие интересные каналы в каталоге.
+        actions:
+          browse_channels: "🔍 Посмотреть каталог каналов"
+          notification_settings: "⚙️ Настройки уведомлений"
+        reasons:
+          admin_decision: "Решение администратора"
+          inactive: "Канал неактивен длительное время"
+          violation: "Нарушение правил платформы"
+          technical: "Технические проблемы"
+
+      admin_notification:
+        title: "✅ Канал %{channel_name} деактивирован"
+        message: |
+          Канал %{channel_name} был успешно деактивирован.
+
+          📊 Статистика отправки уведомлений:
+          📤 Отправлено: %{sent_count}
+          ❌ Ошибок: %{error_count}
+          👥 Всего подписчиков: %{total_subscribers}

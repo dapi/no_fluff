@@ -1,9 +1,6 @@
 # Сервис для работы с Telegram каналами
 module Telegram
   class ChannelService
-    # Лимит бесплатных каналов
-    FREE_CHANNELS_LIMIT = 10
-
     def initialize(bot)
       @bot = bot
     end
@@ -76,7 +73,15 @@ module Telegram
           nil
         end
       rescue StandardError => e
-        Bugsnag.notify(e) { |b| b.metadata = { username: username, action: 'get_channel_info' } }
+        ErrorNotificationService.notify_service_error(e,
+        service: self.class,
+        method: "get_channel_info",
+        metadata: {
+          username: username,
+          error_class: e.class.name,
+          error_message: e.message
+        }
+      )
         Rails.logger.error "Error getting channel info for #{username}: #{e.message}"
         nil
       end
@@ -98,14 +103,14 @@ module Telegram
       end
 
       # Проверяем лимит каналов для бесплатных пользователей
-      unless user.is_premium
-        current_count = user.subscriptions.active.count
-        if current_count >= FREE_CHANNELS_LIMIT
-          return {
-            success: false,
-            message: I18n.t('telegram_bot.channels.add.limit_reached', limit: FREE_CHANNELS_LIMIT)
-          }
-        end
+      limit_checker = Limits::LimitChecker.new(user)
+      unless limit_checker.can_add_channel?
+        return {
+          success: false,
+          message: I18n.t('telegram_bot.channels.add.limit_reached',
+                         limit: ApplicationConfig.free_channels_limit,
+                         current: limit_checker.current_channels_count)
+        }
       end
 
       # Получаем информацию о канале
@@ -140,8 +145,7 @@ module Telegram
         channel.update(
           title: channel_info[:title],
           description: channel_info[:description],
-          subscribers_count: channel_info[:member_count],
-          active: true
+          subscribers_count: channel_info[:member_count]
         )
       end
 
@@ -156,7 +160,7 @@ module Telegram
             success: true,
             message: I18n.t('telegram_bot.channels.add.success',
                            channel: "@#{channel.username}",
-                           count: user.subscriptions.active.count),
+                           count: user.channels_count),
             channel: channel
           }
         else
@@ -168,17 +172,14 @@ module Telegram
       end
 
       # Создаем подписку
-      subscription = user.subscriptions.build(
-        channel: channel,
-        active: true
-      )
+      subscription = user.subscriptions.build(channel: channel)
 
       if subscription.save
         {
           success: true,
           message: I18n.t('telegram_bot.channels.add.success',
                          channel: "@#{channel.username}",
-                         count: user.subscriptions.active.count),
+                         count: user.channels_count),
           channel: channel
         }
       else
@@ -188,7 +189,17 @@ module Telegram
         }
       end
     rescue StandardError => e
-      Bugsnag.notify(e) { |b| b.metadata = { user_id: user.id, channel_username: channel_username, action: 'add_channel_for_user' } }
+      ErrorNotificationService.notify_service_error(e,
+        service: self.class,
+        method: "add_channel_for_user",
+        user: user,
+        metadata: {
+          user_id: user.id,
+          channel_username: channel_username,
+          error_class: e.class.name,
+          error_message: e.message
+        }
+      )
       Rails.logger.error "Error adding channel for user #{user.id}: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
 
@@ -223,7 +234,7 @@ module Telegram
         }
       end
 
-      # Ищем любую подписку (активную или неактивную)
+      # Ищем подписку
       subscription = user.subscriptions.find_by(channel: channel)
 
       unless subscription
@@ -233,26 +244,28 @@ module Telegram
         }
       end
 
-      # Если подписка неактивна
-      unless subscription.active?
-        return {
-          success: false,
-          message: I18n.t('telegram_bot.channels.remove.not_subscribed', channel: "@#{channel.username}")
-        }
-      end
-
-      # Деактивируем подписку
-      subscription.deactivate!
+      # Удаляем подписку
+      subscription.destroy
 
       {
         success: true,
         message: I18n.t('telegram_bot.channels.remove.success',
                        channel: "@#{channel.username}",
-                       count: user.subscriptions.active.count),
+                       count: user.channels_count),
         channel: channel
       }
     rescue StandardError => e
-      Bugsnag.notify(e) { |b| b.metadata = { user_id: user.id, channel_username: channel_username, action: 'remove_channel_for_user' } }
+      ErrorNotificationService.notify_service_error(e,
+        service: self.class,
+        method: "remove_channel_for_user",
+        user: user,
+        metadata: {
+          user_id: user.id,
+          channel_username: channel_username,
+          error_class: e.class.name,
+          error_message: e.message
+        }
+      )
       Rails.logger.error "Error removing channel for user #{user.id}: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
 

@@ -49,13 +49,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_11_000000) do
     t.text "description"
     t.integer "subscribers_count"
     t.boolean "is_verified", default: false
-    t.boolean "active", default: true
     t.datetime "last_post_at"
     t.datetime "monitored_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "last_successful_update_at", precision: nil
-    t.index ["active"], name: "index_channels_on_active"
+    t.datetime "deactivated_at"
+    t.string "deactivation_reason"
     t.index ["last_post_at"], name: "index_channels_on_last_post_at"
     t.index ["last_successful_update_at"], name: "index_channels_on_last_successful_update_at"
     t.index ["monitored_at"], name: "index_channels_on_monitored_at"
@@ -195,6 +195,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_11_000000) do
     t.index ["active"], name: "index_subscriptions_on_active"
     t.index ["channel_id"], name: "index_subscriptions_on_channel_id"
     t.index ["last_digest_sent_at"], name: "index_subscriptions_on_last_digest_sent_at"
+
+    t.index ["telegram_user_id", "active"], name: "index_subscriptions_on_user_and_active"
     t.index ["telegram_user_id", "channel_id"], name: "index_subscriptions_on_telegram_user_id_and_channel_id", unique: true
     t.index ["telegram_user_id"], name: "index_subscriptions_on_telegram_user_id"
   end

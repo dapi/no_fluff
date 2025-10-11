@@ -6,19 +6,12 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   include Telegram::SettingsCommands
   include Telegram::KeyboardHelpers
   include Telegram::MediaHandlers
+  include Telegram::AdminCommands
   include AdminSessionManagement
+  include ControllerErrorHandling
 
   # Выполняем перед каждым действием
   before_action :find_or_create_user
-
-  # Обработка ошибок
-  rescue_from StandardError do |exception|
-    Bugsnag.notify(exception) { |b| b.metadata = payload }
-    Rails.logger.error "Telegram Bot Error: #{exception.class}: #{exception.message}"
-    Rails.logger.error exception.backtrace.join("\n")
-
-    respond_with :message, text: I18n.t('telegram_bot.errors.general')
-  end
 
   # Команда /start - приветствие и краткая инструкция
   def start!(*)
@@ -163,6 +156,57 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
     end
   end
 
+  # Callback query: оформить подписку
+  def activate_subscription_callback_query(*)
+    answer_callback_query('')
+
+    manager = SubscriptionManagement::Manager.new(current_user)
+    result = manager.activate_premium_subscription
+
+    if result[:success]
+      # Показываем сообщение об успехе
+      if payload['message']
+        edit_message :text, text: result[:message]
+      else
+        respond_with :message, text: result[:message]
+      end
+    else
+      # Показываем сообщение об ошибке
+      error_message = result[:message]
+      if payload['message']
+        edit_message :text, text: error_message
+      else
+        respond_with :message, text: error_message
+      end
+    end
+  end
+
+  # Callback query: показать предложение подписки
+  def show_subscription_offer_callback_query(*)
+    answer_callback_query('')
+
+    manager = SubscriptionManagement::Manager.new(current_user)
+    offer = manager.subscription_offer
+
+    # Создаем клавиатуру с предложением подписки
+    offer_keyboard = inline_keyboard(
+      keyboard_row(
+        callback_button(offer[:activate_button_text], 'activate_subscription:')
+      ),
+      keyboard_row(
+        callback_button(I18n.t('telegram_bot.messages.back'), 'my_subscriptions:')
+      )
+    )
+
+    text = offer[:message]
+
+    if payload['message']
+      edit_message :text, text: text, reply_markup: offer_keyboard
+    else
+      respond_with :message, text: text, reply_markup: offer_keyboard
+    end
+  end
+
   private
 
   # Находит или создаёт пользователя в БД
@@ -192,11 +236,34 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
     service = Telegram::ChannelService.new(bot)
     result = service.add_channel_for_user(current_user, channel_input)
 
-    respond_with :message, text: result[:message]
-
-    # Если канал успешно добавлен, предлагаем добавить еще один
     if result[:success]
+      # Канал успешно добавлен
+      respond_with :message, text: result[:message]
       respond_with :message, text: I18n.t('telegram_bot.channels.add.suggest_another')
+    else
+      # Ошибка при добавлении - проверяем связана ли она с лимитом
+      limit_checker = Limits::LimitChecker.new(current_user)
+      if limit_checker.limit_reached?
+        # Показываем сообщение об ошибке и предложение подписки
+        respond_with :message, text: result[:message]
+
+        manager = SubscriptionManagement::Manager.new(current_user)
+        offer = manager.subscription_offer
+
+        offer_keyboard = inline_keyboard(
+          keyboard_row(
+            callback_button(offer[:activate_button_text], 'activate_subscription:')
+          ),
+          keyboard_row(
+            callback_button('Мои подписки', 'my_subscriptions:')
+          )
+        )
+
+        respond_with :message, text: offer[:message], reply_markup: offer_keyboard
+      else
+        # Другая ошибка - просто показываем сообщение
+        respond_with :message, text: result[:message]
+      end
     end
   end
 
@@ -228,20 +295,20 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
       return
     end
 
-    # Ищем активную подписку
-    subscription = current_user.subscriptions.active.find_by(channel: channel)
+    # Ищем подписку
+    subscription = current_user.subscriptions.find_by(channel: channel)
 
     unless subscription
       respond_with :message, text: I18n.t('telegram_bot.channels.remove.not_subscribed', channel: "@#{channel.username}")
       return
     end
 
-    # Деактивируем подписку
-    subscription.deactivate!
+    # Удаляем подписку
+    subscription.destroy
 
     respond_with :message, text: I18n.t('telegram_bot.channels.remove.success',
                                            channel: "@#{channel.username}",
-                                           count: current_user.subscriptions.active.count)
+                                           count: current_user.subscriptions.count)
   end
 
 

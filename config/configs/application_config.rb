@@ -13,7 +13,8 @@ class ApplicationConfig < Anyway::Config
   attr_config llm_default_model: 'deepseek-chat',
     host: 'localhost',
     protocol: 'https',
-    public_port: '443'
+    public_port: '443',
+    free_channels_limit: 10
 
   required :bot_token unless Rails.env.test?
 

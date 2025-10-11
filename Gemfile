@@ -70,6 +70,12 @@ gem 'slim-rails'
 # JavaScript with importmap
 gem 'importmap-rails'
 
+# Asset Pipeline for Rails 8
+gem 'sprockets-rails'
+
+# SASS support
+gem 'sassc-rails'
+
 # Solid Queue Dashboard removed - custom implementation instead
 
-gem "solid_queue_dashboard", "~> 0.2.0"
+gem 'solid_queue_dashboard', '~> 0.2.0'
