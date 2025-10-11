@@ -165,13 +165,11 @@ Rails.application.config.after_initialize do
 
   version = determine_app_version
 
-  existing = DeployNotification.find_by(version: version)
-  if existing.nil?
-    deploy_notification = DeployNotification.create!(
-      version: version,
-      metadata: build_metadata
-    )
+  deploy_notification = DeployNotification.find_or_create_by(version: version) do |record|
+    record.metadata = build_metadata
+  end
 
+  if deploy_notification.just_created?
     DeployNotificationJob.perform_later(
       deploy_notification.version,
       deploy_notification.created_at,
