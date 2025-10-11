@@ -37,7 +37,7 @@ class DebugNotificationJobTest < ActiveJob::TestCase
 
   # Basic job execution tests
   test 'should enqueue job with correct parameters' do
-    assert_enqueued_with(job: DebugNotificationJob, args: ['error', 'Test message', { user_id: 123 }]) do
+    assert_enqueued_with(job: DebugNotificationJob, args: [ 'error', 'Test message', { user_id: 123 } ]) do
       DebugNotificationJob.perform_later('error', 'Test message', { user_id: 123 })
     end
   end
@@ -49,7 +49,7 @@ class DebugNotificationJobTest < ActiveJob::TestCase
   end
 
   test 'should enqueue job for different message types' do
-    message_types = ['error', 'warning', 'info', 'success', 'channel_update_error', 'message_processing_error', 'system_alert']
+    message_types = [ 'error', 'warning', 'info', 'success', 'channel_update_error', 'message_processing_error', 'system_alert' ]
 
     message_types.each do |type|
       assert_enqueued_jobs 1 do
@@ -91,7 +91,7 @@ class DebugNotificationJobTest < ActiveJob::TestCase
     complex_context = {
       string: 'test',
       number: 42,
-      array: [1, 2, 3],
+      array: [ 1, 2, 3 ],
       hash: { nested: 'value', deep: { value: 123 } },
       boolean: true,
       nil_value: nil,

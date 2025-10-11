@@ -322,7 +322,7 @@ class DebugNotifierTest < ActiveSupport::TestCase
     context = {
       string: 'test string',
       number: 42,
-      array: [1, 2, 3],
+      array: [ 1, 2, 3 ],
       hash: { nested: 'value' },
       boolean: true,
       nil_value: nil

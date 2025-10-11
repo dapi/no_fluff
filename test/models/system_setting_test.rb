@@ -166,23 +166,23 @@ class SystemSettingTest < ActiveSupport::TestCase
   end
 
   test 'should store hash values' do
-    hash_value = { nested: { value: 42 }, array: [1, 2, 3] }
+    hash_value = { nested: { value: 42 }, array: [ 1, 2, 3 ] }
     setting = SystemSetting.create!(key: 'config', value: hash_value)
     setting.reload
 
     # JSONB converts symbol keys to strings
-    expected_value = { 'nested' => { 'value' => 42 }, 'array' => [1, 2, 3] }
+    expected_value = { 'nested' => { 'value' => 42 }, 'array' => [ 1, 2, 3 ] }
     assert_equal expected_value, setting.value
     assert_equal expected_value, SystemSetting.get('config')
   end
 
   test 'should store array values' do
-    array_value = ['item1', 'item2', { nested: 'value' }]
+    array_value = [ 'item1', 'item2', { nested: 'value' } ]
     setting = SystemSetting.create!(key: 'list', value: array_value)
     setting.reload
 
     # JSONB converts symbol keys to strings in nested objects
-    expected_value = ['item1', 'item2', { 'nested' => 'value' }]
+    expected_value = [ 'item1', 'item2', { 'nested' => 'value' } ]
     assert_equal expected_value, setting.value
     assert_equal expected_value, SystemSetting.get('list')
   end

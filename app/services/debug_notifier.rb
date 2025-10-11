@@ -102,15 +102,15 @@ class DebugNotifier
       return unless enabled?
 
       error_type = case error
-                   when Telegram::Bot::Error
+      when Telegram::Bot::Error
                      'telegram_api_error'
-                   when ActiveRecord::RecordInvalid
+      when ActiveRecord::RecordInvalid
                      'validation_error'
-                   when Timeout::Error
+      when Timeout::Error
                      'timeout_error'
-                   else
+      else
                      'error'
-                   end
+      end
 
       error_message = message || "#{error.class}: #{error.message}"
       notify(error_type, error_message, context.merge(
