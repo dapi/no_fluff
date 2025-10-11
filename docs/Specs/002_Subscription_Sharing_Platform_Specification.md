@@ -240,7 +240,7 @@ end
 🔧 API доступ
 
 Твой API ключ:
-sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx [Копировать]
+sk_live_example [Копировать]
 
 📊 Использование за сегодня:
    Запросов: 1,234 / 10,000
