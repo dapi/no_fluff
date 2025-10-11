@@ -87,6 +87,10 @@ tools to resolve library id and get library docs without me having to explicitly
 Каждый раз когда мы ловим ошибку через rescue мы отправляем уведомление в
 Bugsnag, по-возмоности указывая контекст который пригодится для расследования в metadata.
 
+## Instructions
+
+ВАЖНО: Отмечай пункт плана (имплементации или любого другого) в файле выполненным как только ты его сделал.
+
 ## Test Driven Development
 
 Используй minitest вместо rspec.
