@@ -75,8 +75,7 @@ class ChannelTest < ActiveSupport::TestCase
       username: 'test_channel_destroy'
     )
     subscription = channel.subscriptions.create!(
-      telegram_user: telegram_users(:one),
-      priority: 5
+      telegram_user: telegram_users(:one)
     )
     assert_difference 'Subscription.count', -1 do
       channel.destroy
@@ -98,37 +97,6 @@ class ChannelTest < ActiveSupport::TestCase
   end
 
   # Scope tests
-  test 'active scope should return only active channels' do
-    channel = channels(:one)
-    channel.update(active: true)
-
-    active_channels = Channel.active
-    assert_includes active_channels, channel
-  end
-
-  test 'active scope should not return inactive channels' do
-    channel = channels(:one)
-    channel.update(active: false)
-
-    active_channels = Channel.active
-    assert_not_includes active_channels, channel
-  end
-
-  test 'inactive scope should return only inactive channels' do
-    channel = channels(:one)
-    channel.update(active: false)
-
-    inactive_channels = Channel.inactive
-    assert_includes inactive_channels, channel
-  end
-
-  test 'inactive scope should not return active channels' do
-    channel = channels(:one)
-    channel.update(active: true)
-
-    inactive_channels = Channel.inactive
-    assert_not_includes inactive_channels, channel
-  end
 
   test 'verified scope should return only verified channels' do
     channel = channels(:one)
@@ -221,24 +189,7 @@ class ChannelTest < ActiveSupport::TestCase
     end
   end
 
-  test 'deactivate! should set active to false' do
-    channel = channels(:one)
-    channel.update(active: true)
-
-    channel.deactivate!
-    channel.reload
-    assert_not channel.active
-  end
-
-  test 'activate! should set active to true' do
-    channel = channels(:one)
-    channel.update(active: false)
-
-    channel.activate!
-    channel.reload
-    assert channel.active
-  end
-
+  
   # Edge case tests
   test 'should handle nil values for optional fields' do
     channel = Channel.new(
@@ -248,7 +199,6 @@ class ChannelTest < ActiveSupport::TestCase
       description: nil,
       subscribers_count: nil,
       is_verified: nil,
-      active: nil,
       last_post_at: nil,
       monitored_at: nil
     )

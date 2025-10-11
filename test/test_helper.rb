@@ -12,11 +12,16 @@ module ActiveSupport
 
     # Используем транзакции для изоляции тестов
     setup do
-      ActiveRecord::Base.connection.begin_transaction(joinable: false)
+      if ActiveRecord::Base.connection.respond_to?(:begin_transaction)
+        ActiveRecord::Base.connection.begin_transaction(joinable: false)
+      end
     end
 
     teardown do
-      ActiveRecord::Base.connection.rollback_transaction
+      if ActiveRecord::Base.connection.respond_to?(:rollback_transaction) &&
+         ActiveRecord::Base.connection.current_transaction.open?
+        ActiveRecord::Base.connection.rollback_transaction
+      end
     end
 
     # Add more helper methods to be used by all tests here...

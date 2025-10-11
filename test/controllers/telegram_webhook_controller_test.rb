@@ -244,9 +244,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
 
     subscription = Subscription.create!(
       telegram_user: user,
-      channel: channel,
-      priority: 5,
-      active: true
+      channel: channel
     )
 
     # Тестируем удаление через команду
@@ -256,9 +254,10 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    # Проверяем что подписка была деактивирована
-    subscription.reload
-    assert_not subscription.active
+    # Проверяем что подписка была удалена
+    assert_raises ActiveRecord::RecordNotFound do
+      subscription.reload
+    end
 
     # Проверяем что было отправлено сообщение об успехе
     message_content = extract_message_content(@bot.requests)
@@ -433,8 +432,8 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     channel1 = Channel.create!(telegram_id: 1001, username: 'channel1', title: 'Channel 1')
     channel2 = Channel.create!(telegram_id: 1002, username: 'channel2', title: 'Channel 2')
 
-    Subscription.create!(telegram_user: user, channel: channel1, priority: 1, active: true)
-    Subscription.create!(telegram_user: user, channel: channel2, priority: 2, active: true)
+    Subscription.create!(telegram_user: user, channel: channel1)
+    Subscription.create!(telegram_user: user, channel: channel2)
 
     # Проверяем список подписок
     update = create_user_update(user_id: user.id, username: 'subscriber',
