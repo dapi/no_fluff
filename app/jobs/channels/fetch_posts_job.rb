@@ -72,7 +72,7 @@ class Channels::FetchPostsJob < ApplicationJob
       job_class: self.class,
       job_id: job_id,
       metadata: {
-        error_type: "Post Processing Error",
+        error_type: 'Post Processing Error',
         channel_id: channel.id,
         channel_username: channel.username,
         message_id: post_data[:telegram_message_id],

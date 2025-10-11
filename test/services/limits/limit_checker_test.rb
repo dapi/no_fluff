@@ -301,8 +301,8 @@ class Limits::LimitCheckerTest < ActiveSupport::TestCase
     end
 
     message = @limit_checker.limit_reached_message
-    assert_includes message, "10"
-    assert_includes message, "12"
+    assert_includes message, '10'
+    assert_includes message, '12'
   end
 
   # Edge cases

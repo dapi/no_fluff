@@ -181,7 +181,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
       { data: 'more_info:', expected_text: 'telegram_bot.more_info.text' },
       { data: 'back_to_start:', expected_text: 'telegram_bot.start.welcome' },
       { data: 'settings:', expected_text: '⚙️ Настройки' },
-      { data: 'my_subscriptions:', expected_text: 'подписок' }
+      { data: 'my_subscriptions:', expected_text: '📭 В системе пока нет каналов.' }
     ]
 
     callbacks.each do |callback_data|

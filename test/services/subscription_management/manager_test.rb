@@ -25,7 +25,7 @@ class SubscriptionManagement::ManagerTest < ActiveSupport::TestCase
     assert result[:success]
     @user.reload
     assert @user.is_premium?
-    assert_includes result[:message], "Подписка активирована"
+    assert_includes result[:message], 'Подписка активирована'
   end
 
   test 'activate_premium_subscription should return error for already premium user' do
@@ -34,7 +34,7 @@ class SubscriptionManagement::ManagerTest < ActiveSupport::TestCase
     result = @manager.activate_premium_subscription
 
     assert_not result[:success]
-    assert_includes result[:message], "уже имеет премиум статус"
+    assert_includes result[:message], 'уже имеет премиум статус'
     @user.reload
     assert @user.is_premium?  # Should still be premium
   end
@@ -58,14 +58,14 @@ class SubscriptionManagement::ManagerTest < ActiveSupport::TestCase
     assert result[:success]
     @user.reload
     assert_not @user.is_premium?
-    assert_includes result[:message], "Подписка деактивирована"
+    assert_includes result[:message], 'Подписка деактивирована'
   end
 
   test 'deactivate_premium_subscription should return error for non-premium user' do
     result = @manager.deactivate_premium_subscription
 
     assert_not result[:success]
-    assert_includes result[:message], "не имеет премиум статуса"
+    assert_includes result[:message], 'не имеет премиум статуса'
     assert_not @user.is_premium?
   end
 
@@ -84,9 +84,9 @@ class SubscriptionManagement::ManagerTest < ActiveSupport::TestCase
 
     assert result[:success]
     assert result[:warning]  # Should have warning flag
-    assert_includes result[:message], "превышает бесплатный лимит"
-    assert_includes result[:message], "12"
-    assert_includes result[:message], "10"
+    assert_includes result[:message], 'превышает бесплатный лимит'
+    assert_includes result[:message], '12'
+    assert_includes result[:message], '10'
   end
 
   test 'deactivate_premium_subscription should not show warning when user within limit' do
@@ -104,7 +104,7 @@ class SubscriptionManagement::ManagerTest < ActiveSupport::TestCase
 
     assert result[:success]
     assert_not result[:warning]  # Should not have warning flag (should be nil or false)
-    assert_not_includes result[:message], "превышает бесплатный лимит"
+    assert_not_includes result[:message], 'превышает бесплатный лимит'
   end
 
   # Test subscription_status method
@@ -238,9 +238,9 @@ class SubscriptionManagement::ManagerTest < ActiveSupport::TestCase
     assert_equal 12, offer[:current_channels]
     assert_equal 10, offer[:limit]
     assert_equal 2, offer[:exceeded_by]
-    assert_includes offer[:message], "12"
-    assert_includes offer[:message], "10"
-    assert_equal "💎 Оформить подписку", offer[:activate_button_text]
+    assert_includes offer[:message], '12'
+    assert_includes offer[:message], '10'
+    assert_equal '💎 Оформить подписку', offer[:activate_button_text]
   end
 
   test 'subscription_offer should handle user exactly at limit' do
@@ -257,8 +257,8 @@ class SubscriptionManagement::ManagerTest < ActiveSupport::TestCase
     assert_equal 10, offer[:current_channels]
     assert_equal 10, offer[:limit]
     assert_equal 0, offer[:exceeded_by]
-    assert_includes offer[:message], "10"
-    assert_includes offer[:message], "10"
+    assert_includes offer[:message], '10'
+    assert_includes offer[:message], '10'
   end
 
   test 'subscription_offer should count all subscriptions regardless of active status' do

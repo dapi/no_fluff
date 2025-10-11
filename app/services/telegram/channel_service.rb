@@ -75,7 +75,7 @@ module Telegram
       rescue StandardError => e
         ErrorNotificationService.notify_service_error(e,
         service: self.class,
-        method: "get_channel_info",
+        method: 'get_channel_info',
         metadata: {
           username: username,
           error_class: e.class.name,
@@ -191,7 +191,7 @@ module Telegram
     rescue StandardError => e
       ErrorNotificationService.notify_service_error(e,
         service: self.class,
-        method: "add_channel_for_user",
+        method: 'add_channel_for_user',
         user: user,
         metadata: {
           user_id: user.id,
@@ -257,7 +257,7 @@ module Telegram
     rescue StandardError => e
       ErrorNotificationService.notify_service_error(e,
         service: self.class,
-        method: "remove_channel_for_user",
+        method: 'remove_channel_for_user',
         user: user,
         metadata: {
           user_id: user.id,

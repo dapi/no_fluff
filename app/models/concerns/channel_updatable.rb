@@ -18,7 +18,7 @@ module ChannelUpdatable
   def last_update_formatted
     return I18n.t('channels.never_updated') if last_successful_update_at.blank?
 
-    last_successful_update_at.strftime("%d %b %H:%M")
+    last_successful_update_at.strftime('%d %b %H:%M')
   end
 
   # Статус актуальности

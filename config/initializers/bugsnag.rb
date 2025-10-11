@@ -6,7 +6,7 @@ Bugsnag.configure do |config|
 
   # Add context about the application
   config.add_metadata(:app, {
-    name: "NoFluff Bot",
+    name: 'NoFluff Bot',
     environment: Rails.env,
     ruby_version: RUBY_VERSION,
     rails_version: Rails.version

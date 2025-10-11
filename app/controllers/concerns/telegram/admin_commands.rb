@@ -126,7 +126,7 @@ module Telegram::AdminCommands
 
     message_parts = []
     message_parts << "📊 Список каналов в системе (всего: #{total_count})"
-    message_parts << ""
+    message_parts << ''
 
     channels.each_with_index do |channel, index|
       global_index = (current_page - 1) * channels_data[:per_page] + index + 1
@@ -154,12 +154,12 @@ module Telegram::AdminCommands
       end
 
       message_parts << channel_info
-      message_parts << ""  # Пустая строка между каналами
+      message_parts << ''  # Пустая строка между каналами
     end
 
     # Добавляем информацию о пагинации
     if total_pages > 1
-      message_parts << ""
+      message_parts << ''
       message_parts << "Страница #{current_page} из #{total_pages}"
     end
 
@@ -182,9 +182,9 @@ module Telegram::AdminCommands
     count = count.to_i
 
     if count == 0
-      "0 подписчиков"
+      '0 подписчиков'
     elsif count == 1
-      "1 подписчик"
+      '1 подписчик'
     elsif count >= 2 && count <= 4
       "#{count} подписчика"
     elsif count >= 5 && count <= 20
@@ -200,7 +200,7 @@ module Telegram::AdminCommands
 
   # Форматирует время последнего поста
   def format_last_post_time(last_post_at)
-    return "Нет постов" unless last_post_at
+    return 'Нет постов' unless last_post_at
 
     time_ago = time_ago_in_words(last_post_at)
     "Последний пост: #{time_ago}"
@@ -220,7 +220,7 @@ module Telegram::AdminCommands
     # Кнопка "Предыдущая"
     if current_page > 1
       nav_buttons << callback_button(
-        "← Предыдущая",
+        '← Предыдущая',
         "channels_page:#{current_page - 1}"
       )
     end
@@ -228,7 +228,7 @@ module Telegram::AdminCommands
     # Кнопка "Следующая"
     if current_page < total_pages
       nav_buttons << callback_button(
-        "Следующая →",
+        'Следующая →',
         "channels_page:#{current_page + 1}"
       )
     end
@@ -236,7 +236,7 @@ module Telegram::AdminCommands
     buttons << nav_buttons if nav_buttons.any?
 
     # Кнопка закрытия
-    buttons << [callback_button("✖️ Закрыть", 'close_channels_list:')]
+    buttons << [ callback_button('✖️ Закрыть', 'close_channels_list:') ]
 
     inline_keyboard(*buttons)
   end
@@ -266,13 +266,13 @@ module Telegram::AdminCommands
     days = hours / 24
 
     if days > 0
-      days.round == 1 ? "1 день назад" : "#{days.round} дней назад"
+      days.round == 1 ? '1 день назад' : "#{days.round} дней назад"
     elsif hours > 0
-      hours.round == 1 ? "1 час назад" : "#{hours.round} часов назад"
+      hours.round == 1 ? '1 час назад' : "#{hours.round} часов назад"
     elsif minutes > 0
-      minutes.round == 1 ? "1 минуту назад" : "#{minutes.round} минут назад"
+      minutes.round == 1 ? '1 минуту назад' : "#{minutes.round} минут назад"
     else
-      "только что"
+      'только что'
     end
   end
 end

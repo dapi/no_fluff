@@ -93,7 +93,7 @@ module SubscriptionManagement
       limit_checker = Limits::LimitChecker.new(@user)
       current_count = limit_checker.current_channels_count
       limit = ApplicationConfig.free_channels_limit
-      exceeded_by = [current_count - limit, 0].max
+      exceeded_by = [ current_count - limit, 0 ].max
 
       {
         current_channels: current_count,

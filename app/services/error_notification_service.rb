@@ -22,11 +22,11 @@ class ErrorNotificationService
     # Отправить ошибку из Telegram бота
     def notify_telegram_error(exception, user: nil, action: nil, metadata: {})
       notify(exception,
-        context: "Telegram Bot",
+        context: 'Telegram Bot',
         user: user,
         metadata: metadata.merge(
           action: action,
-          controller: "TelegramWebhookController"
+          controller: 'TelegramWebhookController'
         )
       )
     end
@@ -34,7 +34,7 @@ class ErrorNotificationService
     # Отправить ошибку из фоновой задачи
     def notify_job_error(exception, job_class:, job_id: nil, attempt: nil, metadata: {})
       notify(exception,
-        context: "Background Job",
+        context: 'Background Job',
         metadata: metadata.merge(
           job_class: job_class.to_s,
           job_id: job_id,
@@ -46,7 +46,7 @@ class ErrorNotificationService
     # Отправить ошибку API
     def notify_api_error(exception, endpoint:, method:, user: nil, metadata: {})
       notify(exception,
-        context: "API Error",
+        context: 'API Error',
         user: user,
         metadata: metadata.merge(
           endpoint: endpoint,
@@ -58,7 +58,7 @@ class ErrorNotificationService
     # Отправить ошибку сервиса
     def notify_service_error(exception, service:, method:, user: nil, metadata: {})
       notify(exception,
-        context: "Service Error",
+        context: 'Service Error',
         user: user,
         metadata: metadata.merge(
           service: service.to_s,

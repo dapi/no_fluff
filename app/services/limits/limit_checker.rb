@@ -1,7 +1,6 @@
 # Сервис для проверки лимитов подписок пользователей
 module Limits
   class LimitChecker
-
     def initialize(user)
       @user = user
     end

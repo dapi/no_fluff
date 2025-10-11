@@ -10,8 +10,8 @@ class Channel < ApplicationRecord
   validates :username, presence: true, uniqueness: true
 
   # Scopes
-  scope :active, -> { where(active: true) }
-  scope :inactive, -> { where(active: false) }
+  scope :active, -> { where(deactivated_at: nil) }
+  scope :inactive, -> { where.not(deactivated_at: nil) }
   scope :verified, -> { where(is_verified: true) }
   scope :by_subscribers, -> { order(subscribers_count: :desc) }
   scope :recently_updated, -> { where('last_post_at > ?', 24.hours.ago) }
@@ -27,10 +27,14 @@ class Channel < ApplicationRecord
   end
 
   def deactivate!
-    update(active: false)
+    update(deactivated_at: Time.current, deactivation_reason: 'manual_deactivation')
   end
 
   def activate!
-    update(active: true)
+    update(deactivated_at: nil, deactivation_reason: nil)
+  end
+
+  def active?
+    deactivated_at.nil?
   end
 end

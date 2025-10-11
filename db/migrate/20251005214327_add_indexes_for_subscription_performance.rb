@@ -4,8 +4,8 @@ class AddIndexesForSubscriptionPerformance < ActiveRecord::Migration[8.0]
   def up
     # Index for active subscriptions query optimization
     # This optimizes active subscriptions counting for user.channels_count
-    unless index_exists?(:subscriptions, [:telegram_user_id, :active], name: 'index_subscriptions_on_user_and_active')
-      add_index :subscriptions, [:telegram_user_id, :active], name: 'index_subscriptions_on_user_and_active'
+    unless index_exists?(:subscriptions, [ :telegram_user_id, :active ], name: 'index_subscriptions_on_user_and_active')
+      add_index :subscriptions, [ :telegram_user_id, :active ], name: 'index_subscriptions_on_user_and_active'
     end
 
     # Note: Other indexes we need already exist:
@@ -17,6 +17,6 @@ class AddIndexesForSubscriptionPerformance < ActiveRecord::Migration[8.0]
 
   def down
     # Remove only the index we created
-    remove_index :subscriptions, name: 'index_subscriptions_on_user_and_active' if index_exists?(:subscriptions, [:telegram_user_id, :active], name: 'index_subscriptions_on_user_and_active')
+    remove_index :subscriptions, name: 'index_subscriptions_on_user_and_active' if index_exists?(:subscriptions, [ :telegram_user_id, :active ], name: 'index_subscriptions_on_user_and_active')
   end
 end

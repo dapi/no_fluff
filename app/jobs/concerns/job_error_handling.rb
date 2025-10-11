@@ -7,48 +7,48 @@ module JobErrorHandling
     retry_on StandardError, wait: :exponentially_longer, attempts: 3
 
     rescue_from Telegram::Bot::Error do |exception|
-      log_job_error("Telegram API Error", exception)
+      log_job_error('Telegram API Error', exception)
       ErrorNotificationService.notify_job_error(exception,
         job_class: self.class,
         job_id: job_id,
         metadata: {
-          error_type: "Telegram API Error",
+          error_type: 'Telegram API Error',
           arguments: sanitized_arguments
         }
       )
     end
 
     rescue_from ActiveRecord::RecordNotFound do |exception|
-      log_job_error("Record Not Found", exception)
+      log_job_error('Record Not Found', exception)
       ErrorNotificationService.notify_job_error(exception,
         job_class: self.class,
         job_id: job_id,
         metadata: {
-          error_type: "Record Not Found",
+          error_type: 'Record Not Found',
           model: exception.model&.name
         }
       )
     end
 
     rescue_from ActiveRecord::RecordInvalid do |exception|
-      log_job_error("Validation Error", exception)
+      log_job_error('Validation Error', exception)
       ErrorNotificationService.notify_job_error(exception,
         job_class: self.class,
         job_id: job_id,
         metadata: {
-          error_type: "Validation Error",
+          error_type: 'Validation Error',
           validation_errors: exception.record.errors.full_messages
         }
       )
     end
 
     rescue_from StandardError do |exception|
-      log_job_error("StandardError", exception)
+      log_job_error('StandardError', exception)
       ErrorNotificationService.notify_job_error(exception,
         job_class: self.class,
         job_id: job_id,
         metadata: {
-          error_type: "StandardError",
+          error_type: 'StandardError',
           arguments: sanitized_arguments
         }
       )

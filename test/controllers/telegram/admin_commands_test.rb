@@ -51,7 +51,6 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
       title: 'Popular Channel',
       description: 'Very popular channel',
       subscribers_count: 1000,
-      active: true,
       last_post_at: 1.hour.ago
     )
 
@@ -61,7 +60,6 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
       title: 'Medium Channel',
       description: 'Medium popularity channel',
       subscribers_count: 500,
-      active: true,
       last_post_at: 3.hours.ago
     )
 
@@ -71,8 +69,9 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
       title: 'Inactive Channel',
       description: 'Inactive channel',
       subscribers_count: 200,
-      active: false,
-      last_post_at: 2.days.ago
+      last_post_at: 2.days.ago,
+      deactivated_at: 1.day.ago,
+      deactivation_reason: 'test_deactivation'
     )
 
     @channel4 = Channel.create!(
@@ -81,7 +80,6 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
       title: 'Old Channel',
       description: 'Channel with old posts',
       subscribers_count: 300,
-      active: true,
       last_post_at: 10.days.ago
     )
   end
@@ -268,7 +266,15 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
       is_admin: true
     )
 
-    # Не создаем дополнительные каналы, используем только fixture данные
+    # Создаем один канал для демонстрации
+    test_channel = Channel.create!(
+      telegram_id: 9999,
+      username: 'demo_channel',
+      title: 'Demo Channel',
+      description: 'Demo channel for testing',
+      subscribers_count: 100,
+      last_post_at: 1.hour.ago
+    )
 
     update = create_user_update(user_id: admin_user.id, username: admin_user.username,
                                command: '/channels')
@@ -278,8 +284,8 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
 
     message_content = extract_message_content(@bot.requests)
     assert_not_nil message_content
-    # Показываем что есть хотя быfixture каналы
-    assert_includes message_content[:text], 'Список каналов в системе'
+    # Проверяем что есть заголовок списка каналов
+    assert_includes message_content[:text], '📊 Список каналов в системе'
   end
 
   test 'channels list handles pagination correctly' do
@@ -299,7 +305,6 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
         title: "Channel #{i}",
         description: "Test channel #{i}",
         subscribers_count: 100 + i,
-        active: true,
         last_post_at: i.hours.ago
       )
       channels << channel
@@ -387,7 +392,7 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
     text = message_content[:text]
 
     # Проверяем что информация о последнем посте отображается
-    assert_includes text, 'Последний пост:'
+    assert_includes text, I18n.t('telegram_bot.channels.list.last_post')
   end
 
   test 'channels command handles errors gracefully' do
