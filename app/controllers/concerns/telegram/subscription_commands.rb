@@ -11,9 +11,7 @@ module Telegram::SubscriptionCommands
       if subscriptions.empty?
         respond_with :message, text: I18n.t('telegram_bot.channels.list.empty')
       else
-        respond_with :message,
-          text: build_subscriptions_list(subscriptions),
-          reply_markup: subscriptions_keyboard(subscriptions)
+        respond_with :message, text: build_subscriptions_list(subscriptions)
       end
     end
 
@@ -30,13 +28,9 @@ module Telegram::SubscriptionCommands
         end
       else
         if payload['message']
-          edit_message :text,
-            text: build_subscriptions_list(subscriptions),
-            reply_markup: subscriptions_keyboard(subscriptions)
+          edit_message :text, text: build_subscriptions_list(subscriptions)
         else
-          respond_with :message,
-            text: build_subscriptions_list(subscriptions),
-            reply_markup: subscriptions_keyboard(subscriptions)
+          respond_with :message, text: build_subscriptions_list(subscriptions)
         end
       end
     end
@@ -74,8 +68,7 @@ module Telegram::SubscriptionCommands
         subscription.deactivate!
 
         edit_message :text,
-          text: I18n.t('telegram_bot.channels.list.remove_success', channel: "@#{channel.username}"),
-          reply_markup: subscriptions_keyboard(current_user.subscriptions.active.by_created_at)
+          text: I18n.t('telegram_bot.channels.list.remove_success', channel: "@#{channel.username}")
       end
     end
 
