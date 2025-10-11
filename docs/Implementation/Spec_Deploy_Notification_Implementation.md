@@ -46,9 +46,8 @@
 - Реализовать создание записи и запуск job
 
 ### 4.2 Определение версии приложения
-- Использовать git commit hash или версию из файла
-- Рассмотреть возможность использования build timestamp
-- Добавить fallback mechanisms
+- Использовать `AppVersion.to_s` для получения версии
+- Убедиться что класс AppVersion доступен в инициализаторе
 
 ## Этап 5: Интеграция с Telegram
 
@@ -182,7 +181,7 @@ end
 Rails.application.config.after_initialize do
   next unless defined?(Rails::Server) || Rails.env.production?
 
-  version = determine_app_version
+  version = AppVersion.to_s
 
   DeployNotification.find_or_create_by(version: version) do |record|
     record.metadata = build_metadata
@@ -221,7 +220,7 @@ default: &default
 - [ ] Добавить обработку ошибок
 - [ ] Настроить очереди
 - [ ] Создать инициализатор
-- [ ] Реализовать определение версии
+- [ ] Использовать AppVersion.to_s для получения версии
 - [ ] Добавить тесты для модели
 - [ ] Добавить тесты для callback
 - [ ] Добавить тесты для job
