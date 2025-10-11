@@ -31,8 +31,3 @@ module ActiveSupport
   end
 end
 
-module ActionDispatch
-  class IntegrationTest
-    # fixtures :all
-  end
-end
