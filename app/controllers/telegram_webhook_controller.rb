@@ -14,6 +14,7 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   before_action :find_or_create_user
 
 
+
   # Команда /start - приветствие и краткая инструкция
   def start!(*)
     # Проверяем, есть ли в системе администраторы
@@ -213,18 +214,17 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
 
   # Обработка обычных текстовых сообщений
   def message(message)
-    text = message['text']
-
-    # Если пользователь отправил текст, пробуем интерпретировать как канал
-    # (только если текст начинается с @ или содержит t.me/)
-    if text.start_with?('@') || text.include?('t.me/')
-      add_channel(text)
-    else
-      # Показываем простое сообщение без использования сессий
-      response_text = I18n.t('telegram_bot.messages.user_message', text: text)
-      respond_with :message, text: response_text
+    # Проверяем тип сообщения прямо здесь
+    if message&.dig('chat', 'type') == 'channel'
+      save_channel_message(message)
+      # НИКАКИХ ответов и обработки для канальных сообщений
+      return
     end
+
+    process_direct_message(message)
   end
+
+
 
   # Callback query: оформить подписку
   def activate_subscription_callback_query(*)
@@ -279,9 +279,90 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
 
   private
 
+
+  # Сохраняет канальное сообщение
+  def save_channel_message(message)
+    ChannelMessage.create!(
+      message_id: message['message_id'],
+      channel_id: message.dig('chat', 'id'),
+      channel_username: message.dig('chat', 'username'),
+      channel_title: message.dig('chat', 'title'),
+      sender_id: message.dig('from', 'id'),
+      sender_username: message.dig('from', 'username'),
+      sender_first_name: message.dig('from', 'first_name'),
+      sender_last_name: message.dig('from', 'last_name'),
+      content: extract_content(message),
+      message_type: extract_message_type(message),
+      raw_data: message
+    )
+  rescue StandardError => e
+    # Логируем ошибки сохранения в Bugsnag
+    Bugsnag.notify(e) do |b|
+      b.metadata = {
+        action: 'save_channel_message',
+        message_id: message['message_id'],
+        channel_id: message.dig('chat', 'id')
+      }
+    end
+    Rails.logger.error "Failed to save channel message: #{e.message}"
+  end
+
+  # Обрабатывает прямое сообщение пользователя
+  def process_direct_message(message)
+    text = message['text']
+
+    # Если пользователь отправил текст, пробуем интерпретировать как канал
+    # (только если текст начинается с @ или содержит t.me/)
+    if text.start_with?('@') || text.include?('t.me/')
+      add_channel(text)
+    else
+      # Показываем простое сообщение без использования сессий
+      response_text = I18n.t('telegram_bot.messages.user_message', text: text)
+      respond_with :message, text: response_text
+    end
+  end
+
+  # Извлекает контент из сообщения
+  def extract_content(message)
+    message['text'] ||
+    message['caption'] ||
+    extract_sticker_emoji(message) ||
+    extract_document_name(message) ||
+    'Non-text content'
+  end
+
+  # Определяет тип сообщения
+  def extract_message_type(message)
+    return 'text' if message['text']
+    return 'photo' if message['photo']
+    return 'video' if message['video']
+    return 'document' if message['document']
+    return 'audio' if message['audio']
+    return 'voice' if message['voice']
+    return 'sticker' if message['sticker']
+    return 'animation' if message['animation']
+    'unknown'
+  end
+
+  # Извлекает emoji из стикера
+  def extract_sticker_emoji(message)
+    return nil unless message['sticker']
+    message['sticker']['emoji']
+  end
+
+  # Извлекает имя документа
+  def extract_document_name(message)
+    return nil unless message['document']
+    message['document']['file_name']
+  end
+
   # Находит или создаёт пользователя в БД
   def find_or_create_user
     user_data = from
+
+    # Если это канальное сообщение (нет from), то не создаем пользователя
+    return if user_data.nil?
+
     # Используем username если есть, иначе используем id в качестве username
     username = user_data['username'] || "user_#{user_data['id']}"
 
