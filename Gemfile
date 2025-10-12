@@ -71,13 +71,19 @@ gem 'bugsnag', '~> 6.28'
 gem 'slim-rails'
 
 # JavaScript with importmap
-gem 'importmap-rails'
+# gem 'importmap-rails'
 
 # Asset Pipeline for Rails 8
 gem 'sprockets-rails'
 
 # SASS support
-gem 'sassc-rails'
+# gem 'sassc-rails'
 
 # Solid Queue Dashboard
 gem 'solid_queue_dashboard', '~> 0.2.0'
+
+# Для компиляции ассетов
+gem 'activerecord-nulldb-adapter'
+
+# gem "dartsass-rails", "~> 0.5.1"
+gem 'sassc'

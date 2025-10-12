@@ -15,29 +15,13 @@ module NoFluff
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.0
 
+    config.assets.version = '1.0'
+    config.assets.initialize_on_precompile = false
+
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks])
-
-    # Fix for SolidQueueDashboard compatibility with Rails 8
-    # Rails 8 removed config.assets, but the gem still tries to access it
-    unless config.respond_to?(:assets)
-      config.assets = ActiveSupport::OrderedOptions.new
-      config.assets.paths = []
-      config.assets.precompile = []
-      config.assets.prefix = '/assets'
-      config.assets.debug = false
-      config.assets.quiet = false
-      config.assets.compile = false
-      config.assets.digest = true
-      config.assets.js_compressor = nil
-      config.assets.css_compressor = nil
-      config.assets.version = '1.0'
-      config.assets.cache_store = [ :file_store, Rails.root.join('tmp', 'cache', 'assets') ]
-      config.assets.manifest = Rails.root.join('public', 'assets', 'manifest.json')
-      config.assets.logger = Rails.logger
-    end
 
     # Configuration for the application, engines, and railties goes here.
     #

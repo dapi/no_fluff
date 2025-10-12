@@ -59,6 +59,8 @@ GEM
       activemodel (= 8.0.3)
       activesupport (= 8.0.3)
       timeout (>= 0.4.0)
+    activerecord-nulldb-adapter (1.1.1)
+      activerecord (>= 6.0, < 8.1)
     activestorage (8.0.3)
       actionpack (= 8.0.3)
       activejob (= 8.0.3)
@@ -232,10 +234,6 @@ GEM
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
     ice_nine (0.11.2)
-    importmap-rails (2.2.2)
-      actionpack (>= 6.0.0)
-      activesupport (>= 6.0.0)
-      railties (>= 6.0.0)
     io-console (0.8.1)
     io-event (1.14.0)
     irb (1.15.2)
@@ -445,12 +443,6 @@ GEM
       zeitwerk (~> 2)
     sassc (2.4.0)
       ffi (~> 1.9)
-    sassc-rails (2.1.2)
-      railties (>= 4.0.0)
-      sassc (>= 2.0)
-      sprockets (> 3.0)
-      sprockets-rails
-      tilt
     securerandom (0.4.1)
     shellany (0.0.1)
     slim (5.2.1)
@@ -537,6 +529,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  activerecord-nulldb-adapter
   anyway_config (~> 2.7)
   bootsnap
   brakeman
@@ -545,7 +538,6 @@ DEPENDENCIES
   debug
   guard
   guard-minitest
-  importmap-rails
   kamal
   minitest (~> 5.25)
   mocha
@@ -554,7 +546,7 @@ DEPENDENCIES
   rails (~> 8.0.3)
   rubocop-rails-omakase
   ruby_llm (~> 1.8)
-  sassc-rails
+  sassc
   semver2!
   slim-rails
   solid_cable

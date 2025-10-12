@@ -9,4 +9,4 @@ RubyLLM.configure do |config|
 
   # Use the new association-based acts_as API (recommended)
   config.use_new_acts_as = true
-end
+end unless ENV.key? 'SECRET_KEY_BASE_DUMMY'

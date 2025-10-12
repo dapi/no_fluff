@@ -16,4 +16,4 @@ Rails.application.config.after_initialize do
     Bugsnag.notify(e, { context: 'deploy_notification_initializer' })
     Rails.logger.error "Deploy notification initialization failed: #{e.message}"
   end
-end
+end unless ENV.key? 'SECRET_KEY_BASE_DUMMY'
