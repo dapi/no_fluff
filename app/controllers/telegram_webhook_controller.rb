@@ -214,8 +214,7 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
 
   # Обработка обычных текстовых сообщений
   def message(message)
-    # Проверяем тип сообщения прямо здесь
-    if message&.dig('chat', 'type') == 'channel'
+    if channel_message?(message)
       save_channel_message(message)
       # НИКАКИХ ответов и обработки для канальных сообщений
       return
@@ -279,6 +278,10 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
 
   private
 
+  # Проверяет, является ли сообщение канальным
+  def channel_message?(message)
+    message&.dig('chat', 'type') == 'channel'
+  end
 
   # Сохраняет канальное сообщение
   def save_channel_message(message)
