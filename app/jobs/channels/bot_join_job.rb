@@ -14,17 +14,31 @@ class Channels::BotJoinJob < ApplicationJob
       channel.start_joining!
 
       # Пытаемся вступить в канал
-      success = attempt_to_join_channel(channel)
+      join_result = attempt_to_join_channel(channel)
 
-      if success
+      if join_result == true
         channel.mark_as_joined!
         notify_admins_success(channel)
         Rails.logger.info "Bot successfully joined channel #{channel.username}"
       else
-        error_message = extract_error_message(success)
-        channel.mark_as_join_failed!(error_message)
-        notify_admins_failure(channel, error_message)
-        Rails.logger.error "Bot failed to join channel #{channel.username}: #{error_message}"
+        error_info = Channels::BotJoinErrorHandler.classify_error(join_result[:error_description])
+        error_context = Channels::BotJoinErrorHandler.get_error_context(error_info, channel)
+
+        channel.mark_as_join_failed!(join_result[:error_description])
+        notify_admins_failure(channel, join_result[:error_description])
+
+        # Логируем с детальным контекстом
+        Rails.logger.error "Bot failed to join channel #{channel.username} - #{error_info[:type]}: #{join_result[:error_description]}"
+        Rails.logger.error "Error context: #{error_context.to_json}"
+
+        # Отправляем уведомление в Bugsnag с полным контекстом
+        Bugsnag.notify(
+          StandardError.new("Bot join failed: #{error_info[:type]}"),
+          error_info[:admin_message]
+        ) do |b|
+          b.metadata = error_context
+          b.severity = Channels::BotJoinErrorHandler.get_severity_level(error_info)
+        end
       end
     end
   end
@@ -70,12 +84,10 @@ class Channels::BotJoinJob < ApplicationJob
   end
 
   def notify_admins_success(channel)
-    # TODO: Implement admin notifications in stage 4
-    Rails.logger.info "Bot successfully joined channel: #{channel.username} (#{channel.title})"
+    Channels::BotJoinNotificationService.new.notify_success(channel)
   end
 
   def notify_admins_failure(channel, error_message)
-    # TODO: Implement admin notifications in stage 4
-    Rails.logger.error "Bot failed to join channel #{channel.username}: #{error_message}"
+    Channels::BotJoinNotificationService.new.notify_failure(channel, error_message)
   end
 end

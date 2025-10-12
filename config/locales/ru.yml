@@ -306,3 +306,24 @@ ru:
           📤 Отправлено: %{sent_count}
           ❌ Ошибок: %{error_count}
           👥 Всего подписчиков: %{total_subscribers}
+
+    bot_join:
+      success: |
+        ✅ Бот успешно вступил в канал!
+
+        📺 *Канал:* %{channel_title} (@%{channel_username})
+        🆔 *ID:* %{channel_id}
+        👥 *Подписчиков:* %{subscribers_count}
+        ⏰ *Время вступления:* %{joined_at}
+
+        Теперь бот будет получать посты из этого канала.
+      failure: |
+        ❌ Не удалось вступить в канал!
+
+        📺 *Канал:* %{channel_title} (@%{channel_username})
+        🆔 *ID:* %{channel_id}
+        ❌ *Ошибка:* %{error_message}
+        ⏰ *Время ошибки:* %{failed_at}
+
+        Бот не сможет получать посты из этого канала.
+        Проверьте настройки приватности канала или права бота.
