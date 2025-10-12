@@ -76,7 +76,7 @@ module Telegram::SubscriptionCommands
 
     # Построить текст списка подписок
     def build_subscriptions_list(subscriptions)
-      text = "#{I18n.t('telegram_bot.channels.list.title')}\n\n"
+      text = "#{I18n.t('telegram_bot.channels.list.title', count: subscriptions.count)}\n\n"
       text += "#{I18n.t('telegram_bot.channels.list.total', count: subscriptions.count)}\n\n"
 
       subscriptions.each do |subscription|
