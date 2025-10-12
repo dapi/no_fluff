@@ -1,7 +1,7 @@
 # Сервис для работы с Telegram каналами
 module Telegram
   class ChannelService
-    def initialize(bot)
+    def initialize(bot = Telegram.bot)
       @bot = bot
     end
 
@@ -97,6 +97,85 @@ module Telegram
       end
     end
 
+    # Добавляет или обновляет канал в базе данных по username
+    # @param channel_username [String] - username канала (может быть в разных форматах)
+    # @return [Hash] - результат операции { success: true/false, channel: Channel, message: String }
+    def add_channel_to_database(channel_username)
+      # Парсим username
+      username = parse_channel_username(channel_username)
+
+      unless username
+        return {
+          success: false,
+          channel: nil,
+          message: I18n.t('telegram_bot.channels.add.invalid_format')
+        }
+      end
+
+      # Получаем информацию о канале
+      channel_info = get_channel_info(username)
+
+      unless channel_info
+        return {
+          success: false,
+          channel: nil,
+          message: I18n.t('telegram_bot.channels.add.not_found', channel: "@#{username}")
+        }
+      end
+
+      # Находим или создаем канал в БД
+      channel = Channel.find_or_initialize_by(telegram_id: channel_info[:id])
+
+      if channel.new_record?
+        channel.assign_attributes(
+          username: channel_info[:username] || username,
+          title: channel_info[:title],
+          description: channel_info[:description],
+          subscribers_count: channel_info[:member_count]
+        )
+
+        unless channel.save
+          return {
+            success: false,
+            channel: nil,
+            message: I18n.t('telegram_bot.channels.add.error', error: channel.errors.full_messages.join(', '))
+          }
+        end
+      else
+        # Обновляем информацию о канале
+        channel.update(
+          title: channel_info[:title],
+          description: channel_info[:description],
+          subscribers_count: channel_info[:member_count]
+        )
+      end
+
+      {
+        success: true,
+        channel: channel,
+        message: nil
+      }
+    rescue StandardError => e
+      Bugsnag.notify(e) { |b| b.metadata = { channel_username: channel_username, action: 'add_channel_to_database' } }
+
+      ErrorNotificationService.notify_service_error(e,
+        service: self.class,
+        method: 'add_channel_to_database',
+        metadata: {
+          channel_username: channel_username,
+          error_class: e.class.name,
+          error_message: e.message
+        }
+      )
+      Rails.logger.error "Error adding channel to database: #{e.message}"
+
+      {
+        success: false,
+        channel: nil,
+        message: I18n.t('telegram_bot.channels.add.error', error: e.message)
+      }
+    end
+
     # Добавляет канал в подписки пользователя
     # @param user [TelegramUser] - пользователь
     # @param channel_username [String] - username канала
@@ -123,41 +202,17 @@ module Telegram
         }
       end
 
-      # Получаем информацию о канале
-      channel_info = get_channel_info(username)
+      # Добавляем или обновляем канал в базе данных
+      channel_result = add_channel_to_database(channel_username)
 
-      unless channel_info
+      unless channel_result[:success]
         return {
           success: false,
-          message: I18n.t('telegram_bot.channels.add.not_found', channel: "@#{username}")
+          message: channel_result[:message]
         }
       end
 
-      # Находим или создаем канал в БД
-      channel = Channel.find_or_initialize_by(telegram_id: channel_info[:id])
-
-      if channel.new_record?
-        channel.assign_attributes(
-          username: channel_info[:username] || username,
-          title: channel_info[:title],
-          description: channel_info[:description],
-          subscribers_count: channel_info[:member_count]
-        )
-
-        unless channel.save
-          return {
-            success: false,
-            message: I18n.t('telegram_bot.channels.add.error', error: channel.errors.full_messages.join(', '))
-          }
-        end
-      else
-        # Обновляем информацию о канале
-        channel.update(
-          title: channel_info[:title],
-          description: channel_info[:description],
-          subscribers_count: channel_info[:member_count]
-        )
-      end
+      channel = channel_result[:channel]
 
       # Проверяем, не подписан ли уже пользователь
       subscription = user.subscriptions.find_by(channel: channel)

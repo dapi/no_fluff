@@ -216,4 +216,35 @@ class Telegram::ChannelServiceTest < ActiveSupport::TestCase
       end
     end
   end
+
+  # Тесты add_channel_to_database
+
+  test 'add_channel_to_database creates new channel with username' do
+    # Мокаем get_channel_info чтобы возвращать тестовые данные
+    mock_channel_info = {
+      id: 12345,
+      username: 'testchannel',
+      title: 'Test Channel',
+      description: 'Test Description',
+      member_count: 1000
+    }
+
+    @service.stubs(:get_channel_info).returns(mock_channel_info)
+
+    result = @service.add_channel_to_database('@testchannel')
+
+    assert result[:success]
+    assert_not_nil result[:channel]
+    assert_nil result[:message]
+
+    channel = result[:channel]
+    assert_equal 12345, channel.telegram_id
+    assert_equal 'testchannel', channel.username
+    assert_equal 'Test Channel', channel.title
+    assert_equal 'Test Description', channel.description
+    assert_equal 1000, channel.subscribers_count
+
+    # Возвращаем оригинальный метод
+    @service.unstub(:get_channel_info)
+  end
 end
