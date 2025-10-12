@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_11_143804) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_11_155051) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -79,6 +79,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_11_143804) do
     t.index ["status"], name: "index_chats_on_status"
     t.index ["telegram_user_id", "session_type"], name: "index_chats_on_telegram_user_id_and_session_type"
     t.index ["telegram_user_id"], name: "index_chats_on_telegram_user_id"
+  end
+
+  create_table "deploy_notifications", force: :cascade do |t|
+    t.string "version", null: false
+    t.jsonb "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_deploy_notifications_on_created_at"
+    t.index ["version"], name: "index_deploy_notifications_on_version", unique: true
   end
 
   create_table "feedbacks", force: :cascade do |t|
@@ -195,7 +204,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_11_143804) do
     t.index ["active"], name: "index_subscriptions_on_active"
     t.index ["channel_id"], name: "index_subscriptions_on_channel_id"
     t.index ["last_digest_sent_at"], name: "index_subscriptions_on_last_digest_sent_at"
-
     t.index ["telegram_user_id", "active"], name: "index_subscriptions_on_user_and_active"
     t.index ["telegram_user_id", "channel_id"], name: "index_subscriptions_on_telegram_user_id_and_channel_id", unique: true
     t.index ["telegram_user_id"], name: "index_subscriptions_on_telegram_user_id"
