@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path' | { read file_path; if echo \"$file_path\" | grep -q '\\.rb$'; then rubocop -A \"$file_path\" 2>&1 | head -n 20; fi; }"
+          }
+        ]
+      }
+    ]
+  }
+}
