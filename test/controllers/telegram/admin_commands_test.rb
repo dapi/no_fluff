@@ -255,7 +255,7 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
 
     message_content = extract_message_content(@bot.requests)
     assert_not_nil message_content
-    assert_includes message_content[:text], I18n.t('telegram_bot.channels.list.admin_only')
+    assert_includes message_content[:text], I18n.t('telegram_bot.channels.admin_list.admin_only')
   end
 
   test 'channels list shows message with available channels' do

@@ -7,7 +7,7 @@ module Telegram::AdminCommands
     # Проверяем права доступа
     unless current_user&.is_admin?
       Rails.logger.warn "Unauthorized access attempt to /channels by user #{current_user&.username}"
-      respond_with :message, text: I18n.t('telegram_bot.channels.list.admin_only')
+      respond_with :message, text: I18n.t('telegram_bot.channels.admin_list.admin_only')
       return
     end
 
@@ -22,7 +22,7 @@ module Telegram::AdminCommands
       channels_with_subscribers = get_channels_with_subscribers(page, per_page)
 
       if channels_with_subscribers[:channels].empty?
-        respond_with :message, text: I18n.t('telegram_bot.channels.list.empty')
+        respond_with :message, text: I18n.t('telegram_bot.channels.admin_list.empty')
         return
       end
 
@@ -44,7 +44,7 @@ module Telegram::AdminCommands
   # Callback query для пагинации списка каналов
   def channels_page_callback_query(page = nil)
     unless current_user&.is_admin?
-      answer_callback_query(I18n.t('telegram_bot.channels.list.admin_only'))
+      answer_callback_query(I18n.t('telegram_bot.channels.admin_list.admin_only'))
       return
     end
 
@@ -58,7 +58,7 @@ module Telegram::AdminCommands
       channels_with_subscribers = get_channels_with_subscribers(page, per_page)
 
       if channels_with_subscribers[:channels].empty?
-        edit_message :text, text: I18n.t('telegram_bot.channels.list.empty')
+        edit_message :text, text: I18n.t('telegram_bot.channels.admin_list.empty')
         return
       end
 
@@ -125,7 +125,7 @@ module Telegram::AdminCommands
     total_count = channels_data[:total_count]
 
     message_parts = []
-    message_parts << "📊 Список каналов в системе (всего: #{total_count})"
+    message_parts << I18n.t('telegram_bot.channels.admin_list.title', count: total_count)
     message_parts << ''
 
     channels.each_with_index do |channel, index|
@@ -160,7 +160,7 @@ module Telegram::AdminCommands
     # Добавляем информацию о пагинации
     if total_pages > 1
       message_parts << ''
-      message_parts << "Страница #{current_page} из #{total_pages}"
+      message_parts << I18n.t('telegram_bot.channels.admin_list.pagination_info', current: current_page, total: total_pages)
     end
 
     message_parts.join("\n")
@@ -182,19 +182,19 @@ module Telegram::AdminCommands
     count = count.to_i
 
     if count == 0
-      '0 подписчиков'
+      I18n.t('telegram_bot.channels.admin_list.subscribers', count: 0)
     elsif count == 1
       '1 подписчик'
     elsif count >= 2 && count <= 4
       "#{count} подписчика"
     elsif count >= 5 && count <= 20
-      "#{count} подписчиков"
+      I18n.t('telegram_bot.channels.admin_list.subscribers', count: count)
     elsif count % 10 == 1
       "#{count} подписчик"
     elsif count % 10 >= 2 && count % 10 <= 4
       "#{count} подписчика"
     else
-      "#{count} подписчиков"
+      I18n.t('telegram_bot.channels.admin_list.subscribers', count: count)
     end
   end
 
@@ -203,7 +203,7 @@ module Telegram::AdminCommands
     return 'Нет постов' unless last_post_at
 
     time_ago = time_ago_in_words(last_post_at)
-    "Последний пост: #{time_ago}"
+    "#{I18n.t('telegram_bot.channels.admin_list.last_post')} #{time_ago}"
   end
 
   # Создает клавиатуру для списка каналов
@@ -220,7 +220,7 @@ module Telegram::AdminCommands
     # Кнопка "Предыдущая"
     if current_page > 1
       nav_buttons << callback_button(
-        '← Предыдущая',
+        I18n.t('telegram_bot.channels.admin_list.previous_page'),
         "channels_page:#{current_page - 1}"
       )
     end
@@ -228,7 +228,7 @@ module Telegram::AdminCommands
     # Кнопка "Следующая"
     if current_page < total_pages
       nav_buttons << callback_button(
-        'Следующая →',
+        I18n.t('telegram_bot.channels.admin_list.next_page'),
         "channels_page:#{current_page + 1}"
       )
     end
@@ -236,7 +236,7 @@ module Telegram::AdminCommands
     buttons << nav_buttons if nav_buttons.any?
 
     # Кнопка закрытия
-    buttons << [ callback_button('✖️ Закрыть', 'close_channels_list:') ]
+    buttons << [ callback_button(I18n.t('telegram_bot.channels.admin_list.close'), 'close_channels_list:') ]
 
     inline_keyboard(*buttons)
   end
@@ -244,11 +244,11 @@ module Telegram::AdminCommands
   # Callback query для закрытия списка каналов
   def close_channels_list_callback_query(*)
     unless current_user&.is_admin?
-      answer_callback_query(I18n.t('telegram_bot.channels.list.admin_only'))
+      answer_callback_query(I18n.t('telegram_bot.channels.admin_list.admin_only'))
       return
     end
 
-    answer_callback_query('Список каналов закрыт')
+    answer_callback_query(I18n.t('telegram_bot.channels.admin_list.closed'))
 
     # Удаляем сообщение или заменяем его на простое сообщение
     begin
