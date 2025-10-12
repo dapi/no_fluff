@@ -1,0 +1,29 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  model_id: gpt-4
+  name: GPT-4
+  provider: openai
+  family: gpt-4
+  model_created_at: 2023-03-14 00:00:00
+  context_window: 8192
+  max_output_tokens: 4096
+  knowledge_cutoff: 2023-04-01
+  modalities: { "text": true, "vision": false }
+  capabilities: ["chat", "function_calling"]
+  pricing: { "input": 0.03, "output": 0.06 }
+  metadata: { "description": "Most capable GPT-4 model" }
+
+two:
+  model_id: claude-3-5-sonnet-20241022
+  name: Claude 3.5 Sonnet
+  provider: anthropic
+  family: claude-3
+  model_created_at: 2024-10-22 00:00:00
+  context_window: 200000
+  max_output_tokens: 8192
+  knowledge_cutoff: 2024-04-01
+  modalities: { "text": true, "vision": true }
+  capabilities: ["chat", "function_calling", "vision"]
+  pricing: { "input": 0.003, "output": 0.015 }
+  metadata: { "description": "Most intelligent Claude model" }

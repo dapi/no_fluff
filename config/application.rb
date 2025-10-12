@@ -6,6 +6,11 @@ require 'rails/all'
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
+# Configure RubyLLM before Rails::Application is inherited
+RubyLLM.configure do |config|
+  config.use_new_acts_as = true
+end
+
 module NoFluff
   class Application < Rails::Application
     # Configure the path for configuration classes that should be used before initialization
