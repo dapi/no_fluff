@@ -79,7 +79,7 @@ C4Container
    - Бизнес-логика
 
 2. **Background Workers** (Solid Queue)
-   - Channel Monitor Workers - мониторинг новых постов
+   - Channel Bot Join Workers - вступление бота в каналы
    - Content Processor Workers - AI-анализ контента
    - Digest Builder Workers - формирование дайджестов
    - Delivery Workers - отправка дайджестов по расписанию
@@ -311,8 +311,7 @@ app/
 │       └── adaptive_filter.rb
 ├── jobs/
 │   ├── channels/
-│   │   ├── monitor_job.rb
-│   │   └── fetch_posts_job.rb
+│   │   └── bot_join_job.rb
 │   ├── content/
 │   │   ├── process_post_job.rb
 │   │   ├── classify_job.rb
@@ -397,6 +396,17 @@ class Channel < ApplicationRecord
 
   validates :telegram_id, presence: true, uniqueness: true
   validates :username, presence: true
+
+  enum bot_join_status: {
+    not_joined: 0,
+    joining: 1,
+    joined: 2,
+    join_failed: 3
+  }
+
+  def bot_can_monitor?
+    active? && joined?
+  end
 end
 ```
 
@@ -469,33 +479,59 @@ end
 
 ## Ключевые процессы и workflows
 
-### 1. Мониторинг каналов (Channel Monitoring Workflow)
+### 1. Вступление бота в канал (Bot Channel Join Workflow)
 
 ```mermaid
 sequenceDiagram
-    participant Scheduler
-    participant MonitorJob
-    participant ChannelFetcher
+    participant User
+    participant ChannelService
+    participant BotJoinJob
+    participant TelegramAPI
+    participant DB
+
+    User->>ChannelService: Добавить канал
+    ChannelService->>DB: Сохранить канал (bot_join_status: not_joined)
+    ChannelService->>BotJoinJob: perform_later(channel.id)
+    BotJoinJob->>DB: Обновить статус на joining
+    BotJoinJob->>TelegramAPI: Попытка вступить в канал
+    alt Успешное вступление
+        TelegramAPI->>BotJoinJob: Успех
+        BotJoinJob->>DB: Обновить статус на joined
+        BotJoinJob->>User: Уведомление об успехе
+    else Ошибка вступления
+        TelegramAPI->>BotJoinJob: Ошибка
+        BotJoinJob->>DB: Обновить статус на join_failed + bot_join_error
+        BotJoinJob->>User: Уведомление об ошибке
+    end
+```
+
+### 2. Обработка постов через Webhook (Webhook Post Processing Workflow)
+
+```mermaid
+sequenceDiagram
+    participant TelegramChannel
+    participant WebhookController
+    participant Channel
     participant ContentProcessor
     participant AIClassifier
     participant Deduplicator
     participant DB
 
-    Scheduler->>MonitorJob: Запуск каждые N минут
-    MonitorJob->>DB: Получить активные каналы
-    loop Для каждого канала
-        MonitorJob->>ChannelFetcher: Fetch new posts
-        ChannelFetcher->>MonitorJob: Новые посты
-        MonitorJob->>ContentProcessor: Process posts
+    TelegramChannel->>WebhookController: Новый пост
+    WebhookController->>Channel: Найти канал по username/ID
+    alt Бот вступил в канал (bot_join_status: joined)
+        Channel->>ContentProcessor: Process new post
         ContentProcessor->>AIClassifier: Classify importance
         AIClassifier->>ContentProcessor: Importance score
         ContentProcessor->>Deduplicator: Check duplicates
         Deduplicator->>ContentProcessor: Duplicate status
-        ContentProcessor->>DB: Save posts + metadata
+        ContentProcessor->>DB: Save post + metadata
+    else Бот не вступил в канал
+        WebhookController->>TelegramChannel: Игнорировать пост
     end
 ```
 
-### 2. Формирование и доставка дайджеста (Digest Building Workflow)
+### 3. Формирование и доставка дайджеста (Digest Building Workflow)
 
 ```mermaid
 sequenceDiagram
@@ -523,7 +559,7 @@ sequenceDiagram
     DigestBuilder->>DB: Обновить статус
 ```
 
-### 3. Обработка фидбека (Feedback Processing Workflow)
+### 4. Обработка фидбека (Feedback Processing Workflow)
 
 ```mermaid
 sequenceDiagram

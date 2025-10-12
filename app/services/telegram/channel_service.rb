@@ -141,6 +141,9 @@ module Telegram
             message: I18n.t('telegram_bot.channels.add.error', error: channel.errors.full_messages.join(', '))
           }
         end
+
+        # Запускаем задачу для вступления бота в канал
+        Channels::BotJoinJob.perform_later(channel.id)
       else
         # Обновляем информацию о канале
         channel.update(
@@ -148,6 +151,11 @@ module Telegram
           description: channel_info[:description],
           subscribers_count: channel_info[:member_count]
         )
+
+        # Если канал еще не вступал, запускаем задачу для вступления
+        if channel.not_joined?
+          Channels::BotJoinJob.perform_later(channel.id)
+        end
       end
 
       {

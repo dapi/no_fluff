@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_12_175321) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_12_182307) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -42,6 +42,24 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_12_175321) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "channel_messages", force: :cascade do |t|
+    t.bigint "message_id", null: false
+    t.bigint "channel_id", null: false
+    t.string "channel_username"
+    t.string "channel_title"
+    t.bigint "sender_id"
+    t.string "sender_username"
+    t.string "sender_first_name"
+    t.string "sender_last_name"
+    t.text "content"
+    t.string "message_type"
+    t.jsonb "raw_data"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["channel_id"], name: "index_channel_messages_on_channel_id"
+    t.index ["message_id", "channel_id"], name: "index_channel_messages_on_unique", unique: true
+  end
+
   create_table "channels", force: :cascade do |t|
     t.bigint "telegram_id", null: false
     t.string "username", null: false
@@ -56,6 +74,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_12_175321) do
     t.datetime "last_successful_update_at", precision: nil
     t.datetime "deactivated_at", precision: nil
     t.string "deactivation_reason"
+    t.string "bot_join_status", default: "not_joined", null: false
+    t.text "bot_join_error"
+    t.datetime "bot_join_at"
+    t.index ["bot_join_status"], name: "index_channels_on_bot_join_status"
     t.index ["deactivated_at"], name: "index_channels_on_deactivated_at"
     t.index ["last_post_at"], name: "index_channels_on_last_post_at"
     t.index ["last_successful_update_at"], name: "index_channels_on_last_successful_update_at"

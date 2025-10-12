@@ -239,4 +239,138 @@ class ChannelTest < ActiveSupport::TestCase
     )
     assert channel.valid?
   end
+
+  # Bot join status tests
+  test 'should have default bot_join_status as not_joined' do
+    channel = Channel.create!(
+      telegram_id: '1234567899',
+      username: 'new_channel'
+    )
+    assert_equal 'not_joined', channel.bot_join_status
+  end
+
+  test 'bot_join_status enum should accept all valid values' do
+    channel = channels(:one)
+
+    valid_statuses = %w[not_joined joining joined join_failed]
+    valid_statuses.each do |status|
+      channel.bot_join_status = status
+      assert channel.valid?, "Channel should be valid with bot_join_status=#{status}"
+    end
+  end
+
+  test 'bot_join_status enum should reject invalid values' do
+    channel = channels(:one)
+    channel.bot_join_status = 'invalid_status'
+    assert_not channel.valid?
+    assert channel.errors[:bot_join_status].present?
+  end
+
+  # Bot join status scope tests
+  test 'joined scope should return only joined channels' do
+    channel1 = channels(:one)
+    channel1.update!(bot_join_status: 'joined')
+
+    channel2 = channels(:two)
+    channel2.update!(bot_join_status: 'not_joined')
+
+    joined_channels = Channel.joined
+    assert_includes joined_channels, channel1
+    assert_not_includes joined_channels, channel2
+  end
+
+  test 'not_joined scope should return only not_joined channels' do
+    channel1 = channels(:one)
+    channel1.update!(bot_join_status: 'not_joined')
+
+    channel2 = channels(:two)
+    channel2.update!(bot_join_status: 'joined')
+
+    not_joined_channels = Channel.not_joined
+    assert_includes not_joined_channels, channel1
+    assert_not_includes not_joined_channels, channel2
+  end
+
+  test 'joining scope should return only joining channels' do
+    channel1 = channels(:one)
+    channel1.update!(bot_join_status: 'joining')
+
+    channel2 = channels(:two)
+    channel2.update!(bot_join_status: 'joined')
+
+    joining_channels = Channel.joining
+    assert_includes joining_channels, channel1
+    assert_not_includes joining_channels, channel2
+  end
+
+  test 'join_failed scope should return only join_failed channels' do
+    channel1 = channels(:one)
+    channel1.update!(bot_join_status: 'join_failed')
+
+    channel2 = channels(:two)
+    channel2.update!(bot_join_status: 'joined')
+
+    join_failed_channels = Channel.join_failed
+    assert_includes join_failed_channels, channel1
+    assert_not_includes join_failed_channels, channel2
+  end
+
+  # Bot join status method tests
+  test 'start_joining! should update status to joining' do
+    channel = channels(:one)
+    channel.start_joining!
+
+    assert_equal 'joining', channel.bot_join_status
+  end
+
+  test 'mark_as_joined! should update status to joined and set timestamp' do
+    channel = channels(:one)
+    channel.update!(bot_join_status: 'joining')
+
+    freeze_time do
+      channel.mark_as_joined!
+
+      assert_equal 'joined', channel.bot_join_status
+      assert_in_delta Time.current, channel.bot_join_at, 1.second
+      assert_nil channel.bot_join_error
+    end
+  end
+
+  test 'mark_as_join_failed! should update status to join_failed and set error' do
+    channel = channels(:one)
+    error_message = 'Channel is private'
+
+    channel.mark_as_join_failed!(error_message)
+
+    assert_equal 'join_failed', channel.bot_join_status
+    assert_equal error_message, channel.bot_join_error
+  end
+
+  test 'bot_can_monitor? should return true for active and joined channels' do
+    channel = channels(:one)
+    channel.update!(bot_join_status: 'joined', deactivated_at: nil)
+
+    assert channel.bot_can_monitor?
+  end
+
+  test 'bot_can_monitor? should return false for inactive channels' do
+    channel = channels(:one)
+    channel.update!(bot_join_status: 'joined', deactivated_at: 1.hour.ago)
+
+    assert_not channel.bot_can_monitor?
+  end
+
+  test 'bot_can_monitor? should return false for not joined channels' do
+    channel = channels(:one)
+    channel.update!(bot_join_status: 'not_joined', deactivated_at: nil)
+
+    assert_not channel.bot_can_monitor?
+  end
+
+  test 'bot_can_monitor? should return false for failed join channels' do
+    channel = channels(:one)
+    channel.update!(bot_join_status: 'join_failed', deactivated_at: nil)
+
+    assert_not channel.bot_can_monitor?
+  end
 end
