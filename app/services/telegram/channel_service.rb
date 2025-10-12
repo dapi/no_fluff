@@ -152,6 +152,11 @@ module Telegram
           subscribers_count: channel_info[:member_count]
         )
 
+        # Если канал был деактивирован - активируем его
+        if !channel.active?
+          channel.activate!
+        end
+
         # Если канал еще не вступал, запускаем задачу для вступления
         if channel.not_joined?
           Channels::BotJoinJob.perform_later(channel.id)
