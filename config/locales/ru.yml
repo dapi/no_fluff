@@ -144,6 +144,7 @@ ru:
         success: "✅ Канал %{channel} добавлен!\n\nВсего каналов: %{count}"
         suggest_another: "💪 Отлично!\nДобавляй следующий канал - присылай ссылку или имя"
         already_subscribed: "ℹ️ Ты уже подписан на канал %{channel}. Присылай ссылку на другой"
+        updated: "✅ Канал %{channel} обновлён!"
         not_found: "❌ Канал %{channel} не найден или недоступен"
         invalid_format: "❌ Неверный формат. Отправь имя канала (@channelname) или ссылку (t.me/channelname)"
         error: "❌ Ошибка при добавлении канала: %{error}"

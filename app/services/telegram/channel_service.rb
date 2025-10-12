@@ -237,9 +237,14 @@ module Telegram
             channel: channel
           }
         else
+          # Если подписка уже активна - снимаем активность и активируем заново для обновления
+          subscription.deactivate!
+          subscription.activate!
           return {
-            success: false,
-            message: I18n.t('telegram_bot.channels.add.already_subscribed', channel: "@#{channel.username}")
+            success: true,
+            message: I18n.t('telegram_bot.channels.add.updated',
+                           channel: "@#{channel.username}"),
+            channel: channel
           }
         end
       end
