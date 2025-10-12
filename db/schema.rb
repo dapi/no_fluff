@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_11_155051) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_12_175321) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -54,8 +54,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_11_155051) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "last_successful_update_at", precision: nil
-    t.datetime "deactivated_at"
+    t.datetime "deactivated_at", precision: nil
     t.string "deactivation_reason"
+    t.index ["deactivated_at"], name: "index_channels_on_deactivated_at"
     t.index ["last_post_at"], name: "index_channels_on_last_post_at"
     t.index ["last_successful_update_at"], name: "index_channels_on_last_successful_update_at"
     t.index ["monitored_at"], name: "index_channels_on_monitored_at"
