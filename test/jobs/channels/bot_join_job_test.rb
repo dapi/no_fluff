@@ -148,6 +148,143 @@ class Channels::BotJoinJobTest < ActiveJob::TestCase
     end
   end
 
+  test 'should send success notifications when bot joins channel' do
+    channel = channels(:one)
+    channel.update!(bot_join_status: 'not_joined')
+
+    mock_bot = Minitest::Mock.new
+    mock_response = { 'ok' => true, 'result' => { 'id' => channel.telegram_id } }
+    mock_bot.expect(:get_chat, mock_response, [ { chat_id: channel.telegram_id } ])
+
+    # Mock notification service
+    notification_service = Minitest::Mock.new
+    notification_service.expect(:notify_success, nil, [ channel ])
+
+    Channels::BotJoinNotificationService.stub(:new, notification_service) do
+      Telegram.stub(:bots, { default: mock_bot }) do
+        Channels::BotJoinJob.perform_now(channel.id)
+      end
+    end
+
+    notification_service.verify
+  end
+
+  test 'should send failure notifications when bot fails to join channel' do
+    channel = channels(:one)
+    channel.update!(bot_join_status: 'not_joined')
+
+    mock_bot = Minitest::Mock.new
+    mock_response = {
+      'ok' => false,
+      'error_code' => 404,
+      'description' => 'Bad Request: chat not found'
+    }
+    mock_bot.expect(:get_chat, mock_response, [ { chat_id: channel.telegram_id } ])
+
+    # Mock notification service
+    notification_service = Minitest::Mock.new
+    notification_service.expect(:notify_failure, nil, [ channel, 'Bad Request: chat not found' ])
+
+    Channels::BotJoinNotificationService.stub(:new, notification_service) do
+      Telegram.stub(:bots, { default: mock_bot }) do
+        Channels::BotJoinJob.perform_now(channel.id)
+      end
+    end
+
+    notification_service.verify
+  end
+
+  test 'should classify error and send context to Bugsnag on failure' do
+    channel = channels(:one)
+    channel.update!(bot_join_status: 'not_joined', title: 'Test Channel')
+
+    mock_bot = Minitest::Mock.new
+    mock_response = {
+      'ok' => false,
+      'error_code' => 403,
+      'description' => 'Forbidden: bot was kicked from the channel'
+    }
+    mock_bot.expect(:get_chat, mock_response, [ { chat_id: channel.telegram_id } ])
+
+    # Mock notification service
+    notification_service = Minitest::Mock.new
+    notification_service.expect(:notify_failure, nil, [ channel, 'Forbidden: bot was kicked from the channel' ])
+
+    # Test error classification
+    Channels::BotJoinErrorHandler.stub(:classify_error, { type: :bot_kicked, admin_message: 'Test error', severity: :high }) do
+      Channels::BotJoinNotificationService.stub(:new, notification_service) do
+        Telegram.stub(:bots, { default: mock_bot }) do
+          # Mock Bugsnag
+          Bugsnag.stub(:notify, true) do |exception, message, &block|
+            assert_equal 'Bot join failed: bot_kicked', exception.message
+            assert_equal 'Test error', message
+          end
+
+          Channels::BotJoinJob.perform_now(channel.id)
+        end
+      end
+    end
+
+    notification_service.verify
+  end
+
+  test 'should include error context in logs and Bugsnag' do
+    channel = channels(:one)
+    channel.update!(
+      bot_join_status: 'not_joined',
+      title: 'Test Channel',
+      username: 'testchannel',
+      telegram_id: -1001234567890
+    )
+
+    mock_bot = Minitest::Mock.new
+    mock_response = {
+      'ok' => false,
+      'error_code' => 429,
+      'description' => 'Too many requests: retry after 30 seconds'
+    }
+    mock_bot.expect(:get_chat, mock_response, [ { chat_id: channel.telegram_id } ])
+
+    # Mock notification service
+    notification_service = Minitest::Mock.new
+    notification_service.expect(:notify_failure, nil, [ channel, 'Too many requests: retry after 30 seconds' ])
+
+    # Mock error handler to return specific context
+    error_context = {
+      channel: {
+        id: channel.id,
+        username: channel.username,
+        title: channel.title,
+        telegram_id: channel.telegram_id
+      },
+      error: { type: :rate_limit },
+      timestamp: Time.current,
+      environment: 'test',
+      bot_info: { username: 'test_bot' }
+    }
+
+    Channels::BotJoinErrorHandler.stub(:classify_error, { type: :rate_limit, admin_message: 'Rate limit', severity: :medium }) do
+      Channels::BotJoinErrorHandler.stub(:get_error_context, error_context) do
+        Channels::BotJoinNotificationService.stub(:new, notification_service) do
+          Telegram.stub(:bots, { default: mock_bot }) do
+            # Test Bugsnag metadata
+            Bugsnag.stub(:notify, true) do |exception, message, &block|
+              metadata_block = block.call
+              assert_equal error_context, metadata_block.metadata
+              assert_equal :medium, metadata_block.severity
+            end
+
+            assert_logs('Error context:') do
+              Channels::BotJoinJob.perform_now(channel.id)
+            end
+          end
+        end
+      end
+    end
+
+    notification_service.verify
+  end
+
   private
 
   def assert_logs(expected_message)

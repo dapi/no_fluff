@@ -10,12 +10,7 @@ class Channel < ApplicationRecord
   validates :username, presence: true, uniqueness: true
 
   # Enums
-  enum bot_join_status: {
-    not_joined: 0,
-    joining: 1,
-    joined: 2,
-    join_failed: 3
-  }
+  enum :bot_join_status, %w[not_joined joining joined join_failed]
 
   # Scopes
   scope :active, -> { where(deactivated_at: nil) }
