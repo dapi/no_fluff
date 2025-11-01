@@ -47,7 +47,10 @@
       "mcp__tavily__tavily-search",
       "Bash(./bin/rake:*)",
       "Bash(./docs/.spec_status_check.sh:*)",
-      "Bash(.git/hooks/pre-commit)"
+      "Bash(.git/hooks/pre-commit)",
+      "Bash(test_ruby_file.rb)",
+      "Bash(git add:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []
