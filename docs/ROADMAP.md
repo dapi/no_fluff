@@ -211,7 +211,7 @@
 - [x] Написать job тесты
 
 #### 1.5.5. Channel Update Timestamp (Spec FETCHPOSTJOB_TIMESTAMP)
-- [x] Создать спецификацию `docs/Specs/FETCHPOSTJOB_TIMESTAMP_Specification.md`
+- [x] Создать спецификацию `docs/Specs/051_FETCHPOSTJOB_TIMESTAMP_Specification.md`
 - [x] Создать план реализации `docs/Implementation/Spec_FETCHPOSTJOB_TIMESTAMP_Implementation.md`
 - [x] Создать миграцию для добавления `last_successful_update_at` в Channel модель
 - [x] Создать Concern `ChannelUpdatable` с методами:

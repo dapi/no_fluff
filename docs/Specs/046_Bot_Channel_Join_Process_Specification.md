@@ -1,427 +1,172 @@
-# Спецификация 046: Bot Channel Join Process
+# Спецификация 046: User-based Channel Access System (Compact)
+
+## Мета информация
+
+- **Номер:** 046
+- **Название:** Bot Channel Join Process
+- **Автор:**
+- **Создана:** 2025-11-02
+- **Статус:** delivered
+- **Связанные спецификации:**
+
+
+
+## 🚨 Ключевое изменение архитектуры
+
+**Проблема**: Telegram Bot API НЕ позволяет ботам самостоятельно вступать в каналы. Бот может быть добавлен только вручную администратором.
+
+**Решение**: Multi-User Pool Access через MTProto API с пулом FollowerUser аккаунтов.
 
 ## Общее описание
-Процесс автоматического вступления Telegram бота в каналы, добавленные в систему, для мониторинга контента. Включает управление состоянием вступления, обработку ошибок и уведомление администраторов.
 
-## Основные функции
+Система доступа к каналам через пул follower users для масштабируемого мониторинга контента. Включает управление состоянием доступа, базовое load balancing и обработку ошибок.
 
-### 1. Установка состояний вступления бота в канал
-- **Состояния**:
-  - `not_joined` - бот еще не вступал в канал
-  - `joining` - процесс вступления в прогрессе
-  - `joined` - бот успешно вступил в канал
-  - `join_failed` - не получилось вступить в канал
+## Архитектура
 
-### 2. Job для вступления в канал
-- **Название**: `Channels::BotJoinJob`
-- **Очередь**: `channels`
-- **Триггер**: После добавления нового канала в систему
-- **Retries**: 3 попытки с экспоненциальным backoff
+### 1. Multi-User Pool (3-50 аккаунтов)
+- **Масштаб**: До 20000 каналов
+- **Ограничения**: 500 каналов/аккаунт, 50 вступлений/день
+- **Load Balancing**: Автоматическое распределение каналов
 
-### 3. Мониторинг только активных каналов
-- Учитывать состояние `bot_join_status` при выборе каналов для мониторинга
-- Мониторить только каналы со статусом `joined`
-- Пропускать каналы со статусами `not_joined`, `joining`, `join_failed`
+### 2. Базовые модели данных
 
-### 4. Обработка результатов вступления
-- **Успешное вступление**:
-  - Обновить статус на `joined`
-  - Отправить уведомление администраторам
-  - Начать мониторинг канала
-
-- **Неудачное вступление**:
-  - Обновить статус на `join_failed`
-  - Сохранить причину ошибки
-  - Отправить уведомление администраторам с деталями
-
-## Детали состояний
-
-### Bot Join Status (enum)
+#### Channel Model
 ```ruby
-enum bot_join_status: {
-  not_joined: 0,    # Бот еще не пытался вступить
-  joining: 1,       # Процесс вступления в прогрессе
-  joined: 2,        # Бот успешно вступил
-  join_failed: 3    # Не получилось вступить
+enum user_access_status: {
+  not_joined: 0,    # Пользователь еще не вступал
+  joining: 1,       # Процесс вступления
+  joined: 2,        # Пользователь успешно вступил
+  join_failed: 3,   # Не получилось вступить
+  access_revoked: 4 # Доступ отозван
 }
+
+reference :follower_user            # Назначенный follower user
+enum :assignment_status, default: :unassigned
 ```
 
-### Поля модели Channel
+#### FollowerUser Model
 ```ruby
-# Существующие поля + новые:
-t.string :bot_join_status, default: 'not_joined'
-t.text :bot_join_error, null: true
-t.datetime :bot_join_at, null: true
+string :phone_number, null: false
+enum auth_status: { pending: 0, authorized: 1, restricted: 2, banned: 3 }
+
+# Capacity и метрики
+integer :max_channels, default: 400
+integer :daily_joins_limit, default: 50
+integer :channels_count, default: 0
+decimal :workload_score, precision: 5, scale: 2, default: 0.0
+
+# Health monitoring
+decimal :health_score, precision: 5, scale: 2, default: 100.0
+integer :consecutive_errors, default: 0
 ```
 
-## Process Flow
-
-### 1. Добавление канала
-```
-User добавляет канал
-       ↓
-ChannelService.add_channel_to_database
-       ↓
-Если канал создан успешно → Channels::BotJoinJob.perform_later(channel.id)
-```
-
-### 2. Процесс вступления бота
-```
-Channels::BotJoinJob.perform(channel.id)
-       ↓
-Обновить статус на joining
-       ↓
-Попытаться вступить в канал через Telegram API
-       ↓
-Если успех → статус joined, уведомить админов
-Если ошибка → статус join_failed, сохранить ошибку, уведомить админов
-```
-
-### 3. Мониторинг каналов
-```
-Channels::MonitorJob.perform
-       ↓
-Только каналы где active: true И bot_join_status: 'joined'
-       ↓
-Запуск FetchPostsJob для каждого подходящего канала
-```
-
-## Error handling
-
-### Типы ошибок вступления
-- **Channel is private** - канал приватный, требуется приглашение
-- **Bot was kicked** - бота удалили из канала
-- **Too many attempts** - превышен лимит попыток вступления
-- **Invalid invite link** - невалидная ссылка-приглашение
-- **Bot permissions insufficient** - недостаточно прав у бота
-- **API rate limit** - превышен лимит запросов к Telegram API
-- **Network error** - проблемы с сетью
-- **Unknown error** - неизвестная ошибка
-
-### Стратегия обработки ошибок
-- Retry 3 раза с increasing interval (1, 5, 15 минут)
-- Сохранять детальную информацию об ошибке
-- Отправлять уведомление администраторам после финальной неудачи
-- Блокировать повторные попытки на 1 час после 3 неудач
-
-## Уведомления администраторам
-
-### Успешное вступление
-```
-✅ Бот вступил в канал @channel_username
-Канал: [Название] (@username)
-ID: [telegram_id]
-Подписчиков: [count]
-Время вступления: [timestamp]
-```
-
-### Неудачное вступление
-```
-❌ Не удалось вступить в канал @channel_username
-Канал: [Название] (@username)
-ID: [telegram_id]
-Ошибка: [error_message]
-Код ошибки: [error_code]
-Время: [timestamp]
-Попыток: [attempt_count]
-```
-
-## Integration points
-
-### Telegram Bot API методы
-- `get_chat()` - проверка доступа к каналу
-- `join_chat()` - вступление в публичный канал
-- `accept_chat_join_request()` - принятие запроса на вступление
-- `leave_chat()` - выход из канала (если нужно)
-
-### Существующие Job'ы
-- `Channels::MonitorJob` - обновить фильтр каналов
-- `Channels::FetchPostsJob` - проверять статус перед выполнением
-- `Content::ProcessPostJob` - без изменений
-
-### Административные функции
-- Уведомления через существующий `ErrorNotificationService`
-- Команда для ретрая встуления в проблемные каналы
-- Статистика по каналам с проблемами вступления
-
-## Performance requirements
-
-### Время выполнения
-- BotJoinJob: < 30 секунд
-- Проверка статуса канала: < 5 секунд
-- Обновление мониторинга: без изменений
-
-### Rate limiting
-- Максимум 10 попыток вступления в минуту
-- Использовать существующий rate limiter для Telegram API
-- Batch обработка для уведомлений админов
-
-## Безопасность
-
-### Проверки
-- Валидировать telegram_id перед попыткой вступления
-- Проверять права бота перед вступлением
-- Логировать все попытки вступления
-
-### Ограничения
-- Не вступать в приватные каналы без приглашения
-- Блокировать подозрительную активность
-- Валидировать все входящие данные
-
----
-
-# Acceptance Criteria
-
-## Feature: Автоматическое вступление бота в каналы
-
-### Scenario: Успешное вступление в публичный канал
-**Given** администратор добавляет публичный канал "@example_channel"
-**When** канал сохраняется в базе данных
-**Then** создается задача Channels::BotJoinJob
-**And** статус канала bot_join_status = "not_joined"
-**When** задача выполняется
-**Then** бот пытается вступить в канал
-**And** статус обновляется на "joining"
-**If** вступление успешно
-**Then** статус обновляется на "joined"
-**And** bot_join_at устанавливается в текущее время
-**And** администраторы получают уведомление об успехе
-
-### Scenario: Неудачное вступление (приватный канал)
-**Given** администратор добавляет приватный канал
-**When** Channels::BotJoinJob пытается вступить
-**And** канал приватный/недоступен
-**Then** статус обновляется на "join_failed"
-**And** bot_join_error сохраняет описание ошибки
-**And** администраторы получают уведомление об ошибке
-**And** канал не участвует в мониторинге
-
-### Scenario: Retry механизм
-**Given** первая попытка вступления неудачна (временная ошибка)
-**When** задача.retry_on срабатывает
-**Then** через 1 минуту повторная попытка
-**If** вторая попытка неудачна
-**Then** через 5 минут третья попытка
-**If** все попытки неудачны
-**Then** финальный статус "join_failed"
-**And** администраторам отправляется финальное уведомление
-
-### Scenario: Мониторинг только вступивших каналов
-**Given** есть 3 канала:
-- channel_1 с bot_join_status = "joined"
-- channel_2 с bot_join_status = "not_joined"
-- channel_3 с bot_join_status = "join_failed"
-**When** Channels::MonitorJob запускается
-**Then** обрабатывается только channel_1
-**And** channel_2 и channel_3 игнорируются
-
----
-
-# Критерии успеха
-
-## Функциональные критерии
-- [ ] Бот автоматически вступает в новые каналы
-- [ ] Статусы вступления корректно отслеживаются
-- [ ] Ошибки вступления обрабатываются и сохраняются
-- [ ] Администраторы получают уведомления о результатах
-- [ ] Мониторинг работает только для вступивших каналов
-- [ ] Retry механизм работает корректно
-
-## Нефункциональные критерии
-- [ ] Процесс вступления занимает < 30 секунд
-- [ ] Все ошибки логируются
-- [ ] Rate limiting соблюдаются
-- [ ] Нет дублирования задач
-- [ ] Корректная работа при высокой нагрузке
-
-## Интеграционные критерии
-- [ ] Работает с существующим Channels::MonitorJob
-- [ ] Интегрируется с Telegram::ChannelService
-- [ ] Использует существующую систему уведомлений
-- [ ] Совместим с Solid Queue
-- [ ] Не нарушает существующую логику добавления каналов
-
----
-
-# Архитектура
-
-## Диаграмма зависимостей
-```
-ChannelService.add_channel_to_database
-           ↓
-   Channels::BotJoinJob
-           ↓
-   Telegram Bot API
-           ↓
-   Обновление Channel.bot_join_status
-           ↓
-   Уведомление администраторов
-
-Channels::MonitorJob
-           ↓
-   фильтр Channel.where(bot_join_status: 'joined')
-           ↓
-   Channels::FetchPostsJob
-```
-
-## Поток данных
-1. Пользователь добавляет канал через ChannelService
-2. Канал сохраняется в БД со статусом not_joined
-3. Создается BotJoinJob для вступления
-4. Job пытается вступить через Telegram API
-5. Обновляет статус и сохраняет результат
-6. Отправляет уведомление администраторам
-7. MonitorJob использует только каналы со статусом joined
-
----
-
-# Техническая спецификация
-
-## Новые поля в модели Channel
+### 3. Основной процесс
 ```ruby
-class AddBotJoinFieldsToChannels < ActiveRecord::Migration[8.0]
-  def change
-    add_column :channels, :bot_join_status, :string, default: 'not_joined', null: false
-    add_column :channels, :bot_join_error, :text
-    add_column :channels, :bot_join_at, :datetime
-    add_index :channels, :bot_join_status
-    add_index :channels, [:bot_join_status, :active]
-  end
-end
-```
+class Channels::UserJoinJob < ApplicationJob
+  def perform(channel_id, follower_user_id)
+    follower_user = FollowerUser.find(follower_user_id)
+    return unless follower_user.authorized?
 
-## Обновление модели Channel
-```ruby
-class Channel < ApplicationRecord
-  # ... существующий код ...
+    client = TelegramUserClient.new(follower_user)
+    result = client.join_channel(channel.username)
 
-  enum bot_join_status: {
-    not_joined: 0,
-    joining: 1,
-    joined: 2,
-    join_failed: 3
-  }
-
-  # Scopes
-  scope :joined, -> { where(bot_join_status: 'joined') }
-  scope :not_joined, -> { where(bot_join_status: 'not_joined') }
-  scope :joining, -> { where(bot_join_status: 'joining') }
-  scope :join_failed, -> { where(bot_join_status: 'join_failed') }
-
-  # Methods
-  def start_joining!
-    update!(bot_join_status: 'joining')
-  end
-
-  def mark_as_joined!
-    update!(bot_join_status: 'joined', bot_join_at: Time.current, bot_join_error: nil)
-  end
-
-  def mark_as_join_failed!(error_message)
-    update!(bot_join_status: 'join_failed', bot_join_error: error_message)
-  end
-
-  def bot_can_monitor?
-    active? && joined?
-  end
-end
-```
-
-## Класс Channels::BotJoinJob
-```ruby
-class Channels::BotJoinJob < ApplicationJob
-  queue_as :channels
-  retry_on StandardError, wait: :exponentially_longer, attempts: 3
-
-  def perform(channel_id)
-    with_error_context(channel_id: channel_id, action: 'bot_join') do
-      channel = Channel.find(channel_id)
-
-      Rails.logger.info "Starting bot join process for channel #{channel.username}"
-
-      # Обновляем статус
-      channel.start_joining!
-
-      # Пытаемся вступить в канал
-      success = attempt_to_join_channel(channel)
-
-      if success
-        channel.mark_as_joined!
-        notify_admins_success(channel)
-        Rails.logger.info "Bot successfully joined channel #{channel.username}"
-      else
-        channel.mark_as_join_failed!(error_message)
-        notify_admins_failure(channel, error_message)
-        Rails.logger.error "Bot failed to join channel #{channel.username}: #{error_message}"
-      end
+    if result.success?
+      channel.update!(user_access_status: :joined)
+      follower_user.increment!(:daily_joins_count)
+    else
+      handle_join_failure(channel, follower_user, result.error)
     end
   end
-
-  private
-
-  def attempt_to_join_channel(channel)
-    # Логика вступления через Telegram API
-  end
-
-  def notify_admins_success(channel)
-    # Отправка уведомления об успехе
-  end
-
-  def notify_admins_failure(channel, error)
-    # Отправка уведомления об ошибке
-  end
 end
 ```
 
-## Обновление Channels::MonitorJob
-```ruby
-class Channels::MonitorJob < ApplicationJob
-  def perform(*args)
-    # Только каналы где бот вступил
-    channels = Channel.joined
-                     .joins(:subscriptions)
-                     .where(subscriptions: { active: true })
-                     .active
-                     .needs_monitoring
+## Процесс работы
 
-    # ... остальная логика без изменений
-  end
-end
+### 1. Добавление нового канала
+```
+1. Администратор добавляет канал
+2. ChannelAssignmentService находит лучший follower user
+3. Канал назначается пользователю
+4. Запускается UserJoinJob
+5. Follower user вступает в канал
+6. Статус обновляется на joined
 ```
 
+### 2. Load Balancing
+```
+1. Pool Manager проверяет нагрузку аккаунтов
+2. При дисбалансе >30% запускается ребалансировка
+3. Каналы перераспределяются между пользователями
+4. Обновляются workload метрики
+```
+
+## Критерии успешности
+
+### Функциональные требования
+- [ ] Автоматическое вступление в 95% публичных каналов
+- [ ] Load balancing между аккаунтами
+- [ ] Надежная обработка ошибок
+- [ ] Мониторинг статуса доступа
+
+### Масштабирование
+- [ ] Поддержка до 50 follower users
+- [ ] Мониторинг до 20000 каналов
+- [ ] Автоматическая ребалансировка
+- [ ] Graceful degradation
+
+### Безопасность
+- [ ] Соблюдение Telegram rate limits
+- [ ] Безопасное хранение учетных данных
+- [ ] Устойчивость к блокировкам
+- [ ] Автоматический failover
+
+## Риски и митигация
+
+### 1. Блокировка аккаунтов
+- **Риск**: Блокировка одного или нескольких follower users
+- **Митигация**: Распределение рисков между аккаунтами, conservative rate limits
+
+### 2. Load Imbalance
+- **Риск**: Неравномерное распределение нагрузки
+- **Митигация**: Автоматическая ребалансировка, workload метрики
+
+### 3. Отзыв доступа
+- **Риск**: Администраторы могут кикнуть пользователей
+- **Митигация**: Регулярная проверка доступа, автоматическое переназначение
+
+### 4. Безопасность
+- **Риск**: Компрометация учетных данных нескольких аккаунтов
+- **Митигация**: Шифрование, регулярная ротация, мониторинг
+
+## Требования к окружению
+
+### 1. Telegram Apps
+- Зарегистрированное приложение на my.telegram.org
+- api_id и api_hash credentials
+- Несколько валидных номеров follower users
+
+### 2. Библиотеки
+- MTProto клиент библиотека для Ruby
+- Поддержка множественных сессий
+- Load balancing utilities
+
+### 3. Безопасность
+- Хранилище для зашифрованных сессий
+- Мониторинг безопасности пула
+- Логирование всех операций
+
 ---
 
-# Тест-план
+## Статус: draft (пересмотренная версия)
 
-## Unit тесты
-- [ ] Channel.model корректно работает с новыми полями
-- [ ] Channel.scopes возвращают правильные выборки
-- [ ] Channel#bot_can_monitor? работает корректно
-- [ ] Channels::BotJoinJob.perform успешно вступает в канал
-- [ ] Channels::BotJoinJob.handle ошибки вступления
-- [ ] Retry механизм работает корректно
+**Важное изменение**: Архитектура полностью пересмотрена с учетом ограничений Telegram API. Требуется детальная проработка multi-user approach.
 
-## Integration тесты
-- [ ] BotJoinJob интегрируется с Telegram Bot API
-- [ ] Уведомления администраторам отправляются
-- [ ] MonitorJob использует только joined каналы
-- [ ] ChannelService создает BotJoinJob после добавления канала
+**Phase 1**: Создать FollowerUser модель и базовую функциональность
 
-## End-to-end тесты
-- [ ] Полный сценарий добавления канала → вступления бота → мониторинга
-- [ ] Полный сценарий неудачного вступления с уведомлениями
-- [ ] Полный сценарий retry механизма
-
-## Performance тесты
-- [ ] Load testing: 50 каналов в минуту
-- [ ] Memory usage testing
-- [ ] Response time testing
-
----
-
-# Связанные документы
-- [Документация telegram-bot gem](../gems/telegram-bot.md)
-- [C4 Model архитектура](../Architecture/c4-model.md)
-- [Конфигурация очередей](../../config/queue.yml)
-- [Существующая Channel модель](../../app/models/channel.rb)
-- [Channels::MonitorJob](../../app/jobs/channels/monitor_job.rb)
+**Связанные документы**:
+- [052 FollowerUser Pool Management](./052_FollowerUser_Pool_Management_Specification.md) - Load balancing, health monitoring
+- [053 FollowerUser Lifecycle](./053_FollowerUser_Lifecycle_Specification.md) - Авторизация, session management, security
+- [054 Channel Activity System](./054_Channel_Activity_System_Specification.md) - Activity scoring, rebalancing
+- [Multi-Follower User Strategy](./Architecture/multi-follower-user-strategy.md)
+- [Telegram Rate Limits Analysis](./Architecture/telegram-rate-limits-analysis.md)
+- [Telegram ToS Requirements](./Architecture/telegram-tos-requirements.md)

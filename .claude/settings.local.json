@@ -41,7 +41,13 @@
       "Bash(createdb:*)",
       "Bash(npm install:*)",
       "Bash(rubocop:*)",
-      "Bash(RAILS_ENV=test ./bin/rails:*)"
+      "Bash(RAILS_ENV=test ./bin/rails:*)",
+      "Bash(tree:*)",
+      "Bash(gem list:*)",
+      "mcp__tavily__tavily-search",
+      "Bash(./bin/rake:*)",
+      "Bash(./docs/.spec_status_check.sh:*)",
+      "Bash(.git/hooks/pre-commit)"
     ],
     "deny": [],
     "ask": []

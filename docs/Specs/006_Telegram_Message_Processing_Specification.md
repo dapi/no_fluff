@@ -1,3 +1,16 @@
+# Спецификация 006: Telegram Message Processing
+
+## Мета информация
+
+- **Номер:** 006
+- **Название:** Telegram Message Processing
+- **Автор:**
+- **Создана:** 2025-11-02
+- **Статус:** delivered
+- **Связанные спецификации:**
+
+
+
 # 006 Telegram Message Processing Specification
 
 ## Обзор
@@ -178,3 +191,15 @@ end
 - Агрегация статистики по каналам
 - Поиск по содержимому канальных сообщений
 - Экспорт канальных сообщений
+
+---
+
+## Статус: need_plan
+
+**Примечание**: Спецификация готова и имеет план имплементации:
+- ✅ Все требования детально описаны
+- ✅ Форматы данных определены
+- ✅ Edge cases продуманы
+- ✅ План реализации создан
+
+**План реализации**: [Spec_006_Telegram_Message_Processing_Implementation.md](../Implementation/Spec_006_Telegram_Message_Processing_Implementation.md)

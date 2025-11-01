@@ -2,6 +2,22 @@
 
 Архитектура описана с использованием C4 Model (Context, Container, Component, Code).
 
+## 🚨 ВАЖНОЕ ОБНОВЛЕНИЕ АРХИТЕКТУРЫ
+
+**Проблема**: Telegram Bot API НЕ позволяет ботам самостоятельно вступать в каналы
+**Решение**: Переход на User-based подход через Telegram App API (MTProto) с использованием TDLib-ruby
+
+**Новая архитектура**: [C4 Model v2.0 (User-based)](./c4-model-updated.md)
+**План миграции**: [User-based Access Migration](./user-based-access-migration.md)
+**MTProto библиотека**: [TDLib-ruby Implementation](./tdlib-ruby-implementation.md)
+
+### Ключевые изменения v2.0:
+- 🔄 **Двойной API подход**: Bot API + MTProto через TDLib-ruby
+- 👤 **Follower User Account**: Специальный аккаунт для мониторинга на TDLib
+- 🔐 **Усиленная безопасность**: Управление сессиями TDLib и rate limiting
+- 📊 **Расширенные возможности**: Доступ к приватным каналам через User API
+- 🛡️ **Стабильность**: Использование официальной TDLib от Telegram
+
 ---
 
 ## Level 1: System Context Diagram

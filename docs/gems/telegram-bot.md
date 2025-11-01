@@ -1694,6 +1694,30 @@ Telegram::Bot::ClientStub.stub_all!
 - **telegram-bot-types:** Типы для Telegram Bot API
 - **activesupport:** Для кеширования и других утилит
 - **redis:** Рекомендуется для хранения сессий в production
+- **tdlib-ruby:** Для доступа к User API и преодоления ограничений Bot API
+
+### TDLib-ruby для расширенных возможностей
+
+Для преодоления ограничений Bot API (вступление в каналы, доступ к приватным каналам), проект использует **[tdlib-ruby](./tdlib-ruby.md)**:
+
+```ruby
+# Пример вступить в канал через User API
+service = TDLib::ChannelService.new
+result = service.join_channel('https://t.me/private_channel')
+```
+
+**Основные преимущества TDLib-ruby:**
+- ✅ Автоматическое вступление в любые каналы
+- ✅ Доступ к приватным каналам через инвайт-ссылки
+- ✅ Полный User API функционал
+- ✅ Официальная поддержка от Telegram
+
+**Использование в проекте:**
+- Для мониторинга каналов, недоступных через Bot API
+- Для получения контента из приватных источников
+- В качестве дополнения к основному функционалу на Bot API
+
+Подробная документация: **[TDLib-ruby Implementation](../Architecture/tdlib-ruby-implementation.md)**
 
 ### Инструменты
 

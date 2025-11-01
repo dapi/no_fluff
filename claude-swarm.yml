@@ -15,8 +15,7 @@ swarm:
     architect:
       description: "Rails architect coordinating API development for NoFluff"
       directory: .
-      model: opus
-      connections: [models, controllers, jobs, tests, devops]
+      connections: [models, controllers, services, jobs, tests, devops]
       prompt_file: .claude-on-rails/prompts/architect.md
       vibe: true
 
@@ -24,7 +23,6 @@ swarm:
     models:
       description: "ActiveRecord models, migrations, and database optimization specialist"
       directory: ./app/models
-      model: opus
       allowed_tools: [Read, Edit, Write, Bash, Grep, Glob, LS]
       prompt_file: .claude-on-rails/prompts/models.md
 
@@ -33,10 +31,11 @@ swarm:
     controllers:
       description: "Rails controllers, routing, and request handling specialist"
       directory: ./app/controllers
-      model: opus
 
 
 
+
+      connections: [services]
 
       allowed_tools: [Read, Edit, Write, Bash, Grep, Glob, LS]
       prompt_file: .claude-on-rails/prompts/controllers.md
@@ -46,12 +45,18 @@ swarm:
 
 
 
+    
+    services:
+      description: "Service objects, business logic, and design patterns specialist"
+      directory: ./app/services
+      allowed_tools: [Read, Edit, Write, Bash, Grep, Glob, LS]
+      prompt_file: .claude-on-rails/prompts/services.md
+
 
       
     jobs:
       description: "Background jobs, ActiveJob, and async processing specialist"
       directory: ./app/jobs
-      model: opus
       allowed_tools: [Read, Edit, Write, Bash, Grep, Glob, LS]
       prompt_file: .claude-on-rails/prompts/jobs.md
 
@@ -62,7 +67,6 @@ swarm:
     tests:
       description: "Minitest testing, factories, and test coverage specialist"
       directory: ./test
-      model: opus
       allowed_tools: [Read, Edit, Write, Bash, Grep, Glob, LS]
       prompt_file: .claude-on-rails/prompts/tests.md
 
@@ -72,6 +76,5 @@ swarm:
     devops:
       description: "Deployment, Docker, CI/CD, and production configuration specialist"
       directory: ./config
-      model: opus
       allowed_tools: [Read, Edit, Write, Bash, Grep, Glob, LS]
       prompt_file: .claude-on-rails/prompts/devops.md
