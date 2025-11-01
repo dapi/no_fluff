@@ -2,7 +2,7 @@
 # Запускается после добавления канала в систему
 class Channels::BotJoinJob < ApplicationJob
   queue_as :channels
-  retry_on StandardError, wait: :exponentially_longer, attempts: 3
+  retry_on StandardError, wait: 5.seconds, attempts: 3
 
   def perform(channel_id)
     with_error_context(channel_id: channel_id, action: 'bot_join') do

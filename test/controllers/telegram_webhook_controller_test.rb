@@ -181,7 +181,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
       { data: 'more_info:', expected_text: 'telegram_bot.more_info.text' },
       { data: 'back_to_start:', expected_text: 'telegram_bot.start.welcome' },
       { data: 'settings:', expected_text: '⚙️ Настройки' },
-      { data: 'my_subscriptions:', expected_text: '📭 В системе пока нет каналов.' }
+      { data: 'my_subscriptions:', expected_text: 'У тебя пока нет подписок. Просто накидай каналы в чат списком, и я их добавлю.' }
     ]
 
     callbacks.each do |callback_data|
@@ -239,7 +239,8 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     channel = Channel.create!(
       telegram_id: 2001,
       username: 'testchannel_remove',
-      title: 'Test Channel Remove'
+      title: 'Test Channel Remove',
+      bot_join_status: 'not_joined'
     )
 
     subscription = Subscription.create!(
@@ -429,8 +430,8 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
       timezone: 'UTC'
     )
 
-    channel1 = Channel.create!(telegram_id: 1001, username: 'channel1', title: 'Channel 1')
-    channel2 = Channel.create!(telegram_id: 1002, username: 'channel2', title: 'Channel 2')
+    channel1 = Channel.create!(telegram_id: 1001, username: 'channel1', title: 'Channel 1', bot_join_status: 'not_joined')
+    channel2 = Channel.create!(telegram_id: 1002, username: 'channel2', title: 'Channel 2', bot_join_status: 'not_joined')
 
     Subscription.create!(telegram_user: user, channel: channel1)
     Subscription.create!(telegram_user: user, channel: channel2)

@@ -87,3 +87,6 @@ gem 'activerecord-nulldb-adapter'
 
 # gem "dartsass-rails", "~> 0.5.1"
 gem 'sassc'
+
+# State machine для управления статусами
+gem 'state_machines-activerecord', '~> 0.6'

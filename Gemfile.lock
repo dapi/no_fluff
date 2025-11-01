@@ -487,6 +487,13 @@ GEM
       net-sftp (>= 2.1.2)
       net-ssh (>= 2.8.0)
       ostruct
+    state_machines (0.100.2)
+    state_machines-activemodel (0.100.0)
+      activemodel (>= 7.2)
+      state_machines (>= 0.100.0)
+    state_machines-activerecord (0.100.0)
+      activerecord (>= 7.2)
+      state_machines-activemodel (>= 0.100.0)
     stringio (3.1.7)
     telegram-bot (0.16.7)
       actionpack (>= 4.0, < 8.1)
@@ -554,6 +561,7 @@ DEPENDENCIES
   solid_queue
   solid_queue_dashboard (~> 0.2.0)
   sprockets-rails
+  state_machines-activerecord (~> 0.6)
   telegram-bot (~> 0.16.7)
   telegram-bot-types (~> 0.7.0)
   thruster

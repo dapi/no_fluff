@@ -8,6 +8,12 @@ class Content::ProcessPostJob < ApplicationJob
 
       Rails.logger.info "Processing post #{post_data[:telegram_message_id]} from channel #{channel.username}"
 
+      # Проверяем, может ли бот мониторить канал
+      unless channel.bot_can_monitor?
+        Rails.logger.info "Skipping post processing: bot cannot monitor channel #{channel.username} (status: #{channel.bot_join_status}, active: #{channel.active?})"
+        return
+      end
+
       # Создаем пост в БД
       post = create_post(channel, post_data)
 

@@ -64,7 +64,7 @@ module Channels
 
     def success_message(channel)
       I18n.t(
-        'telegram_bot.channels.bot_join.success',
+        'channels.bot_join.success',
         channel_title: channel.title,
         channel_username: channel.username,
         channel_id: channel.telegram_id,
@@ -75,7 +75,7 @@ module Channels
 
     def failure_message(channel, error)
       I18n.t(
-        'telegram_bot.channels.bot_join.failure',
+        'channels.bot_join.failure',
         channel_title: channel.title,
         channel_username: channel.username,
         channel_id: channel.telegram_id,

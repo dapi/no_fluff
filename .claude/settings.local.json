@@ -40,7 +40,8 @@
       "Read(//home/danil/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/solid_queue_dashboard-0.2.0/**)",
       "Bash(createdb:*)",
       "Bash(npm install:*)",
-      "Bash(rubocop:*)"
+      "Bash(rubocop:*)",
+      "Bash(RAILS_ENV=test ./bin/rails:*)"
     ],
     "deny": [],
     "ask": []

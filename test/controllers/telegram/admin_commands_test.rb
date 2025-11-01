@@ -51,7 +51,8 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
       title: 'Popular Channel',
       description: 'Very popular channel',
       subscribers_count: 1000,
-      last_post_at: 1.hour.ago
+      last_post_at: 1.hour.ago,
+      bot_join_status: 'not_joined'
     )
 
     @channel2 = Channel.create!(
@@ -60,7 +61,8 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
       title: 'Medium Channel',
       description: 'Medium popularity channel',
       subscribers_count: 500,
-      last_post_at: 3.hours.ago
+      last_post_at: 3.hours.ago,
+      bot_join_status: 'not_joined'
     )
 
     @channel3 = Channel.create!(
@@ -71,7 +73,8 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
       subscribers_count: 200,
       last_post_at: 2.days.ago,
       deactivated_at: 1.day.ago,
-      deactivation_reason: 'test_deactivation'
+      deactivation_reason: 'test_deactivation',
+      bot_join_status: 'not_joined'
     )
 
     @channel4 = Channel.create!(
@@ -80,7 +83,8 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
       title: 'Old Channel',
       description: 'Channel with old posts',
       subscribers_count: 300,
-      last_post_at: 10.days.ago
+      last_post_at: 10.days.ago,
+      bot_join_status: 'not_joined'
     )
   end
 
@@ -273,7 +277,8 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
       title: 'Demo Channel',
       description: 'Demo channel for testing',
       subscribers_count: 100,
-      last_post_at: 1.hour.ago
+      last_post_at: 1.hour.ago,
+      bot_join_status: 'not_joined'
     )
 
     update = create_user_update(user_id: admin_user.id, username: admin_user.username,
@@ -305,7 +310,8 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
         title: "Channel #{i}",
         description: "Test channel #{i}",
         subscribers_count: 100 + i,
-        last_post_at: i.hours.ago
+        last_post_at: i.hours.ago,
+        bot_join_status: 'not_joined'
       )
       channels << channel
 
@@ -392,7 +398,7 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
     text = message_content[:text]
 
     # Проверяем что информация о последнем посте отображается
-    assert_includes text, I18n.t('telegram_bot.channels.list.last_post')
+    assert_includes text, I18n.t('telegram_bot.channels.admin_list.last_post')
   end
 
   test 'channels command handles errors gracefully' do

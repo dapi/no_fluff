@@ -90,7 +90,8 @@ class Telegram::ChannelServiceTest < ActiveSupport::TestCase
       channel = Channel.create!(
         telegram_id: 1000 + i,
         username: "channel#{i}",
-        title: "Test Channel #{i}"
+        title: "Test Channel #{i}",
+        bot_join_status: 'not_joined'
       )
       @user.subscriptions.create!(channel: channel)
     end
@@ -108,7 +109,8 @@ class Telegram::ChannelServiceTest < ActiveSupport::TestCase
       channel = Channel.create!(
         telegram_id: 1000 + i,
         username: "channel#{i}",
-        title: "Test Channel #{i}"
+        title: "Test Channel #{i}",
+        bot_join_status: 'not_joined'
       )
       @user.subscriptions.create!(channel: channel)
     end
@@ -145,7 +147,8 @@ class Telegram::ChannelServiceTest < ActiveSupport::TestCase
     channel = Channel.create!(
       telegram_id: 3001,
       username: 'testchannel_not_subscribed',
-      title: 'Test Channel Not Subscribed'
+      title: 'Test Channel Not Subscribed',
+      bot_join_status: 'not_joined'
     )
 
     result = @service.remove_channel_for_user(@user, '@testchannel_not_subscribed')
@@ -162,7 +165,8 @@ class Telegram::ChannelServiceTest < ActiveSupport::TestCase
     channel = Channel.create!(
       telegram_id: 3002,
       username: 'testchannel_subscribed',
-      title: 'Test Channel Subscribed'
+      title: 'Test Channel Subscribed',
+      bot_join_status: 'not_joined'
     )
 
     subscription = Subscription.create!(
@@ -193,7 +197,8 @@ class Telegram::ChannelServiceTest < ActiveSupport::TestCase
       channel = Channel.create!(
         telegram_id: 3003 + i,
         username: "testchannel_formats_#{i}",
-        title: "Test Channel Formats #{i}"
+        title: "Test Channel Formats #{i}",
+        bot_join_status: 'not_joined'
       )
 
       # Создаем подписку
