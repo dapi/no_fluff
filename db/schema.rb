@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_12_182307) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_01_214739) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -77,12 +77,23 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_12_182307) do
     t.string "bot_join_status", default: "not_joined", null: false
     t.text "bot_join_error"
     t.datetime "bot_join_at"
+    t.bigint "follower_user_id"
+    t.integer "user_access_status", default: 0, null: false
+    t.integer "assignment_status", default: 0, null: false
+    t.datetime "assigned_at", precision: nil
+    t.datetime "last_activity_at", precision: nil
+    t.decimal "activity_score", precision: 5, scale: 2, default: "0.0", null: false
+    t.index ["activity_score"], name: "index_channels_on_activity_score"
+    t.index ["assignment_status"], name: "index_channels_on_assignment_status"
     t.index ["bot_join_status"], name: "index_channels_on_bot_join_status"
     t.index ["deactivated_at"], name: "index_channels_on_deactivated_at"
+    t.index ["follower_user_id"], name: "index_channels_on_follower_user_id"
+    t.index ["last_activity_at"], name: "index_channels_on_last_activity_at"
     t.index ["last_post_at"], name: "index_channels_on_last_post_at"
     t.index ["last_successful_update_at"], name: "index_channels_on_last_successful_update_at"
     t.index ["monitored_at"], name: "index_channels_on_monitored_at"
     t.index ["telegram_id"], name: "index_channels_on_telegram_id", unique: true
+    t.index ["user_access_status"], name: "index_channels_on_user_access_status"
     t.index ["username"], name: "index_channels_on_username", unique: true
   end
 
@@ -126,6 +137,37 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_12_182307) do
     t.index ["sentiment"], name: "index_feedbacks_on_sentiment"
     t.index ["telegram_user_id", "post_id"], name: "index_feedbacks_on_telegram_user_id_and_post_id", unique: true
     t.index ["telegram_user_id"], name: "index_feedbacks_on_telegram_user_id"
+  end
+
+  create_table "follower_users", force: :cascade do |t|
+    t.string "phone_number", null: false
+    t.integer "auth_status", default: 0, null: false
+    t.text "session_string_encrypted"
+    t.text "api_credentials_encrypted"
+    t.jsonb "device_info", default: {}
+    t.integer "daily_joins_limit", default: 50, null: false
+    t.integer "daily_joins_count", default: 0, null: false
+    t.date "last_reset_date"
+    t.integer "max_channels", default: 400, null: false
+    t.integer "channels_count", default: 0, null: false
+    t.decimal "workload_score", precision: 5, scale: 2, default: "0.0", null: false
+    t.decimal "health_score", precision: 5, scale: 2, default: "100.0", null: false
+    t.integer "consecutive_errors", default: 0, null: false
+    t.integer "priority", default: 0, null: false
+    t.string "specialization"
+    t.datetime "last_authorized_at", precision: nil
+    t.datetime "last_successful_join", precision: nil
+    t.datetime "last_activity_at", precision: nil
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["auth_status"], name: "index_follower_users_on_auth_status"
+    t.index ["channels_count"], name: "index_follower_users_on_channels_count"
+    t.index ["daily_joins_count"], name: "index_follower_users_on_daily_joins_count"
+    t.index ["health_score"], name: "index_follower_users_on_health_score"
+    t.index ["last_activity_at"], name: "index_follower_users_on_last_activity_at"
+    t.index ["phone_number"], name: "index_follower_users_on_phone_number", unique: true
+    t.index ["priority"], name: "index_follower_users_on_priority"
+    t.index ["specialization"], name: "index_follower_users_on_specialization"
   end
 
   create_table "messages", force: :cascade do |t|
@@ -329,6 +371,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_12_182307) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "channels", "follower_users"
   add_foreign_key "chats", "models"
   add_foreign_key "chats", "telegram_users"
   add_foreign_key "feedbacks", "posts"

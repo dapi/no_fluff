@@ -81,7 +81,7 @@ module Telegram::SubscriptionCommands
 
       subscriptions.each do |subscription|
         channel = subscription.channel
-        text += "• #{channel.title.present? ? channel.title : "@#{channel.username}"}"
+        text += "• #{channel.title.presence || "@#{channel.username}"}"
         text += "\n"
       end
 

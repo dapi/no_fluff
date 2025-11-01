@@ -1,4 +1,9 @@
 ENV['RAILS_ENV'] ||= 'test'
+# Set encryption credentials for test environment
+ENV['ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY'] = 'test_key_for_encryption_32_chars_long'
+ENV['ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY'] = 'test_deterministic_key_for_encryption_32_chars'
+ENV['ACTIVE_RECORD_ENCRYPTION_KEY_SALT'] = 'test_key_salt_for_encryption'
+
 require_relative '../config/environment'
 require 'rails/test_help'
 require 'minitest/mock'

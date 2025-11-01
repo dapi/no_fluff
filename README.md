@@ -83,6 +83,102 @@ irb> SecureRandom.hex(32)
 
 **Важно:** Используйте **уникальный ключ** для каждого environment (development, staging, production).
 
+---
+
+## 🚀 Follower Users - Автоматические пользователи
+
+Система позволяет автоматически вступать в Telegram каналы через follower users (пользователей-ботов).
+
+### 📋 Процесс авторизации FollowerUser
+
+#### 1. **Создание FollowerUser**
+```ruby
+# Через Rails консоль
+follower_user = FollowerUser.create!(
+  phone_number: "+1234567890"
+)
+
+# Через rake task
+rails follower_users:create[+1234567890]
+```
+
+#### 2. **Запуск авторизации**
+```ruby
+# Инициировать отправку verification code
+result = follower_user.start_authorization!
+# => { success: true, phone_code_hash: "abc123..." }
+
+# Статус авторизации
+status = follower_user.authorization_status
+# => { in_progress: true, expires_at: 2025-01-31 12:30:00, phone_code_hash: "abc123..." }
+```
+
+#### 3. **Подтверждение кодом**
+```ruby
+# Ввести код из Telegram приложения
+result = follower_user.confirm_authorization!("12345")
+# => { success: true, user: #<FollowerUser id: 1 auth_status: :authorized> }
+
+# После успешной авторизации:
+# - Статус меняется на :authorized
+# - Сессия сохраняется в зашифрованном виде
+# - Пользователь автоматически назначается на доступные каналы
+```
+
+#### 4. **Управление пользователями**
+```ruby
+# Проверить статус
+follower_user.authorized?  # => true
+follower_user.can_join_channel?  # => true
+
+# Отозвать авторизацию
+follower_user.revoke_authorization!
+# => true (удаляет сессию и назначение с каналов)
+
+# Получить статистику
+FollowerUser.authorized.count          # => 1
+FollowerUser.next_available          # => #<FollowerUser ...>
+```
+
+### 🔐 Безопасность и шифрование
+
+- **API credentials** шифруются через Rails `encrypts`
+- **Session данные** хранятся в зашифрованном виде
+- **Phone numbers** уникальны и индексированы
+- **Rate limiting** через ApplicationConfig
+
+### 📊 Мониторинг и лимиты
+
+| Параметр | Описание | По умолчанию |
+|----------|----------|--------------|
+| `daily_joins_limit` | Максимум вступлений в день | 50 |
+| `max_channels` | Максимум каналов на пользователя | 400 |
+| `health_score` | Оценка состояния пользователя | 100.0 |
+| `workload_score` | Загруженность пользователя | 0.0 |
+
+### 🛠️ Управление через Rails консоль
+
+```ruby
+# Создать нового пользователя
+user = FollowerUser.create!(phone_number: "+1234567890")
+
+# Начать авторизацию
+auth_result = user.start_authorization!
+puts "Enter code: #{auth_result[:phone_code_hash]}"
+
+# Подтвердить (для демо)
+user.confirm_authorization!("12345")
+
+# Проверить каналы пользователя
+user.channels.count  # => 0 (назначаются автоматически)
+
+# Создать тестовый канал и назначить
+channel = Channel.create!(telegram_id: 12345, username: "test_channel")
+channel.assign_to_follower_user(user)
+```
+
+**Примечание:** Для демонстрации можно использовать код `12345` или любой 6-значный номер.
+
 ### Другое
 
 | Переменная | Описание | Обязательная | Пример |

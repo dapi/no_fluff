@@ -8,13 +8,19 @@ class ApplicationConfig < Anyway::Config
   attr_config :bot_token,
               :bot_username,
               :openai_api_key,
-              :deepseek_api_key
+              :deepseek_api_key,
+              :telegram_api_id,
+              :telegram_api_hash,
+              :session_encryption_key
 
   attr_config llm_default_model: 'deepseek-chat',
     host: 'localhost',
     protocol: 'https',
     public_port: '443',
-    free_channels_limit: 10
+    free_channels_limit: 10,
+    max_daily_joins: 50,
+    max_channels_per_user: 400,
+    rate_limit_delay_between_requests: 2.seconds
 
   required :bot_token unless Rails.env.test?
 
@@ -52,6 +58,33 @@ class ApplicationConfig < Anyway::Config
 
   def telegram_bot_link
     "https://t.me/#{bot_username}"
+  end
+
+  # Telegram API methods for follower users
+  def telegram_api_credentials
+    {
+      api_id: telegram_api_id,
+      api_hash: telegram_api_hash
+    }
+  end
+
+  def telegram_api_configured?
+    telegram_api_id.present? && telegram_api_hash.present?
+  end
+
+  def session_encryption_enabled?
+    session_encryption_key.present?
+  end
+
+  def follower_user_limits
+    {
+      max_daily_joins: max_daily_joins,
+      max_channels_per_user: max_channels_per_user
+    }
+  end
+
+  def rate_limit_delay
+    rate_limit_delay_between_requests
   end
 
   class << self

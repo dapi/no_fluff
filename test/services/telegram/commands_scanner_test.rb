@@ -10,9 +10,9 @@ module Telegram
       assert @scanner.command_method?('start!')
       assert @scanner.command_method?('help!')
       assert @scanner.command_method?('settings!')
-      refute @scanner.command_method?('message')
-      refute @scanner.command_method?('callback_query')
-      refute @scanner.command_method?('_private_method!')
+      assert_not @scanner.command_method?('message')
+      assert_not @scanner.command_method?('callback_query')
+      assert_not @scanner.command_method?('_private_method!')
     end
 
     test 'should scan main controller commands' do
@@ -47,7 +47,7 @@ module Telegram
       assert channels_command[:admin_only]
 
       start_command = commands.find { |cmd| cmd[:command] == 'start' }
-      refute start_command[:admin_only]
+      assert_not start_command[:admin_only]
     end
 
     test 'should exclude admin commands when requested' do
@@ -60,7 +60,7 @@ module Telegram
       user_command_names = user_commands.map { |cmd| cmd[:command] }
 
       admin_command_names.each do |admin_cmd|
-        refute_includes user_command_names, admin_cmd
+        assert_not_includes user_command_names, admin_cmd
       end
     end
 
@@ -102,8 +102,8 @@ module Telegram
         assert cmd.key?(:description)
         assert_kind_of String, cmd[:command]
         assert_kind_of String, cmd[:description]
-        refute cmd[:command].empty?
-        refute cmd[:description].empty?
+        assert_not cmd[:command].empty?
+        assert_not cmd[:description].empty?
       end
     end
 

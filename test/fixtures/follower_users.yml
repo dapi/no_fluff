@@ -1,0 +1,36 @@
+# FollowerUser fixtures for testing
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  phone_number: "+1234567890"
+  auth_status: 0
+  daily_joins_limit: 50
+  daily_joins_count: 0
+  last_reset_date: <%= Date.current %>
+  max_channels: 400
+  channels_count: 0
+  workload_score: 0.0
+  health_score: 100.0
+  consecutive_errors: 0
+  priority: 0
+  specialization: "general"
+
+two:
+  phone_number: "+0987654321"
+  auth_status: 1
+  session_string_encrypted: "encrypted_session_data"
+  api_credentials_encrypted: "encrypted_credentials"
+  device_info: "{\"platform\": \"android\", \"app_version\": \"1.0.0\"}"
+  daily_joins_limit: 100
+  daily_joins_count: 25
+  last_reset_date: <%= Date.current %>
+  max_channels: 500
+  channels_count: 25
+  workload_score: 0.25
+  health_score: 85.5
+  consecutive_errors: 0
+  priority: 5
+  specialization: "crypto"
+  last_authorized_at: <%= 2.hours.ago %>
+  last_successful_join: <%= 2.hours.ago %>
+  last_activity_at: <%= 1.hour.ago %>

@@ -1,3 +1,5 @@
+inherit_from: .rubocop_todo.yml
+
 # Omakase Ruby styling for Rails
 inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 
@@ -6,6 +8,19 @@ Style/StringLiterals:
   SupportedStyles:
     - single_quotes
     - double_quotes
+
+AllCops:
+  SuggestExtensions: false
+  NewCops: enable
+  Exclude:
+    - 'db/schema.rb'
+    - 'vendor/**/*'
+    - 'db/migrate/**/*'
+    - 'tmp/**/*'
+    - 'bin/*'
+    - 'doc/*'
+    - 'Gemfile'
+    - 'lib/tasks/*'
 
 # Overwrite or add rules to create your own house style
 #

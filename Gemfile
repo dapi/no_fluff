@@ -94,3 +94,7 @@ gem 'sassc'
 
 # State machine для управления статусами
 gem 'state_machines-activerecord', '~> 0.6'
+
+# MTProto client for Telegram user API
+# Note: temporarily commented due to dependency conflicts
+# gem 'tdlib-ruby'

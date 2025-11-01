@@ -759,7 +759,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
 
     # Ищем sendMessage запросы
     send_message_requests = @bot.requests.select { |method, _| method == :sendMessage }
-    refute_empty send_message_requests, 'Should have at least one sendMessage request'
+    assert_not_empty send_message_requests, 'Should have at least one sendMessage request'
 
     message_content = extract_message_content(@bot.requests)
     assert_not_nil message_content, 'Should find message content'

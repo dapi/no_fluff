@@ -11,7 +11,7 @@ namespace :metrics do
     puts '📋 SPECIFICATIONS METRICS'
     puts '-' * 30
 
-    specs_dir = Rails.root.join('docs', 'Specs')
+    specs_dir = Rails.root.join('docs/Specs')
     spec_files = Dir.glob("#{specs_dir}/*_Specification.md")
 
     if spec_files.empty?
@@ -75,7 +75,7 @@ namespace :metrics do
     puts '🔧 IMPLEMENTATION PLANS METRICS'
     puts '-' * 35
 
-    impl_dir = Rails.root.join('docs', 'Implementation')
+    impl_dir = Rails.root.join('docs/Implementation')
     impl_files = Dir.glob("#{impl_dir}/Spec_*.md")
 
     if impl_files.empty?
@@ -142,7 +142,7 @@ namespace :metrics do
     puts "🧪 Test files: #{total_test_files}"
 
     # Ruby files count for test coverage ratio
-    ruby_files = Dir.glob(Rails.root.join('app', '**', '*.rb')).length
+    ruby_files = Dir.glob(Rails.root.join('app/**/*.rb')).length
     if ruby_files > 0
       test_coverage_ratio = (total_test_files.to_f / ruby_files * 100).round(1)
       puts "📊 Test/Code ratio: #{test_coverage_ratio}% (#{total_test_files} tests / #{ruby_files} files)"
@@ -194,7 +194,7 @@ namespace :metrics do
     puts '🔍 SPECIFICATION QUALITY ANALYSIS'
     puts '-' * 40
 
-    specs_dir = Rails.root.join('docs', 'Specs')
+    specs_dir = Rails.root.join('docs/Specs')
     spec_files = Dir.glob("#{specs_dir}/*_Specification.md")
 
     quality_metrics = {
@@ -230,7 +230,7 @@ namespace :metrics do
     puts '📅 TIMELINE ANALYSIS'
     puts '-' * 20
 
-    impl_dir = Rails.root.join('docs', 'Implementation')
+    impl_dir = Rails.root.join('docs/Implementation')
     impl_files = Dir.glob("#{impl_dir}/Spec_*.md")
 
     if impl_files.any?
@@ -304,7 +304,7 @@ namespace :metrics do
     score = 50 # Base score
 
     # Add points for specifications
-    specs_dir = Rails.root.join('docs', 'Specs')
+    specs_dir = Rails.root.join('docs/Specs')
     spec_files = Dir.glob("#{specs_dir}/*_Specification.md")
 
     if spec_files.any?
@@ -320,7 +320,7 @@ namespace :metrics do
     end
 
     # Add points for implementation plans
-    impl_dir = Rails.root.join('docs', 'Implementation')
+    impl_dir = Rails.root.join('docs/Implementation')
     impl_files = Dir.glob("#{impl_dir}/Spec_*.md")
     score += 15 if impl_files.any?
 

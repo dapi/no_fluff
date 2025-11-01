@@ -1,36 +1,41 @@
 class Channel < ApplicationRecord
   include ChannelUpdatable
+  include ChannelAccess
+
   # Associations
   has_many :subscriptions, dependent: :destroy
   has_many :telegram_users, through: :subscriptions
   has_many :posts, dependent: :destroy
+  belongs_to :follower_user, optional: true
 
   # Validations
   validates :telegram_id, presence: true, uniqueness: true
   validates :username, presence: true, uniqueness: true
 
   # State Machine для управления процессом вступления бота в канал
-  state_machine :bot_join_status, initial: :not_joined do
-    # Состояния
-    state :not_joined
-    state :joining
-    state :joined
-    state :join_failed
+  state_machine :bot_join_status, initial: :bot_not_joined do
+    # Состояния (используем префикс bot_ чтобы избежать конфликтов с enum)
+    state :bot_not_joined, value: 'not_joined'
+    state :bot_joining, value: 'joining'
+    state :bot_joined, value: 'joined'
+    state :bot_join_failed, value: 'join_failed'
 
     # Переходы
     event :start_joining do
-      transition not_joined: :joining
-      transition join_failed: :joining
-      transition joined: :joining
+      transition bot_not_joined: :bot_joining
+      transition bot_join_failed: :bot_joining
+      transition bot_joined: :bot_joining
     end
 
     event :complete_join do
-      transition joining: :joined
+      transition bot_joining: :bot_joined
+      transition joining: :bot_joined
     end
 
     event :fail_join do
-      transition joining: :join_failed
-      transition not_joined: :join_failed
+      transition bot_joining: :bot_join_failed
+      transition bot_not_joined: :bot_join_failed
+      transition joining: :bot_join_failed
     end
 
     # Callbacks
@@ -40,7 +45,13 @@ class Channel < ApplicationRecord
 
     # Guards
     before_transition any => :joining, do: :ensure_channel_active
+    before_transition on: :start_joining, do: :ensure_channel_active
   end
+
+  # Enums
+  enum :user_access_status, not_joined: 0, joining: 1, joined: 2, join_failed: 3, left: 4, access_lost: 5
+
+  enum :assignment_status, unassigned: 0, assigned: 1, reassigning: 2, assignment_failed: 3
 
   # Scopes
   scope :active, -> { where(deactivated_at: nil) }
@@ -49,6 +60,13 @@ class Channel < ApplicationRecord
   scope :by_subscribers, -> { order(subscribers_count: :desc) }
   scope :recently_updated, -> { where('last_post_at > ?', 24.hours.ago) }
   scope :needs_monitoring, -> { where('monitored_at IS NULL OR monitored_at < ?', 10.minutes.ago) }
+
+  # User access status scopes
+  scope :joined_by_user, -> { where(user_access_status: :joined) }
+  scope :not_joined_by_user, -> { where(user_access_status: :not_joined) }
+  scope :user_join_failed, -> { where(user_access_status: :join_failed) }
+  scope :assigned_to_user, -> { where.not(follower_user_id: nil) }
+  scope :unassigned, -> { where(follower_user_id: nil) }
 
   # Bot join status scopes (сохраняем для совместимости)
   scope :joined, -> { where(bot_join_status: 'joined') }
@@ -110,7 +128,34 @@ class Channel < ApplicationRecord
   end
 
   def bot_can_monitor?
-    active? && joined?
+    active? && bot_joined?
+  end
+
+  # Follower user access methods (delegates to ChannelAccess concern)
+  def user_can_monitor?
+    active? && joined_by_user?
+  end
+
+  def calculate_activity_score
+    return 0.0 if last_post_at.blank?
+
+    # Calculate based on posting frequency and recency
+    days_since_last_post = (Time.current - last_post_at) / 1.day
+    recency_score = [ 100 - (days_since_last_post * 5), 0 ].max
+
+    # Factor in subscriber count (normalized)
+    subscribers_score = [ subscribers_count.to_f / 10000, 1.0 ].min * 30
+
+    # Final weighted score
+    (recency_score * 0.7) + subscribers_score
+  end
+
+  def can_be_monitored_by_user?
+    user_can_monitor? && follower_user&.healthy?
+  end
+
+  def update_activity_score!
+    update!(activity_score: calculate_activity_score)
   end
 
   # Callback методы для state machine

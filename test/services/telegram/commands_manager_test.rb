@@ -21,7 +21,7 @@ module Telegram
       commands.each do |cmd|
         assert cmd.key?(:command)
         assert cmd.key?(:description)
-        refute cmd[:admin_only]  # все команды должны быть пользовательскими
+        assert_not cmd[:admin_only]  # все команды должны быть пользовательскими
       end
     end
 
@@ -87,7 +87,7 @@ module Telegram
       @manager.stubs(:all_commands).returns(commands)
       @manager.stubs(:current_commands).returns(remote_commands)
 
-      refute @manager.commands_outdated?
+      assert_not @manager.commands_outdated?
     end
 
     test 'should set commands successfully' do
@@ -115,7 +115,7 @@ module Telegram
 
       result = @manager.set_commands!
 
-      refute result[:success]
+      assert_not result[:success]
       assert_includes result[:message], 'Bad Request: invalid command'
       assert result[:errors].any?
     end
@@ -129,7 +129,7 @@ module Telegram
 
       result = @manager.set_commands!
 
-      refute result[:success]
+      assert_not result[:success]
       assert_includes result[:message], 'Network error'
       assert result[:errors].any?
     end
@@ -237,7 +237,7 @@ module Telegram
       all_formatted = @manager.format_all_commands_for_display
 
       assert_includes user_formatted, '/start'
-      refute_includes user_formatted, '/debug'
+      assert_not_includes user_formatted, '/debug'
 
       assert_includes all_formatted, '/start'
       assert_includes all_formatted, '/debug'

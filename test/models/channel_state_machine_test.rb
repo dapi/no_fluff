@@ -2,31 +2,37 @@ require 'test_helper'
 
 class ChannelStateMachineTest < ActiveSupport::TestCase
   setup do
-    @channel = Channel.create!(
+    @channel = Channel.new(
       telegram_id: 12345,
       username: 'test_channel',
       title: 'Test Channel'
     )
+    @channel.save!
   end
 
   test 'should start with not_joined status' do
     assert_equal 'not_joined', @channel.bot_join_status
-    assert @channel.not_joined?
+    assert @channel.bot_not_joined?
   end
 
   test 'should transition to joining when start_joining is called' do
     result = @channel.start_joining!
+
+    # Reload to get fresh data from database
+    @channel.reload
+
     assert result
     assert_equal 'joining', @channel.bot_join_status
-    assert @channel.joining?
+    assert @channel.bot_joining?
   end
 
   test 'should transition to joined when complete_join is called' do
     @channel.start_joining!
     result = @channel.mark_as_joined!
+
     assert result
     assert_equal 'joined', @channel.bot_join_status
-    assert @channel.joined?
+    assert @channel.bot_joined?
     assert_not_nil @channel.bot_join_at
     assert_nil @channel.bot_join_error
   end
@@ -37,7 +43,7 @@ class ChannelStateMachineTest < ActiveSupport::TestCase
     result = @channel.mark_as_join_failed!(error_message)
     assert result
     assert_equal 'join_failed', @channel.bot_join_status
-    assert @channel.join_failed?
+    assert @channel.bot_join_failed?
     assert_equal error_message, @channel.bot_join_error
   end
 
@@ -83,9 +89,12 @@ class ChannelStateMachineTest < ActiveSupport::TestCase
 
   test 'should work with scopes' do
     # Create channels in different states
-    joining_channel = Channel.create!(telegram_id: 23456, username: 'joining_channel', title: 'Joining')
-    joined_channel = Channel.create!(telegram_id: 34567, username: 'joined_channel', title: 'Joined')
-    failed_channel = Channel.create!(telegram_id: 45678, username: 'failed_channel', title: 'Failed')
+    joining_channel = Channel.new(telegram_id: 23456, username: 'joining_channel', title: 'Joining')
+    joining_channel.save!
+    joined_channel = Channel.new(telegram_id: 34567, username: 'joined_channel', title: 'Joined')
+    joined_channel.save!
+    failed_channel = Channel.new(telegram_id: 45678, username: 'failed_channel', title: 'Failed')
+    failed_channel.save!
 
     joining_channel.start_joining!
     joined_channel.start_joining!

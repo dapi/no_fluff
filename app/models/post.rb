@@ -1,7 +1,7 @@
 class Post < ApplicationRecord
   # Associations
   belongs_to :channel
-  belongs_to :classified_by_session, class_name: 'Chat', foreign_key: 'classified_by_session_id', optional: true
+  belongs_to :classified_by_session, class_name: 'Chat', optional: true
   has_many :user_digest_items, dependent: :destroy
   has_many :user_digests, through: :user_digest_items
   has_many :feedbacks, dependent: :destroy

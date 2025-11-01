@@ -9,6 +9,14 @@ ru:
     errors:
       messages:
         record_invalid: "Ошибка валидации: %{errors}"
+        blank: "не может быть пустым"
+        taken: "уже занят"
+      models:
+        follower_user:
+          attributes:
+            phone_number:
+              blank: "не может быть пустым"
+              taken: "уже занят"
 
   telegram_bot:
     start:
