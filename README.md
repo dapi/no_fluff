@@ -61,9 +61,9 @@
 3. **Создать новое приложение** (нажмите "Create new application")
 4. **Выбрать тип "Bot"**
 5. **Заполнить форму:**
-   - App title: "NoFluff Follower User Bot"
-   - Short name: `nofluff_follower`
-   - Description: "Follower user for NoFluff bot channel monitoring"
+   - App title: "Без Шелухи Follower User Bot"
+   - Short name: `bez_sheluhi_follower`
+   - Description: "Follower user for Без Шелухи bot channel monitoring"
 6. **Получить `api_id` (цифры) и `api_hash` (символы)**
 7. **Добавить в `.env.local` файл**
 

@@ -1,4 +1,4 @@
-# Архитектура системы "Без шелухи" (NoFluff Bot)
+# Архитектура системы "Без шелухи" (AI-дайджестер)
 
 Архитектура описана с использованием C4 Model (Context, Container, Component, Code).
 
@@ -26,11 +26,11 @@
 
 ```mermaid
 C4Context
-    title System Context diagram для NoFluff Bot
+    title System Context diagram для Без Шелухи
 
     Person(user, "Пользователь Telegram", "Хочет получать важный контент из каналов без шелухи")
 
-    System(nofluff, "NoFluff Bot System", "Фильтрует контент из Telegram каналов, обнаруживает дубликаты, формирует персонализированные дайджесты")
+    System(bez_sheluhi, "Без Шелухи System", "AI-дайджестер фильтрует контент из Telegram каналов, обнаруживает дубликаты, формирует персонализированные дайджесты")
 
     System_Ext(telegram, "Telegram Bot API", "API для взаимодействия с Telegram")
     System_Ext(telegram_channels, "Telegram Channels", "Публичные Telegram каналы, за которыми следит бот")

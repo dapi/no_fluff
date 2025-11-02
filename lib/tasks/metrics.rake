@@ -1,7 +1,7 @@
 namespace :metrics do
   desc 'Generate project metrics dashboard'
   task :dashboard do
-    puts '📊 NoFluff Bot - Project Metrics Dashboard'
+    puts '📊 Без Шелухи - Project Metrics Dashboard'
     puts '=' * 60
     puts "Generated on: #{Date.today}"
     puts "Environment: #{Rails.env}"
@@ -185,7 +185,7 @@ namespace :metrics do
 
   desc 'Generate detailed metrics analysis'
   task :detailed do
-    puts '📊 NoFluff Bot - Detailed Metrics Analysis'
+    puts '📊 Без Шелухи - Detailed Metrics Analysis'
     puts '=' * 60
     puts "Generated on: #{Date.today}"
     puts

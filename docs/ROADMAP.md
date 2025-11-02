@@ -1,4 +1,4 @@
-# NoFluff Bot - ROADMAP
+# Без Шелухи - AI-дайджестер ROADMAP
 
 ## Phase 1: MVP с форвардингом постов
 

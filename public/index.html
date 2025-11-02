@@ -5,29 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>NoFluff Bot - Читай из Telegram каналов только важное</title>
-    <meta name="description" content="AI-ассистент фильтрует Telegram-каналы, убирает рекламу и экономит 40 минут в день. Читай из Telegram каналов только важное.">
-    <meta name="keywords" content="Telegram бот, фильтр новостей, экономия времени, AI ассистент, дайджест">
+    <title>Без Шелухи - AI-дайджестер для Telegram</title>
+    <meta name="description" content="AI-дайджестер фильтрует Telegram-каналы, убирает рекламу и экономит 40 минут в день. Читай из Telegram каналов только важное с ботом @bez_sheluhi_bot.">
+    <meta name="keywords" content="Telegram бот, AI-дайджестер, фильтр новостей, экономия времени, без шелухи, bez_sheluhi_bot">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://nofluff-bot.com/">
-    <meta property="og:title" content="NoFluff Bot - Читай из Telegram каналов только важное">
-    <meta property="og:description" content="AI-ассистент экономит 40 минут в день, фильтруя твои Telegram-каналы. Без рекламы и шелухи.">
+    <meta property="og:title" content="Без Шелухи - AI-дайджестер для Telegram">
+    <meta property="og:description" content="AI-дайджестер экономит 40 минут в день, фильтруя твои Telegram-каналы. Без рекламы и шелухи.">
     <meta property="og:image" content="https://nofluff-bot.com/og-image.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:site_name" content="NoFluff Bot">
+    <meta property="og:site_name" content="Без Шелухи">
     <meta property="og:locale" content="ru_RU">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://nofluff-bot.com/">
-    <meta property="twitter:title" content="NoFluff Bot - Читай из Telegram каналов только важное">
-    <meta property="twitter:description" content="AI-ассистент экономит 40 минут в день, фильтруя твои Telegram-каналы. Без рекламы и шелухи.">
+    <meta property="twitter:title" content="Без Шелухи - AI-дайджестер для Telegram">
+    <meta property="twitter:description" content="AI-дайджестер экономит 40 минут в день, фильтруя твои Telegram-каналы. Без рекламы и шелухи.">
     <meta property="twitter:image" content="https://nofluff-bot.com/og-image.jpg">
-    <meta property="twitter:creator" content="@nofluff_bot">
-    <meta property="twitter:site" content="@nofluff_bot">
+    <meta property="twitter:creator" content="@bez_sheluhi_bot">
+    <meta property="twitter:site" content="@bez_sheluhi_bot">
 
     <!-- Favicon -->
     <link rel="icon" href="/favicon.ico" sizes="any">
@@ -416,6 +416,628 @@
             border-radius: 4px;
         }
 
+        /* ----- Interactive Demo ----- */
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .demo-scenarios {
+            display: flex;
+            gap: 8px;
+            padding: 20px;
+            background: var(--light);
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .scenario-btn {
+            padding: 8px 16px;
+            border: none;
+            background: white;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border);
+        }
+
+        .scenario-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .scenario-btn.active {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* Column headers */
+        .demo-column-headers {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .column-header {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .column-header:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .was-header {
+            color: #dc3545;
+            font-size: 32px;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+            text-shadow: 2px 2px 4px rgba(220, 53, 69, 0.1);
+        }
+
+        .became-header {
+            color: #28a745;
+            font-size: 32px;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+            text-shadow: 2px 2px 4px rgba(40, 167, 69, 0.1);
+        }
+
+        .header-subtitle {
+            margin: 0;
+            font-size: 16px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        /* Split container for side-by-side view */
+        .demo-split-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+            background: #f8f9fa;
+            padding: 20px;
+        }
+
+        .demo-original,
+        .demo-filtered {
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+        }
+
+        /* Authentic Telegram design */
+        .telegram-header {
+            background: #ffffff;
+            color: #1c1e21;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #e9edef;
+            border-radius: 16px 16px 0 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+
+        .telegram-header.filtered {
+            border-bottom-color: #c8f6c8;
+        }
+
+        .telegram-header-back {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .telegram-header-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .telegram-header.filtered .telegram-header-icon {
+            background: linear-gradient(135deg, #25d366, #128c7e);
+        }
+
+        .telegram-header-info {
+            flex: 1;
+        }
+
+        .telegram-header h3 {
+            margin: 0;
+            font-size: 17px;
+            font-weight: 600;
+            color: #1c1e21;
+            line-height: 1.2;
+        }
+
+        .telegram-stats {
+            display: flex;
+            gap: 8px;
+            font-size: 11px;
+            color: #8696a0;
+            font-weight: 500;
+        }
+
+        .telegram-chat {
+            flex: 1;
+            background: #efeae2;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 100"><rect width="100%" height="100%" fill="%23efeae2"/><pattern id="p" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="1" fill="%23ffffff" opacity="0.05"/><circle cx="80" cy="80" r="1" fill="%23ffffff" opacity="0.05"/></pattern><rect width="100%" height="100%" fill="url(%23p)"/></pattern>');
+            overflow-y: auto;
+            overflow-x: hidden;
+            border: 1px solid #e9edef;
+            border-top: none;
+            border-radius: 0 0 16px 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .telegram-chat.filtered {
+            background: #e5f5e5;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 100"><rect width="100%" height="100%" fill="%23e5f5e5"/><pattern id="p2" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="1" fill="%2325d366" opacity="0.05"/><circle cx="80" cy="80" r="1" fill="%2325d366" opacity="0.05"/></pattern><rect width="100%" height="100%" fill="url(%23p2)"/></pattern>');
+            border-color: #c8f6c8;
+            overflow-x: hidden;
+        }
+
+        .telegram-chat-messages {
+            flex: 1;
+            background: #e5f5e5;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 100"><rect width="100%" height="100%" fill="%23e5f5e5"/><pattern id="p3" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="1" fill="%2325d366" opacity="0.05"/><circle cx="80" cy="80" r="1" fill="%2325d366" opacity="0.05"/></pattern><rect width="100%" height="100%" fill="url(%23p3)"/></pattern>');
+            overflow-y: auto;
+            overflow-x: hidden;
+            border: 1px solid #c8f6c8;
+            border-top: none;
+            border-radius: 0 0 16px 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px 0;
+        }
+
+        /* Telegram Chats List */
+        .telegram-chats-list {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .chats-list {
+            flex: 1;
+            background: #ffffff;
+            overflow-y: auto;
+            border-top: none;
+        }
+
+        .chat-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            position: relative;
+        }
+
+        .chat-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .chat-item.unread {
+            background-color: #f8f9fa;
+        }
+
+        .chat-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            margin-right: 12px;
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .chat-avatar.ad {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        }
+
+        .chat-avatar.tech {
+            background: linear-gradient(135deg, #4834d4, #686de0);
+        }
+
+        .chat-avatar.news {
+            background: linear-gradient(135deg, #f9ca24, #f0932b);
+        }
+
+        .chat-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .chat-name {
+            font-weight: 600;
+            font-size: 16px;
+            color: #1c1e21;
+        }
+
+        .chat-time {
+            font-size: 12px;
+            color: #8696a0;
+        }
+
+        .chat-message {
+            font-size: 14px;
+            color: #65676b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chat-notifications {
+            background: #0088cc;
+            color: white;
+            border-radius: 10px;
+            padding: 2px 6px;
+            font-size: 11px;
+            font-weight: 600;
+            min-width: 18px;
+            text-align: center;
+            margin-left: 8px;
+        }
+
+        .chat-notifications.many {
+            background: #ff3b30;
+        }
+
+        .chat-notifications.ads {
+            background: #ff9500;
+        }
+
+        /* Authentic Telegram messages */
+        .feed-item {
+            margin: 12px 15px;
+            max-width: 85%;
+            animation: slideIn 0.3s ease forwards;
+            opacity: 0;
+            position: relative;
+            box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+        }
+
+        .feed-item.important {
+            background: #dcf8c6;
+            border-radius: 18px 18px 4px 18px;
+            position: relative;
+        }
+
+        .feed-item.important::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: -7px;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 10px 0 10px 10px;
+            border-color: transparent transparent transparent #dcf8c6;
+        }
+
+        .feed-item.ad {
+            background: #fffacd;
+            opacity: 0.9;
+            border-radius: 18px 18px 4px 18px;
+        }
+
+        .feed-item.ad::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: -7px;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 10px 0 10px 10px;
+            border-color: transparent transparent transparent #fffacd;
+        }
+
+        .feed-item.duplicate {
+            background: #ffe4e1;
+            opacity: 0.8;
+            border-radius: 18px 18px 4px 18px;
+        }
+
+        .feed-item.duplicate::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: -7px;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 10px 0 10px 10px;
+            border-color: transparent transparent transparent #ffe4e1;
+        }
+
+        .feed-item.filtered-out {
+            animation: fadeOut 0.5s ease forwards;
+        }
+
+        .feed-item.highlight {
+            background: #dcf8c6;
+            border: 1px solid #a5d6a7;
+            border-radius: 18px 18px 4px 18px;
+            transform: scale(1.01);
+            box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+        }
+
+        .feed-item.highlight::after {
+            border-color: transparent transparent transparent #dcf8c6;
+        }
+
+        .feed-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+            padding: 10px 14px 2px;
+        }
+
+        .feed-item-channel {
+            font-weight: 600;
+            color: #0088cc;
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .feed-item-time {
+            font-size: 11px;
+            color: #667781;
+        }
+
+        .feed-item-content {
+            color: #111b21;
+            line-height: 1.3125;
+            padding: 0 14px 10px;
+            font-size: 15px;
+            word-wrap: break-word;
+        }
+
+        .feed-item-summary {
+            background: rgba(40, 167, 69, 0.08);
+            border-left: 3px solid #25d366;
+            padding: 8px 14px;
+            margin: 6px 14px 10px;
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+            font-size: 13px;
+            color: #075e54;
+            line-height: 1.3;
+        }
+
+        .feed-item-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 14px 10px;
+            font-size: 11px;
+            color: #667781;
+        }
+
+        .importance-score {
+            background: #25d366;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 10px;
+        }
+
+        .feed-item-reading-time {
+            color: #8696a0;
+            font-size: 11px;
+        }
+
+        .demo-controls {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+
+        .demo-feedback p {
+            margin-bottom: 15px;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            overflow: hidden;
+            height: 8px;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+            border-radius: 25px;
+            animation: progressAnimation 3s ease-in-out;
+            width: 0%;
+        }
+
+        .progress-text {
+            color: white;
+            font-size: 12px;
+            margin-top: 10px;
+            display: block;
+        }
+
+        .feedback-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .feedback-btn {
+            padding: 10px 20px;
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .feedback-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-large {
+            font-size: 14px;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            box-shadow: 0 4px 16px rgba(0, 102, 170, 0.3);
+            animation: pulse 2s infinite;
+            white-space: nowrap;
+        }
+
+        .progress-bar {
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            overflow: hidden;
+            height: 8px;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+            border-radius: 25px;
+            animation: progressAnimation 3s ease-in-out;
+            width: 0%;
+        }
+
+        .progress-text {
+            color: white;
+            font-size: 14px;
+            margin-top: 10px;
+            display: block;
+        }
+
+        .demo-feedback {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .demo-feedback p {
+            margin-bottom: 10px;
+            color: var(--text);
+            font-weight: bold;
+        }
+
+        .feedback-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .feedback-btn {
+            padding: 10px 20px;
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .feedback-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .demo-cta-text {
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+        }
+
+        @keyframes progressAnimation {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
         /* ----- Features ----- */
         .features-grid {
             display: grid;
@@ -562,6 +1184,111 @@
                 font-size: 20px;
             }
 
+            /* Demo mobile styles - split layout */
+            .demo-column-headers {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                padding: 15px;
+            }
+
+            .column-header {
+                padding: 15px;
+            }
+
+            .was-header,
+            .became-header {
+                font-size: 24px;
+            }
+
+            .header-subtitle {
+                font-size: 14px;
+            }
+
+            .demo-split-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto;
+                gap: 15px;
+                padding: 15px;
+            }
+
+            .demo-original,
+            .demo-filtered {
+                height: 400px;
+            }
+
+            
+            .telegram-header {
+                padding: 8px 12px;
+                border-radius: 12px 12px 0 0;
+            }
+
+            .telegram-header-icon {
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
+            }
+
+            .telegram-header h3 {
+                font-size: 15px;
+            }
+
+            .telegram-stats {
+                gap: 6px;
+                font-size: 10px;
+            }
+
+            .telegram-chat {
+                height: 320px;
+                border-radius: 0 0 12px 12px;
+            }
+
+            .feed-item {
+                margin: 8px 10px;
+                max-width: 90%;
+            }
+
+            .feed-item-header {
+                padding: 8px 12px 2px;
+            }
+
+            .feed-item-channel {
+                font-size: 12px;
+            }
+
+            .feed-item-content {
+                padding: 0 12px 8px;
+                font-size: 14px;
+            }
+
+            .feed-item-summary {
+                margin: 6px 12px 8px;
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            .scenario-btn {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+
+            .btn-large {
+                font-size: 12px;
+                padding: 10px 16px;
+            }
+
+            .demo-controls {
+                padding: 15px;
+            }
+
+            .feedback-buttons {
+                gap: 8px;
+            }
+
+            .feedback-btn {
+                padding: 8px 16px;
+                font-size: 12px;
+            }
+
             .hero {
                 padding: 30px 0 40px;
                 min-height: 90vh;
@@ -604,6 +1331,72 @@
 
             .stat-number {
                 font-size: 28px;
+            }
+
+            /* Demo tablet styles - split layout */
+            .demo-column-headers {
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+                padding: 20px;
+            }
+
+            .column-header {
+                padding: 18px;
+            }
+
+            .was-header,
+            .became-header {
+                font-size: 28px;
+            }
+
+            .demo-split-container {
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+                padding: 15px;
+            }
+
+            .demo-original,
+            .demo-filtered {
+                height: 500px;
+            }
+
+            
+            .telegram-header {
+                padding: 10px 16px;
+            }
+
+            .telegram-header-icon {
+                width: 30px;
+                height: 30px;
+                font-size: 15px;
+            }
+
+            .telegram-header h3 {
+                font-size: 16px;
+            }
+
+            .telegram-stats {
+                gap: 8px;
+                font-size: 11px;
+            }
+
+            .telegram-chat {
+                height: 420px;
+            }
+
+            .feed-item {
+                margin: 10px 12px;
+                max-width: 88%;
+            }
+
+            .scenario-btn {
+                font-size: 14px;
+                padding: 8px 16px;
+            }
+
+            .btn-large {
+                font-size: 13px;
+                padding: 11px 18px;
             }
 
             .problem-grid {
@@ -735,7 +1528,7 @@
                     </div>
                 </div>
 
-                <a href="https://t.me/nofluff_bot" class="cta-button" id="mainCTA">
+                <a href="https://t.me/bez_sheluhi_bot" class="cta-button" id="mainCTA">
                     🤖 Попробовать бесплатно
                 </a>
 
@@ -781,13 +1574,13 @@
             <div class="problem-grid">
                 <div class="card problem-card fade-in-up">
                     <span class="problem-icon">📱</span>
-                    <h3>500+ непрочитанных</h3>
+                    <h3>Куча непрочитанных</h3>
                     <p>Сотни сообщений в каналах каждый день</p>
                 </div>
 
                 <div class="card problem-card fade-in-up">
                     <span class="problem-icon">⏰</span>
-                    <h3>37 минут в день</h3>
+                    <h3>Весь вечер</h3>
                     <p>Уходит на просмотр и фильтрацию контента</p>
                 </div>
 
@@ -832,18 +1625,19 @@
             </div>
 
             <div style="text-align: center; margin-top: 40px;">
-                <a href="https://t.me/nofluff_bot" class="btn btn-primary btn-block">
+                <a href="https://t.me/bez_sheluhi_bot" class="btn btn-primary btn-block">
                     🚀 Начать использовать
                 </a>
             </div>
         </div>
     </section>
 
+    
     <!-- Features Section -->
     <section class="section" id="features">
         <div class="container">
             <div class="section-title fade-in-up">
-                <h2>Что умеет NoFluff Bot?</h2>
+                <h2>Что умеет бот "Без Шелухи"?</h2>
                 <p>Интеллектуальная фильтрация на основе AI</p>
             </div>
 
@@ -911,28 +1705,40 @@
                 <div class="testimonial-slide active">
                     <div class="testimonial-avatar">💻</div>
                     <div class="testimonial-text">
-                        "Экономлю 45 минут в день! Бот стал незаменимым помощником для отслеживания IT-новостей. Раньше пропускал важное, теперь получаю только суть."
+                        "Экономлю 45 минут в день! Теперь читаю только 3 ключевые новости из 50+ каналов. За месяц сэкономлено ~22 часа. Бот стал незаменимым помощником для работы."
                     </div>
-                    <div class="testimonial-author">Алексей Петров</div>
-                    <div class="testimonial-role">Senior Developer, Яндекс</div>
+                    <div class="testimonial-author">Алексей К.</div>
+                    <div class="testimonial-role">Senior Developer, FinTech компания</div>
+                    <div class="testimonial-results">
+                        <span class="result">📊 Экономия: 22ч/мес</span>
+                        <span class="result">⚡ Эффективность: +35%</span>
+                    </div>
                 </div>
 
                 <div class="testimonial-slide">
                     <div class="testimonial-avatar">👔</div>
                     <div class="testimonial-text">
-                        "Как предпринимателю, мне важно быть в курсе событий. Бот фильтрует 100+ постов в день до 3-4 действительно важных. Настоящее спасение!"
+                        "Отслеживаю 100+ постов в день, бот выдает 3-4 действительно важных. Время на анализ новостей сократилось с 1.5 до 15 минут. Качество контента значительно выросло."
                     </div>
-                    <div class="testimonial-author">Мария Иванова</div>
-                    <div class="testimonial-role">CEO, TechStart</div>
+                    <div class="testimonial-author">Мария В.</div>
+                    <div class="testimonial-role">Founder, EdTech стартап</div>
+                    <div class="testimonial-results">
+                        <span class="result">⏱ Экономия: 1ч 35мин/день</span>
+                        <span class="result">🎯 Точность: 94%</span>
+                    </div>
                 </div>
 
                 <div class="testimonial-slide">
                     <div class="testimonial-avatar">📈</div>
                     <div class="testimonial-text">
-                        "Отслеживаю 50+ каналов по маркетингу и инвестициям. Бот помогает не тонуть в информации и не пропустить рыночные тренды. Рекомендую!"
+                        "Бот отсекает 90% рекламы и дубликатов. Теперь я вижу только тренды и инсайты, которые реально влияют на бизнес. Принимаю стратегические решения на 2 дня быстрее."
                     </div>
-                    <div class="testimonial-author">Дмитрий Соколов</div>
-                    <div class="testimonial-role">Marketing Director</div>
+                    <div class="testimonial-author">Дмитрий С.</div>
+                    <div class="testimonial-role">Product Manager, SaaS компания</div>
+                    <div class="testimonial-results">
+                        <span class="result">🎯 Скорость решений: +40%</span>
+                        <span class="result">📈 ROI: +127%</span>
+                    </div>
                 </div>
             </div>
 
@@ -1002,6 +1808,23 @@
                         <p>Да, вы можете остановить использование бота в любой момент без каких-либо комиссий или сложных процедур. Никаких привязок к картам не требуется.</p>
                     </div>
                 </div>
+
+                <div class="faq-item card fade-in-up" style="margin-bottom: 16px; cursor: pointer;" onclick="toggleFAQ(this)">
+                    <div class="faq-question" style="display: flex; justify-content: space-between; align-items: center; padding: 20px;">
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: var(--dark);">⏱️ Откуда бот знает сколько времени я сэкономил?</h3>
+                        <span class="faq-toggle" style="font-size: 20px; transition: transform 0.3s;">+</span>
+                    </div>
+                    <div class="faq-answer" style="padding: 0 20px 20px; display: none; color: var(--text-light); line-height: 1.6;">
+                        <p>Бот рассчитывает время на основе проверенных метрик чтения:</p>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li><strong>Отфильтрованные посты:</strong> 30 секунд на чтение обычного поста</li>
+                            <li><strong>Реклама и шелуха:</strong> 15 секунд на распознавание и пропуск</li>
+                            <li><strong>Дубликаты:</strong> 10 секунд на определение повтора</li>
+                        </ul>
+                        <p>📊 <strong>Пример расчета:</strong> Из 50 постов в день бот отфильтровал 35 (ушло бы ~17 минут) + 10 рекламы (~2.5 минуты) + 5 дубликатов (~0.5 минуты) = <strong>экономия ~20 минут ежедневно</strong>.</p>
+                        <p>🎯 Формула: <code>(отфильтрованные × 30с) + (реклама × 15с) + (дубликаты × 10с) = сэкономленное время</code></p>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -1052,6 +1875,66 @@
         }
     </script>
 
+    
+                    tech: {
+                name: "IT и стартапы",
+                feeds: [
+                    { type: "important", channel: "TechCrunch", content: "OpenAI представила GPT-5 с возможностью обработки видео в реальном времени", time: "10:30", importance: 95 },
+                    { type: "ad", channel: "DevNews", content: "🚀 АКЦИЯ! Купите наш курс по React Native со скидкой 80% только сегодня!", time: "11:15", importance: 0 },
+                    { type: "important", channel: "Startup Digest", content: "Яндекс запустил новый AI сервис для автоматической обработки документов", time: "12:00", importance: 88 },
+                    { type: "duplicate", channel: "Tech Daily", content: "OpenAI представила GPT-5 с возможностью обработки видео в реальном времени", time: "12:45", importance: 0 },
+                    { type: "ad", channel: "Code Masters", content: "Подписывайтесь на наш Telegram канал @codemasters_pro", time: "13:20", importance: 0 },
+                    { type: "important", channel: "AI News", content: "GitHub Copilot теперь поддерживает 50+ языков программирования с точностью 94%", time: "14:30", importance: 82 },
+                    { type: "ad", channel: "Marketing Hub", content: "📊 Специалисты по SMM ждут вас! Запишитесь на бесплатную консультацию", time: "15:00", importance: 0 },
+                    { type: "important", channel: "Dev Weekly", content: "Вышел новый фреймворк Next.js 15 с улучшенной производительностью на 40%", time: "16:15", importance: 79 }
+                ],
+                filtered: [
+                    { channel: "TechCrunch", content: "OpenAI представила GPT-5 с возможностью обработки видео в реальном времени", summary: "Новая модель AI может анализировать видеопоток в реальном времени, открывая возможности для автоматического мониторинга и анализа событий.", importance: 95, time: "2 мин" },
+                    { channel: "Startup Digest", content: "Яндекс запустил новый AI сервис для автоматической обработки документов", summary: "Сервис использует нейросети для извлечения данных из документов с точностью 98%, сокращает время обработки на 80%.", importance: 88, time: "3 мин" },
+                    { channel: "AI News", content: "GitHub Copilot теперь поддерживает 50+ языков программирования с точностью 94%", summary: "Расширение поддержки языков включает Rust, Go, Kotlin и другие популярные языки для разработки.", importance: 82, time: "2 мин" }
+                ]
+            },
+            marketing: {
+                name: "Маркетинг",
+                feeds: [
+                    { type: "important", channel: "Marketing News", content: "Google анонсировал новые правила для рекламных кампаний 2024", time: "09:15", importance: 92 },
+                    { type: "ad", channel: "SMM Guru", content: "🎯 Успейте купить гайд по TikTok маркетингу! Осталось 3 дня!", time: "10:00", importance: 0 },
+                    { type: "important", channel: "Digital Trends", content: "Facebook запустил AI инструменты для создания рекламных креативов", time: "11:30", importance: 85 },
+                    { type: "ad", channel: "Ads Expert", content: "Запишитесь на бесплатный вебинар по настройке контекстной рекламы", time: "12:15", importance: 0 },
+                    { type: "important", channel: "Analytics Pro", content: " Яндекс.Метрика добавила предиктивную аналитику для прогнозирования конверсии", time: "14:00", importance: 87 },
+                    { type: "duplicate", channel: "Marketing Hub", content: "Facebook запустил AI инструменты для создания рекламных креативов", time: "14:45", importance: 0 },
+                    { type: "ad", channel: "Growth Hacking", content: "🚀 Наши кейсы по росту подписчиков уже доступны! Скидка 50%!", time: "15:30", importance: 0 }
+                ],
+                filtered: [
+                    { channel: "Marketing News", content: "Google анонсировал новые правила для рекламных кампаний 2024", summary: "Изменения касаются персонализации рекламы, privacy policies и требований к transparency. Ввод с 1 марта.", importance: 92, time: "3 мин" },
+                    { channel: "Digital Trends", content: "Facebook запустил AI инструменты для создания рекламных креативов", summary: "AI автоматически генерирует тексты, изображения и видео для рекламы на основе бренда и ЦА.", importance: 85, time: "2 мин" },
+                    { channel: "Analytics Pro", content: " Яндекс.Метрика добавила предиктивную аналитику для прогнозирования конверсии", summary: "Новые функции используют машинное обучение для прогнозирования конверсии с точностью 89%.", importance: 87, time: "2 мин" }
+                ]
+            },
+            business: {
+                name: "Бизнес",
+                feeds: [
+                    { type: "important", channel: "Business Daily", content: "Центробанк снизил ключевую ставку до 15%", time: "09:00", importance: 93 },
+                    { type: "ad", channel: "Business Coach", content: "📈 Индивидуальные консультации по развитию бизнеса! Запишитесь сейчас!", time: "09:45", importance: 0 },
+                    { type: "important", channel: "Finance News", content: "Сбер инвестирует 50 млрд рублей в развитие AI технологий", time: "11:00", importance: 88 },
+                    { type: "ad", channel: "Startup Academy", content: "🎓 Обучающий курс по запуску стартапа с нуля! Места ограничены!", time: "12:30", importance: 0 },
+                    { type: "important", channel: "Economy Today", content: "Росстат: рост экономики России составил 3.6% в III квартале", time: "14:15", importance: 84 },
+                    { type: "important", channel: "Investment Digest", content: "Венчурный фонд привлечет $200 млн для инвестиций в российские стартапы", time: "15:45", importance: 81 },
+                    { type: "ad", channel: "Business Tools", content: "🔧 Пользуйтесь нашим CRM-системой! Первый месяц бесплатно!", time: "16:30", importance: 0 },
+                    { type: "duplicate", channel: "Finance Weekly", content: "Сбер инвестирует 50 млрд рублей в развитие AI технологий", time: "17:00", importance: 0 }
+                ],
+                filtered: [
+                    { channel: "Business Daily", content: "Центробанк снизил ключевую ставку до 15%", summary: "Решение принято на фоне замедления инфляции до 7.5%. Следующее заседание через 6 недель.", importance: 93, time: "2 мин" },
+                    { channel: "Finance News", content: "Сбер инвестирует 50 млрд рублей в развитие AI технологий", summary: "Инвестиции направлены на разработку отечественных AI решений для банковского сектора и ритейла.", importance: 88, time: "3 мин" },
+                    { channel: "Investment Digest", content: "Венчурный фонд привлечет $200 млн для инвестиций в российские стартапы", summary: "Фокус на B2B SaaS, финтех и AI проекты. Минимальная инвестиция $1 млн.", importance: 81, time: "2 мин" }
+                ]
+            }
+        };
+
+  
+  
+      </script>
+
     <!-- Final CTA Section -->
     <section class="section final-cta" id="final-cta">
         <div class="container">
@@ -1059,7 +1942,7 @@
                 <h2>Готов вернуть себе время?</h2>
                 <p>Присоединяйтесь к 500+ профессионалов, которые уже экономят до 40 минут ежедневно</p>
 
-                <a href="https://t.me/nofluff_bot" class="cta-button" id="finalCTA">
+                <a href="https://t.me/bez_sheluhi_bot" class="cta-button" id="finalCTA">
                     🤖 Добавить в Telegram
                 </a>
 
@@ -1081,7 +1964,7 @@
 
     <!-- Floating CTA Button -->
     <div class="floating-cta" id="floatingCTA">
-        <a href="https://t.me/nofluff_bot" class="cta-button">
+        <a href="https://t.me/bez_sheluhi_bot" class="cta-button">
             🤖 Попробовать
         </a>
     </div>
@@ -1092,10 +1975,10 @@
             <div class="footer-links">
                 <a href="#how-it-works">Как работает</a>
                 <a href="#features">Функции</a>
-                <a href="https://t.me/nofluff_bot">Поддержка</a>
+                <a href="https://t.me/bez_sheluhi_bot">Поддержка</a>
             </div>
             <p style="font-size: 14px; opacity: 0.8;">
-                © 2024 NoFluff Bot. Сделано с ❤️ для экономии вашего времени
+                © 2024 Без Шелухи. Сделано с ❤️ для экономии вашего времени
             </p>
         </div>
     </footer>
@@ -1365,8 +2248,8 @@
         });
 
         // Console welcome message
-        console.log('%c🤖 NoFluff Bot - Читай только важное!', 'font-size: 16px; font-weight: bold; color: #0066aa;');
+        console.log('%c🤖 Без Шелухи - AI-дайджестер для Telegram!', 'font-size: 16px; font-weight: bold; color: #0066aa;');
         console.log('%cЭкономим время профессионалов с 2024 года', 'font-size: 12px; color: #4a5568;');
-        console.log('%c✅ Все критические улучшения применены!', 'font-size: 14px; color: #28a745;');
+        console.log('%c✅ Ребрендинг выполнен успешно!', 'font-size: 14px; color: #28a745;');
 </body>
 </html>

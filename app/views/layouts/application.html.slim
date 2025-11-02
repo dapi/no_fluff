@@ -1,7 +1,7 @@
 doctype html
 html
   head
-    title NoFluff
+    title Без Шелухи
     meta charset="utf-8"
     meta name="viewport" content="width=device-width, initial-scale=1"
     = csrf_meta_tags
@@ -15,7 +15,7 @@ html
     header
       nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
         .container
-          = link_to 'NoFluff Bot', '/', class: 'navbar-brand'
+          = link_to 'Без Шелухи', '/', class: 'navbar-brand'
           .navbar-nav
             = link_to 'Solid Queue Dashboard', solid_queue_dashboard_path, class: 'nav-link'
 
@@ -29,4 +29,4 @@ html
       = yield
 
     footer
-      p &copy; 2024 NoFluff - Telegram Bot for Content Filtering
+      p &copy; 2024 Без Шелухи - Telegram Bot for Content Filtering

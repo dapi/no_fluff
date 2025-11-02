@@ -73,7 +73,10 @@
       "mcp__serena__write_memory",
       "Bash(rails test:*)",
       "mcp__serena__delete_memory",
-      "mcp__serena__read_memory"
+      "mcp__serena__read_memory",
+      "Bash(python3:*)",
+      "mcp__brave-search__brave_web_search",
+      "mcp__sequential-thinking__sequentialthinking"
     ],
     "deny": [],
     "ask": []
