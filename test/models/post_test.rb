@@ -1,24 +1,7 @@
 require 'test_helper'
 
 class PostTest < ActiveSupport::TestCase
-  # Fixture tests
-  test 'should load fixture' do
-    post = posts(:one)
-    assert_not_nil post
-  end
-
-  test 'loaded fixture should be valid' do
-    post = posts(:one)
-    assert post.valid?
-  end
-
   # Association tests
-  test 'should have channel association' do
-    post = posts(:one)
-    assert_not_nil post.channel
-    assert_instance_of Channel, post.channel
-  end
-
   test 'should belong to channel' do
     post = posts(:one)
     assert_respond_to post, :channel

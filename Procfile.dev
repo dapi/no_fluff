@@ -1,3 +1,4 @@
 jobs: ./bin/jobs
 bot: bundle exec rake telegram:bot:poller
-server: rails s 
+server: ./bin/rails s -p 3014 -b 192.168.88.10
+

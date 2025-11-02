@@ -68,7 +68,12 @@
       "Bash(timeout:*)",
       "Bash(COVERAGE=true ./bin/rails test:*)",
       "Bash(npx:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "mcp__serena__search_for_pattern",
+      "mcp__serena__write_memory",
+      "Bash(rails test:*)",
+      "mcp__serena__delete_memory",
+      "mcp__serena__read_memory"
     ],
     "deny": [],
     "ask": []

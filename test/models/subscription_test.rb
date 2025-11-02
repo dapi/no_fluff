@@ -1,38 +1,19 @@
 require 'test_helper'
 
 class SubscriptionTest < ActiveSupport::TestCase
-  # Fixture tests
-  test 'should load fixture' do
-    subscription = subscriptions(:one)
-    assert_not_nil subscription
-  end
-
-  test 'loaded fixture should be valid' do
-    subscription = subscriptions(:one)
-    assert subscription.valid?
-  end
-
   # Association tests
-  test 'should have telegram_user association' do
+  test 'should have all required associations' do
     subscription = subscriptions(:one)
+
+    # belongs_to associations
+    assert_respond_to subscription, :telegram_user
+    assert_respond_to subscription, :channel
+
+    # Verify associated objects exist and are correct types
     assert_not_nil subscription.telegram_user
     assert_instance_of TelegramUser, subscription.telegram_user
-  end
-
-  test 'should have channel association' do
-    subscription = subscriptions(:one)
     assert_not_nil subscription.channel
     assert_instance_of Channel, subscription.channel
-  end
-
-  test 'should belong to telegram_user' do
-    subscription = subscriptions(:one)
-    assert_respond_to subscription, :telegram_user
-  end
-
-  test 'should belong to channel' do
-    subscription = subscriptions(:one)
-    assert_respond_to subscription, :channel
   end
 
   # Validation tests

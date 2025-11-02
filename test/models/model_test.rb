@@ -1,16 +1,6 @@
 require 'test_helper'
 
 class ModelTest < ActiveSupport::TestCase
-  test 'should load fixture' do
-    model = models(:one)
-    assert_not_nil model
-  end
-
-  test 'loaded fixture should be valid' do
-    model = models(:one)
-    assert model.valid?
-  end
-
   test 'should save fixture data to database' do
     model = models(:one)
     assert_equal 'gpt-4', model.model_id

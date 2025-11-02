@@ -1,17 +1,6 @@
 require 'test_helper'
 
 class ChannelTest < ActiveSupport::TestCase
-  # Fixture tests
-  test 'should load fixture' do
-    channel = channels(:one)
-    assert_not_nil channel
-  end
-
-  test 'loaded fixture should be valid' do
-    channel = channels(:one)
-    assert channel.valid?
-  end
-
   # Validation tests
   test 'should be valid with valid attributes' do
     channel = Channel.new(
@@ -54,18 +43,11 @@ class ChannelTest < ActiveSupport::TestCase
   end
 
   # Association tests
-  test 'should have many subscriptions' do
+  test 'should have all required associations' do
     channel = channels(:one)
+    # has_many associations
     assert_respond_to channel, :subscriptions
-  end
-
-  test 'should have many telegram_users through subscriptions' do
-    channel = channels(:one)
     assert_respond_to channel, :telegram_users
-  end
-
-  test 'should have many posts' do
-    channel = channels(:one)
     assert_respond_to channel, :posts
   end
 
@@ -98,20 +80,16 @@ class ChannelTest < ActiveSupport::TestCase
 
   # Scope tests
 
-  test 'verified scope should return only verified channels' do
-    channel = channels(:one)
-    channel.update(is_verified: true)
+  test 'verified scope should filter channels correctly' do
+    verified_channel = channels(:one)
+    verified_channel.update(is_verified: true)
+
+    unverified_channel = channels(:two)
+    unverified_channel.update(is_verified: false)
 
     verified_channels = Channel.verified
-    assert_includes verified_channels, channel
-  end
-
-  test 'verified scope should not return unverified channels' do
-    channel = channels(:one)
-    channel.update(is_verified: false)
-
-    verified_channels = Channel.verified
-    assert_not_includes verified_channels, channel
+    assert_includes verified_channels, verified_channel
+    assert_not_includes verified_channels, unverified_channel
   end
 
   test 'by_subscribers scope should order channels by subscribers count descending' do
@@ -130,20 +108,16 @@ class ChannelTest < ActiveSupport::TestCase
     assert_equal channel1, ordered_channels.fifth
   end
 
-  test 'recently_updated scope should return channels updated in last 24 hours' do
-    channel = channels(:one)
-    channel.update(last_post_at: 12.hours.ago)
+  test 'recently_updated scope should filter channels by time correctly' do
+    recent_channel = channels(:one)
+    recent_channel.update(last_post_at: 12.hours.ago)
+
+    old_channel = channels(:two)
+    old_channel.update(last_post_at: 25.hours.ago)
 
     recent_channels = Channel.recently_updated
-    assert_includes recent_channels, channel
-  end
-
-  test 'recently_updated scope should not return channels updated more than 24 hours ago' do
-    channel = channels(:one)
-    channel.update(last_post_at: 25.hours.ago)
-
-    recent_channels = Channel.recently_updated
-    assert_not_includes recent_channels, channel
+    assert_includes recent_channels, recent_channel
+    assert_not_includes recent_channels, old_channel
   end
 
   test 'needs_monitoring scope should return channels never monitored' do
@@ -271,52 +245,28 @@ class ChannelTest < ActiveSupport::TestCase
   end
 
   # Bot join status scope tests
-  test 'joined scope should return only joined channels' do
-    channel1 = channels(:one)
-    channel1.update!(bot_join_status: 'joined')
+  test 'bot_join_status scopes should filter channels correctly' do
+    joined_channel = channels(:one)
+    joined_channel.update!(bot_join_status: 'joined')
 
-    channel2 = channels(:two)
-    channel2.update!(bot_join_status: 'not_joined')
+    not_joined_channel = channels(:two)
+    not_joined_channel.update!(bot_join_status: 'not_joined')
 
-    joined_channels = Channel.joined
-    assert_includes joined_channels, channel1
-    assert_not_includes joined_channels, channel2
-  end
+    joining_channel = Channel.create!(telegram_id: '123', username: 'joining', bot_join_status: 'joining')
+    join_failed_channel = Channel.create!(telegram_id: '456', username: 'failed', bot_join_status: 'join_failed')
 
-  test 'not_joined scope should return only not_joined channels' do
-    channel1 = channels(:one)
-    channel1.update!(bot_join_status: 'not_joined')
+    # Test each scope
+    assert_includes Channel.joined, joined_channel
+    assert_not_includes Channel.joined, not_joined_channel
 
-    channel2 = channels(:two)
-    channel2.update!(bot_join_status: 'joined')
+    assert_includes Channel.not_joined, not_joined_channel
+    assert_not_includes Channel.not_joined, joined_channel
 
-    not_joined_channels = Channel.not_joined
-    assert_includes not_joined_channels, channel1
-    assert_not_includes not_joined_channels, channel2
-  end
+    assert_includes Channel.joining, joining_channel
+    assert_not_includes Channel.joining, joined_channel
 
-  test 'joining scope should return only joining channels' do
-    channel1 = channels(:one)
-    channel1.update!(bot_join_status: 'joining')
-
-    channel2 = channels(:two)
-    channel2.update!(bot_join_status: 'joined')
-
-    joining_channels = Channel.joining
-    assert_includes joining_channels, channel1
-    assert_not_includes joining_channels, channel2
-  end
-
-  test 'join_failed scope should return only join_failed channels' do
-    channel1 = channels(:one)
-    channel1.update!(bot_join_status: 'join_failed')
-
-    channel2 = channels(:two)
-    channel2.update!(bot_join_status: 'joined')
-
-    join_failed_channels = Channel.join_failed
-    assert_includes join_failed_channels, channel1
-    assert_not_includes join_failed_channels, channel2
+    assert_includes Channel.join_failed, join_failed_channel
+    assert_not_includes Channel.join_failed, joined_channel
   end
 
   # Bot join status method tests

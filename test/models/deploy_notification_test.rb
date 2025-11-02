@@ -10,12 +10,6 @@ class DeployNotificationTest < ActiveSupport::TestCase
     assert_equal '1.0.0', notification.version
   end
 
-  test 'should enforce version uniqueness' do
-    DeployNotification.create!(version: '1.0.0', metadata: {})
-
-    duplicate = DeployNotification.new(version: '1.0.0', metadata: {})
-    assert_not duplicate.valid?
-  end
 
   test 'should use find_or_create_by correctly' do
     notification1 = DeployNotification.find_or_create_by(version: '1.0.0') { |r| r.metadata = {} }

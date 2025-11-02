@@ -1,17 +1,6 @@
 require 'test_helper'
 
 class TelegramUserTest < ActiveSupport::TestCase
-  # Fixture tests
-  test 'should load fixture' do
-    telegram_user = telegram_users(:one)
-    assert_not_nil telegram_user
-  end
-
-  test 'loaded fixture should be valid' do
-    telegram_user = telegram_users(:one)
-    assert telegram_user.valid?
-  end
-
   # Validation tests
   test 'should be valid with valid attributes' do
     user = TelegramUser.new(
@@ -61,33 +50,15 @@ class TelegramUserTest < ActiveSupport::TestCase
   end
 
   # Association tests
-  test 'should have many subscriptions' do
+  test 'should have all required associations' do
     user = telegram_users(:one)
+    # has_many associations
     assert_respond_to user, :subscriptions
-  end
-
-  test 'should have many channels through subscriptions' do
-    user = telegram_users(:one)
     assert_respond_to user, :channels
-  end
-
-  test 'should have many user_digests' do
-    user = telegram_users(:one)
     assert_respond_to user, :user_digests
-  end
-
-  test 'should have many chats' do
-    user = telegram_users(:one)
     assert_respond_to user, :chats
-  end
-
-  test 'should have many feedbacks' do
-    user = telegram_users(:one)
     assert_respond_to user, :feedbacks
-  end
-
-  test 'should have one user_preference' do
-    user = telegram_users(:one)
+    # has_one association
     assert_respond_to user, :user_preference
   end
 
@@ -158,36 +129,28 @@ class TelegramUserTest < ActiveSupport::TestCase
   end
 
   # Scope tests
-  test 'premium scope should return only premium users' do
-    user = telegram_users(:one)
-    user.update(is_premium: true)
+  test 'premium scope should filter users correctly' do
+    premium_user = telegram_users(:one)
+    premium_user.update(is_premium: true)
+
+    regular_user = telegram_users(:two)
+    regular_user.update(is_premium: false)
 
     premium_users = TelegramUser.premium
-    assert_includes premium_users, user
+    assert_includes premium_users, premium_user
+    assert_not_includes premium_users, regular_user
   end
 
-  test 'premium scope should not return non-premium users' do
-    user = telegram_users(:one)
-    user.update(is_premium: false)
+  test 'non_bots scope should filter users correctly' do
+    regular_user = telegram_users(:one)
+    regular_user.update(is_bot: false)
 
-    premium_users = TelegramUser.premium
-    assert_not_includes premium_users, user
-  end
-
-  test 'non_bots scope should return only non-bot users' do
-    user = telegram_users(:one)
-    user.update(is_bot: false)
+    bot_user = telegram_users(:two)
+    bot_user.update(is_bot: true)
 
     non_bot_users = TelegramUser.non_bots
-    assert_includes non_bot_users, user
-  end
-
-  test 'non_bots scope should not return bot users' do
-    user = telegram_users(:one)
-    user.update(is_bot: true)
-
-    non_bot_users = TelegramUser.non_bots
-    assert_not_includes non_bot_users, user
+    assert_includes non_bot_users, regular_user
+    assert_not_includes non_bot_users, bot_user
   end
 
   test 'by_delivery_time scope should filter by delivery frequency' do

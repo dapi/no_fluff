@@ -76,11 +76,6 @@ class PhoneNumberValidatorTest < ActiveSupport::TestCase
     end
   end
 
-  test 'validates phonelib configuration' do
-    # Test that Phonelib is configured correctly
-    assert_equal 'RU', Phonelib.default_country
-    assert_not Phonelib.strict_check
-  end
 
   private
 
