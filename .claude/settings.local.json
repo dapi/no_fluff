@@ -78,7 +78,10 @@
       "mcp__brave-search__brave_web_search",
       "mcp__sequential-thinking__sequentialthinking",
       "Bash(rm:*)",
-      "mcp__serena__list_dir"
+      "mcp__serena__list_dir",
+      "mcp__serena__get_symbols_overview",
+      "Bash(bin/rails test:*)",
+      "mcp__serena__find_symbol"
     ],
     "deny": [],
     "ask": []

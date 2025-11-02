@@ -278,6 +278,21 @@ module TelegramHelper
     bot.reset if bot.respond_to?(:reset)
   end
 
+  # Создание mock для Telegram бота
+  # @return [Mock] mock объект бота
+  def mock_telegram_bot
+    mock = mock('Telegram::Bot')
+    mock.stubs(:api).returns(mock_api)
+    mock
+  end
+
+  # Создание mock для Telegram API
+  # @return [Mock] mock объект API
+  def mock_api
+    mock = mock('Telegram::Bot::Api')
+    mock
+  end
+
   # Проверка логирования в тестах
   # @param expected_message [String] ожидаемое сообщение в логах
   def assert_logs(expected_message)
