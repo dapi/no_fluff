@@ -115,12 +115,29 @@ class SubscriptionTest < ActiveSupport::TestCase
   end
 
   test 'by_created_at scope should order subscriptions by created_at descending' do
-    subscription1 = subscriptions(:one)
-    subscription2 = subscriptions(:two)
+    # Создаем новые подписки с уникальными timestamps в будущем
+    user1 = telegram_users(:one)
+    user2 = telegram_users(:two)
+    channel1 = channels(:one)
+    channel2 = channels(:two)
 
-    # Ensure they have different created_at timestamps
-    subscription1.update!(created_at: 2.hours.ago)
-    subscription2.update!(created_at: 1.hour.ago)
+    # Удаляем существующие подписки для этих пользователей и каналов
+    Subscription.where(telegram_user: user1, channel: channel1).delete_all
+    Subscription.where(telegram_user: user2, channel: channel2).delete_all
+
+    future_time1 = 1.hour.from_now
+    future_time2 = 2.hours.from_now
+
+    subscription1 = Subscription.create!(
+      telegram_user: user1,
+      channel: channel1,
+      created_at: future_time1
+    )
+    subscription2 = Subscription.create!(
+      telegram_user: user2,
+      channel: channel2,
+      created_at: future_time2
+    )
 
     ordered_subscriptions = Subscription.by_created_at
     assert_equal subscription2, ordered_subscriptions.first

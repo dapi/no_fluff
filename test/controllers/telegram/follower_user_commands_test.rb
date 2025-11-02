@@ -53,7 +53,8 @@ class Telegram::FollowerUserCommandsTest < ActionDispatch::IntegrationTest
 
   def create_admin_user(user_id: 123456, username: 'admin')
     # Ensure no admins exist so first user becomes admin
-    TelegramUser.where(is_admin: true).delete_all
+    # Use destroy_all to properly handle dependent: :destroy
+    TelegramUser.where(is_admin: true).destroy_all
 
     # First, send /start to make the user admin
     start_update = create_user_update(user_id: user_id, username: username,

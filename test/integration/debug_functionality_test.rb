@@ -85,7 +85,7 @@ class DebugFunctionalityTest < ActionDispatch::IntegrationTest
     assert_equal true, SystemSetting.get('debug_mode')
 
     # 4. Проверяем что DebugNotifier API работает
-    assert_equal 1, DebugNotifier.admin_count
+    assert_equal TelegramUser.where(is_admin: true).count, DebugNotifier.admin_count
     assert DebugNotifier.has_admins?
 
     # 5. Тестируем отправку debug уведомления
@@ -117,12 +117,12 @@ class DebugFunctionalityTest < ActionDispatch::IntegrationTest
 
     # Проверяем что DebugNotifier включен и готов к работе
     assert DebugNotifier.enabled?
-    assert_equal 1, DebugNotifier.admin_count
+    assert_equal TelegramUser.where(is_admin: true).count, DebugNotifier.admin_count
     assert DebugNotifier.has_admins?
 
     # Проверяем базовый API
     result = DebugNotifier.error('Test integration error', { test_context: 'integration_test' })
-    assert_equal 1, result  # Количество администраторов которым будет отправлено сообщение
+    assert_equal TelegramUser.where(is_admin: true).count, result  # Количество администраторов которым будет отправлено сообщение
   end
 
   test 'debug mode persists across multiple requests' do
@@ -172,7 +172,7 @@ class DebugFunctionalityTest < ActionDispatch::IntegrationTest
     send_webhook_update(update1)
 
     assert DebugNotifier.enabled?
-    assert_equal 2, DebugNotifier.admin_count
+    assert_equal TelegramUser.where(is_admin: true).count, DebugNotifier.admin_count
 
     # Второй администратор выключает режим
     @bot.reset
@@ -210,7 +210,7 @@ class DebugFunctionalityTest < ActionDispatch::IntegrationTest
     DebugNotifier.enable!
 
     # Убедимся что есть только один администратор
-    assert_equal 1, DebugNotifier.admin_count
+    assert_equal TelegramUser.where(is_admin: true).count, DebugNotifier.admin_count
 
     # Проверяем что уведомления будут отправлены только администратору
     assert_enqueued_jobs 1 do

@@ -2,8 +2,8 @@ require 'test_helper'
 
 class Channels::BotJoinNotificationServiceTest < ActiveSupport::TestCase
   def setup
-    @admin_user = telegram_users(:one)
-    @admin_user.update!(is_admin: true)
+    # Используем существующего админа из фикстур
+    @admin_user = telegram_users(:admin_user)
     @channel = channels(:one)
     @channel.update!(bot_join_at: Time.current) # Set timestamp for I18n
   end

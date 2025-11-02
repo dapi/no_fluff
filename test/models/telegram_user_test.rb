@@ -296,19 +296,8 @@ class TelegramUserTest < ActiveSupport::TestCase
   end
 
   test 'admins scope should return only admin users' do
-    admin_user = TelegramUser.create!(
-      username: 'admin_user',
-      timezone: 'UTC',
-      language_code: 'en',
-      is_admin: true
-    )
-
-    regular_user = TelegramUser.create!(
-      username: 'regular_user',
-      timezone: 'UTC',
-      language_code: 'en',
-      is_admin: false
-    )
+    admin_user = telegram_users(:admin_user)
+    regular_user = telegram_users(:one)
 
     admin_users = TelegramUser.admins
     assert_includes admin_users, admin_user
@@ -316,57 +305,25 @@ class TelegramUserTest < ActiveSupport::TestCase
   end
 
   test 'any_admins? should return false when no admins exist' do
-    # Create only regular users
-    TelegramUser.create!(
-      username: 'regular_user1',
-      timezone: 'UTC',
-      language_code: 'en',
-      is_admin: false
-    )
-
+    # Delete all admin users to test the scenario
+    TelegramUser.where(is_admin: true).destroy_all
     assert_not TelegramUser.any_admins?
   end
 
   test 'any_admins? should return true when at least one admin exists' do
-    # Create regular users
-    TelegramUser.create!(
-      username: 'regular_user1',
-      timezone: 'UTC',
-      language_code: 'en',
-      is_admin: false
-    )
-
-    # Create admin user
-    TelegramUser.create!(
-      username: 'admin_user',
-      timezone: 'UTC',
-      language_code: 'en',
-      is_admin: true
-    )
-
+    # Use fixtures - admin_user already exists in fixtures
     assert TelegramUser.any_admins?
   end
 
   test 'first_admin! should return first admin when admins exist' do
-    admin1 = TelegramUser.create!(
-      username: 'admin_user1',
-      timezone: 'UTC',
-      language_code: 'en',
-      is_admin: true
-    )
-
-    admin2 = TelegramUser.create!(
-      username: 'admin_user2',
-      timezone: 'UTC',
-      language_code: 'en',
-      is_admin: true
-    )
-
+    # Use the admin_user from fixtures
     first_admin = TelegramUser.first_admin!
-    assert_includes [ admin1, admin2 ], first_admin
+    assert_equal telegram_users(:admin_user), first_admin
   end
 
   test 'first_admin! should return nil when no admins exist' do
+    # Delete all admin users to test the scenario
+    TelegramUser.where(is_admin: true).destroy_all
     assert_nil TelegramUser.first_admin!
   end
 
@@ -456,17 +413,12 @@ class TelegramUserTest < ActiveSupport::TestCase
 
   # Tests for subscription limits functionality
   test 'can_add_channel? should return true for premium users' do
-    user = TelegramUser.create!(
-      username: 'premium_user',
-      timezone: 'UTC',
-      language_code: 'en',
-      is_premium: true
-    )
+    user = telegram_users(:premium_user)
 
     # У премиум пользователя должно быть 100+ подписок
     11.times do |i|
       user.subscriptions.create!(
-        channel: Channel.create!(telegram_id: 1000 + i, username: "channel_#{i}"),
+        channel: Channel.create!(telegram_id: 1000 + i, username: "test_channel_#{i}"),
         active: true
       )
     end

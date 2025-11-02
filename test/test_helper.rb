@@ -11,6 +11,23 @@ require 'minitest/mock'
 # Configure Mocha for mocking and stubbing
 require 'mocha/minitest'
 
+# Configure Telegram bot for testing
+Telegram.reset_bots
+Telegram::Bot::ClientStub.stub_all!
+
+# Configure default test bot
+Telegram.bots_config = {
+  default: 'test_token'
+}
+
+# Configure DatabaseCleaner
+require 'database_cleaner/active_record'
+DatabaseCleaner.strategy = :transaction
+DatabaseCleaner.allow_remote_database_url = true
+
+# Load all support files before they are used
+Dir[File.dirname(__FILE__) + '/support/**/*.rb'].each { |f| require f }
+
 module ActiveSupport
   class TestCase
     # Отключаем параллельный запуск для тестов telegram-bot
@@ -18,18 +35,25 @@ module ActiveSupport
 
     fixtures :all
 
-    # Отключаем транзакции для тестов deploy notification
+    # Include support modules
+    include TelegramHelper
+    include MocksHelper
+    include FactoryHelper
+    include AssertionHelper
+
+    # Use DatabaseCleaner for transaction management
     setup do
-      if ActiveRecord::Base.connection.respond_to?(:begin_transaction)
-        ActiveRecord::Base.connection.begin_transaction(joinable: false)
-      end
+      DatabaseCleaner.start
     end
 
     teardown do
-      if ActiveRecord::Base.connection.respond_to?(:rollback_transaction) &&
-          ActiveRecord::Base.connection.current_transaction.open?
-        ActiveRecord::Base.connection.rollback_transaction
-      end
+      DatabaseCleaner.clean
+    end
+
+    # Reset Telegram bot after each test
+    teardown do
+      Telegram.bot.reset if Telegram.bot.respond_to?(:reset)
+      reset_all_mocks
     end
 
     # Add more helper methods to be used by all tests here...

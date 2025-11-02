@@ -10,4 +10,29 @@ two:
   telegram_user: two
   channel: two
   last_digest_sent_at: 2025-10-01 14:37:48
-  settings: 
+  settings:
+
+premium_subscription:
+  telegram_user: premium_user
+  channel: premium_channel
+  last_digest_sent_at: 2025-10-01 15:00:00
+  settings:
+    filter_level: high
+    digest_frequency: daily
+
+admin_subscription:
+  telegram_user: admin_user
+  channel: one
+  last_digest_sent_at: 2025-10-01 14:37:48
+  settings:
+    filter_level: low
+    digest_frequency: weekly
+
+inactive_subscription:
+  telegram_user: one
+  channel: inactive_channel
+  last_digest_sent_at: 2025-09-01 14:37:48
+  settings:
+    filter_level: medium
+    digest_frequency: monthly
+  active: false 

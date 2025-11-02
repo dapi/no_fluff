@@ -19,3 +19,33 @@ two:
   is_verified: false
   last_post_at: 2025-10-01 14:36:11
   monitored_at: 2025-10-01 14:36:11
+
+premium_channel:
+  telegram_id: 1001234567892
+  username: premium_test_channel
+  title: Premium Test Channel
+  description: A premium test channel with exclusive content
+  subscribers_count: 5000
+  is_verified: true
+  last_post_at: 2025-10-01 15:00:00
+  monitored_at: 2025-10-01 14:36:11
+
+inactive_channel:
+  telegram_id: 1001234567893
+  username: inactive_test_channel
+  title: Inactive Test Channel
+  description: An inactive test channel
+  subscribers_count: 500
+  is_verified: false
+  last_post_at: 2025-09-01 14:36:11
+  monitored_at: 2025-10-01 14:36:11
+
+large_channel:
+  telegram_id: 1001234567894
+  username: large_test_channel
+  title: Large Test Channel
+  description: A large test channel with many subscribers
+  subscribers_count: 50000
+  is_verified: true
+  last_post_at: 2025-10-01 15:30:00
+  monitored_at: 2025-10-01 14:36:11

@@ -119,11 +119,15 @@ class ChannelTest < ActiveSupport::TestCase
     channel1.update(subscribers_count: 100)
 
     channel2 = channels(:two)
-    channel2.update(subscribers_count: 500)
+    channel2.update(subscribers_count: 300)  # Уникальное значение
 
     ordered_channels = Channel.by_subscribers
-    assert_equal channel2, ordered_channels.first
-    assert_equal channel1, ordered_channels.second
+    # large_channel (50000) > premium_channel (5000) > inactive_channel (500) > channel2 (300) > channel1 (100)
+    assert_equal channels(:large_channel), ordered_channels.first
+    assert_equal channels(:premium_channel), ordered_channels.second
+    assert_equal channels(:inactive_channel), ordered_channels.third
+    assert_equal channel2, ordered_channels.fourth
+    assert_equal channel1, ordered_channels.fifth
   end
 
   test 'recently_updated scope should return channels updated in last 24 hours' do

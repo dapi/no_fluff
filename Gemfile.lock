@@ -126,6 +126,10 @@ GEM
       fiber-local (~> 1.1)
       json
     crass (1.0.6)
+    database_cleaner-active_record (2.2.2)
+      activerecord (>= 5.a)
+      database_cleaner-core (~> 2.0)
+    database_cleaner-core (2.0.1)
     date (3.4.1)
     debug (1.11.0)
       irb (~> 1.10)
@@ -544,6 +548,7 @@ DEPENDENCIES
   bugsnag (~> 6.28)
   claude-on-rails
   claude_swarm
+  database_cleaner-active_record
   debug
   guard
   guard-minitest

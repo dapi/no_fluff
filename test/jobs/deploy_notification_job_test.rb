@@ -2,13 +2,8 @@ require 'test_helper'
 
 class DeployNotificationJobTest < ActiveJob::TestCase
   test 'should send notification to admins' do
-    admin = TelegramUser.create!(
-      username: 'admin',
-      first_name: 'Admin',
-      language_code: 'ru',
-      timezone: 'UTC',
-      is_admin: true
-    )
+    # Используем существующего админа из фикстур вместо создания нового
+    admin = telegram_users(:admin_user)
 
     # Проверяем что админ находится в скоупе
     assert_includes TelegramUser.admins, admin
@@ -31,13 +26,16 @@ class DeployNotificationJobTest < ActiveJob::TestCase
       DeployNotificationJob.perform_now('1.0.0', Time.current, { deployed_at: Time.current.iso8601 })
     end
 
-    # Проверяем что send_message был вызван
-    assert_equal 1, send_message_calls.length
-    call = send_message_calls.first
-    assert_equal admin.id, call[:chat_id]
-    assert_includes call[:text], '1.0.0'
-    assert_includes call[:text], '🚀'
-    assert_equal 'HTML', call[:parse_mode]
+    # Проверяем что send_message был вызван для каждого админа
+    admin_count = TelegramUser.admins.count
+    assert_equal admin_count, send_message_calls.length
+
+    # Находим вызов для нашего админа
+    admin_call = send_message_calls.find { |call| call[:chat_id] == admin.telegram_id }
+    assert_not_nil admin_call
+    assert_includes admin_call[:text], '1.0.0'
+    assert_includes admin_call[:text], '🚀'
+    assert_equal 'HTML', admin_call[:parse_mode]
   end
 
   test 'should build notification message' do

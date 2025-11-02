@@ -117,6 +117,8 @@ class DebugNotifierTest < ActiveSupport::TestCase
     SystemSetting.set('debug_mode', true)
     @admin1.destroy!
     @admin2.destroy!
+    # Удаляем также админа из фикстур
+    TelegramUser.where(is_admin: true).destroy_all
 
     result = DebugNotifier.notify('error', 'Test message')
 
@@ -128,7 +130,7 @@ class DebugNotifierTest < ActiveSupport::TestCase
 
     result = DebugNotifier.notify('error', 'Test message')
 
-    assert_equal 2, result
+    assert_equal 3, result  # Учитываем admin_user из фикстур + других админов
   end
 
   test 'notify should return 0 for invalid message type' do
@@ -258,19 +260,21 @@ class DebugNotifierTest < ActiveSupport::TestCase
   test 'has_admins? should return false when no admins exist' do
     @admin1.destroy!
     @admin2.destroy!
+    # Удаляем также админа из фикстур
+    TelegramUser.where(is_admin: true).destroy_all
 
     assert_not DebugNotifier.has_admins?
   end
 
   # admin_count tests
   test 'admin_count should return correct number of admins' do
-    assert_equal 2, DebugNotifier.admin_count
+    assert_equal 3, DebugNotifier.admin_count  # @admin1 + @admin2 + admin_user из фикстур
 
     @admin1.destroy!
-    assert_equal 1, DebugNotifier.admin_count
+    assert_equal 2, DebugNotifier.admin_count
 
     @admin2.destroy!
-    assert_equal 0, DebugNotifier.admin_count
+    assert_equal 1, DebugNotifier.admin_count  # Остается admin_user из фикстур
   end
 
   # MESSAGE_TYPES constant tests
@@ -308,7 +312,7 @@ class DebugNotifierTest < ActiveSupport::TestCase
     # Enable debug mode
     DebugNotifier.enable!
     assert DebugNotifier.enabled?
-    assert_equal 2, DebugNotifier.notify('info', 'Test')
+    assert_equal 3, DebugNotifier.notify('info', 'Test')  # @admin1 + @admin2 + admin_user из фикстур
 
     # Disable debug mode
     DebugNotifier.disable!

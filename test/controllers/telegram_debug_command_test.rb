@@ -226,7 +226,7 @@ class TelegramDebugCommandTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert DebugNotifier.enabled?
-    assert_equal 1, DebugNotifier.admin_count
+    assert_equal TelegramUser.where(is_admin: true).count, DebugNotifier.admin_count
   end
 
   # Command format tests

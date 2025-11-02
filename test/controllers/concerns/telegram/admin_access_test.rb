@@ -44,7 +44,7 @@ class Telegram::AdminAccessTest < ActionDispatch::IntegrationTest
 
   test 'admin user with is_admin: true can access protected commands' do
     admin_user = TelegramUser.create!(
-      username: 'admin_user',
+      username: 'test_admin_user_new',
       first_name: 'Admin',
       language_code: 'ru',
       is_admin: true
