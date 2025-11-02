@@ -18,7 +18,7 @@ module Telegram
     end
 
     def create_client
-      return false unless ApplicationConfig.telegram_api_configured?
+      # Telegram API credentials are now required, no need to check configuration
 
       # TODO: Replace with actual TDLib client creation
       # When tdlib-ruby is available:

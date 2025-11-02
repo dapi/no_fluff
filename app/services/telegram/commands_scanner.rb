@@ -80,7 +80,7 @@ module Telegram
 
     # Проверяет, является ли команда административной
     def admin_command?(command_name)
-      %w[debug channels set_commands].include?(command_name.to_s)
+      %w[debug channels set_commands fadd fconfirm fremove flist].include?(command_name.to_s)
     end
 
     # Исключает административные команды из общего списка

@@ -50,7 +50,11 @@
       "Bash(.git/hooks/pre-commit)",
       "Bash(test_ruby_file.rb)",
       "Bash(git add:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(./git/hooks/pre-commit:*)",
+      "mcp__serena__get_current_config",
+      "mcp__serena__activate_project",
+      "mcp__serena__check_onboarding_performed"
     ],
     "deny": [],
     "ask": []

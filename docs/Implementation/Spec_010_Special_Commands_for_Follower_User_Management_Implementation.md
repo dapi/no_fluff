@@ -1,6 +1,6 @@
 # Spec_010_Special_Commands_for_Follower_User_Management_Implementation
 
-**Статус:** need_plan
+**Статус:** implemented
 **Дата создания:** 2025-01-02
 **Автор:** NoFluff Bot Team
 **Версия:** 2.0 (Переписано под существующую архитектуру)

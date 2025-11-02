@@ -329,6 +329,7 @@ GEM
     pg (1.6.2-arm64-darwin)
     pg (1.6.2-x86_64-linux)
     pg (1.6.2-x86_64-linux-musl)
+    phonelib (0.10.13)
     pp (0.6.2)
       prettyprint
     prettyprint (0.2.0)
@@ -550,6 +551,7 @@ DEPENDENCIES
   minitest (~> 5.25)
   mocha
   pg (~> 1.1)
+  phonelib
   puma (>= 5.0)
   rails (~> 8.0.3)
   rubocop-rails-omakase

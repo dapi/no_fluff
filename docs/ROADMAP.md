@@ -348,6 +348,18 @@
 - [x] Обновить ROADMAP с выполненными задачами
 - [x] Создать comprehensive тесты для всех компонентов
 
+### 1.10.7. Special Commands for Follower User Management (Spec 010)
+- [x] Создать спецификацию `docs/Specs/010_Special_Commands_for_Follower_User_Management_Specification.md`
+- [x] Создать план реализации `docs/Implementation/Spec_010_Special_Commands_for_Follower_User_Management_Implementation.md`
+- [x] Добавить gem `phonelib` для валидации номеров телефонов
+- [x] Создать `app/controllers/concerns/telegram/follower_user_commands.rb`
+- [x] Реализовать 4 команды: `/fadd`, `/fremove`, `/flist`, `/fconfirm`
+- [x] Настроить валидацию и нормализацию телефонных номеров через Phonelib
+- [x] Реализовать проверку прав доступа (только для администраторов)
+- [x] Создать unit и integration тесты для всех команд
+- [x] Обновить локализацию сообщений в `config/locales/ru.yml`
+- [x] **РЕАЛИЗАЦИЯ ЗАВЕРШЕНА** - все команды работают корректно, тесты проходят
+
 ### 1.11. Error Handling & Logging
 
 #### 1.11.1. Error Handling

@@ -21,15 +21,10 @@ class Telegram::AuthorizationServiceTest < ActiveSupport::TestCase
     assert_not result
   end
 
-  test 'should return false when telegram API not configured' do
-    ApplicationConfig.stubs(:telegram_api_configured?).returns(false)
-
-    result = @service.start_authorization(@follower_user)
-    assert_not result
-  end
+  # Removed telegram_api_configured? test - API credentials are now required
 
   test 'should create authorization session and return success' do
-    ApplicationConfig.stubs(:telegram_api_configured?).returns(true)
+    # Telegram API credentials are now required, no need to stub configuration
 
     result = @service.start_authorization(@follower_user)
 
@@ -38,7 +33,7 @@ class Telegram::AuthorizationServiceTest < ActiveSupport::TestCase
   end
 
   test 'should not start duplicate authorization' do
-    ApplicationConfig.stubs(:telegram_api_configured?).returns(true)
+    # Telegram API credentials are now required
 
     # Start first authorization
     @service.start_authorization(@follower_user)
@@ -68,7 +63,7 @@ class Telegram::AuthorizationServiceTest < ActiveSupport::TestCase
   end
 
   test 'should successfully confirm authorization with correct code' do
-    ApplicationConfig.stubs(:telegram_api_configured?).returns(true)
+    # Telegram API credentials are now required
 
     # Start authorization
     start_result = @service.start_authorization(@follower_user)
@@ -94,7 +89,7 @@ class Telegram::AuthorizationServiceTest < ActiveSupport::TestCase
   end
 
   test 'should return authorization status when in progress' do
-    ApplicationConfig.stubs(:telegram_api_configured?).returns(true)
+    # Telegram API credentials are now required
 
     # Start authorization
     @service.start_authorization(@follower_user)
@@ -108,7 +103,7 @@ class Telegram::AuthorizationServiceTest < ActiveSupport::TestCase
 
   # Cleanup tests
   test 'should cleanup expired authorizations' do
-    ApplicationConfig.stubs(:telegram_api_configured?).returns(true)
+    # Telegram API credentials are now required
 
     # Create authorization with old expiration
     authorization = Telegram::FollowerUserAuthorization.new(@follower_user)
@@ -125,7 +120,7 @@ class Telegram::AuthorizationServiceTest < ActiveSupport::TestCase
   end
 
   test 'should cleanup specific authorization' do
-    ApplicationConfig.stubs(:telegram_api_configured?).returns(true)
+    # Telegram API credentials are now required
 
     # Start authorization
     @service.start_authorization(@follower_user)

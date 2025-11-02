@@ -17,8 +17,27 @@ ru:
             phone_number:
               blank: "не может быть пустым"
               taken: "уже занят"
-
   telegram_bot:
+    follower:
+      access_denied: "🚫 Доступ запрещен. Только администраторы могут использовать эту команду."
+      invalid_phone: "Неверный формат номера телефона"
+      user_exists: "Пользователь с телефоном %{phone} уже существует"
+      creation_failed: "Не удалось создать пользователя"
+      authorization_started: "📞 Авторизация пользователя с телефоном %{phone} начата. Введите код из Telegram."
+      authorization_failed: "❌ Не удалось начать авторизацию для пользователя с телефоном %{phone}"
+      code_required: "Требуется код подтверждения"
+      user_not_found: "Пользователь с телефоном %{phone} не найден"
+      authorization_success: "✅ Пользователь с телефоном %{phone} успешно авторизован"
+      invalid_code: "❌ Неверный код подтверждения для пользователя с телефоном %{phone}"
+      removed: "✅ Пользователь с телефоном %{phone} удален"
+      no_users: "Follower users не найдены в системе"
+      list_header: "📋 Список Follower users:\n"
+      status:
+        authorized: "Авторизован"
+        pending: "Ожидает авторизации"
+        failed: "Ошибка авторизации"
+        banned: "Заблокирован"
+        revoked: "Авторизация отозвана"
     start:
       welcome: |
         👋 Привет! Я бот "Без Шелухи"
@@ -97,6 +116,10 @@ ru:
       recall: "Вспомнить данные из сессии"
       forget: "Очистить сессию"
       session_info: "Информация о сессии"
+      fadd: "Добавить follower пользователя (админам)"
+      fconfirm: "Подтвердить авторизацию follower пользователя (админам)"
+      fremove: "Удалить follower пользователя (админам)"
+      flist: "Показать список follower users (админам)"
 
     help:
       commands: |
@@ -116,6 +139,10 @@ ru:
         /debug — включить/выключить режим отладки
         /channels — список всех каналов в системе
         /set_commands — установить команды бота
+        /fadd — добавить follower пользователя
+        /fconfirm — подтвердить авторизацию follower пользователя
+        /fremove — удалить follower пользователя
+        /flist — показать список follower users
         /remember <имя> — запомнить данные в сессии
         /recall — вспомнить данные из сессии
         /forget — очистить сессию

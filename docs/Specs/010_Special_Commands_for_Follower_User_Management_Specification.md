@@ -1,6 +1,6 @@
 # 010_Special_Commands_for_Follower_User_Management_Specification
 
-**Статус:** draft
+**Статус:** implemented
 **Дата создания:** 2025-01-02
 **Автор:** NoFluff Bot Team
 **Версия:** 1.0

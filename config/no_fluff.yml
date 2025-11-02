@@ -1,5 +1,58 @@
-# Тестовая конфигурация для разработки
-bot_token: "123456:dummy_token_for_development"
-bot_username: "test_bot"
-openai_api_key: "dummy_openai_key"
-deepseek_api_key: "dummy_deepseek_key"
+test:
+  # Telegram Bot Configuration (тестовые значения)
+  bot_token: '123:token'
+  bot_username: 'test_bot'
+
+  # LLM API Keys (тестовые значения)
+  openai_api_key: 'test_openai_key'
+  deepseek_api_key: 'test_deepseek_key'
+
+  # Telegram API Configuration (тестовые значения)
+  telegram_api_id: '1234567'
+  telegram_api_hash: 'test_telegram_hash'
+
+  # Session encryption key (тестовое значение)
+  session_encryption_key: 'test_session_encryption_key_32_chars'
+
+  # LLM Configuration
+  llm_default_model: 'deepseek-chat'
+
+  # Host Configuration для тестов
+  host: 'localhost'
+  protocol: 'http'
+  public_port: '3000'
+
+  # Application Limits для тестов
+  free_channels_limit: 10
+  max_daily_joins: 50
+  max_channels_per_user: 400
+  rate_limit_delay_between_requests: 1
+
+development:
+  # LLM Configuration
+  llm_default_model: 'deepseek-chat'
+
+  # Host Configuration
+  host: 'localhost'
+  protocol: 'http'
+  public_port: '3000'
+
+  # Application Limits для разработки
+  free_channels_limit: 10
+  max_daily_joins: 50
+  max_channels_per_user: 400
+  rate_limit_delay_between_requests: 2
+
+production:
+  llm_default_model: 'deepseek-chat'
+
+
+  # Host Configuration для production
+  protocol: 'https'
+  public_port: '443'
+
+  # Application Limits для production
+  free_channels_limit: 10
+  max_daily_joins: 50
+  max_channels_per_user: 400
+  rate_limit_delay_between_requests: 2
