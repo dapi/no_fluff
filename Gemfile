@@ -59,7 +59,7 @@ group :development, :test do
   gem 'mocha', require: false
 
   # Database cleaner for tests
-  gem 'database_cleaner-active_record', require: false
+  gem 'database_rewinder'
 end
 
 gem 'telegram-bot', '~> 0.16.7'

@@ -20,10 +20,11 @@ Telegram.bots_config = {
   default: 'test_token'
 }
 
-# Configure DatabaseCleaner
-require 'database_cleaner/active_record'
-DatabaseCleaner.strategy = :transaction
-DatabaseCleaner.allow_remote_database_url = true
+# Configure DatabaseRewinder
+require 'database_rewinder'
+
+# Initialize DatabaseRewinder
+DatabaseRewinder.clean_all
 
 # Load all support files before they are used
 Dir[File.dirname(__FILE__) + '/support/**/*.rb'].each { |f| require f }
@@ -41,13 +42,9 @@ module ActiveSupport
     include FactoryHelper
     include AssertionHelper
 
-    # Use DatabaseCleaner for transaction management
-    setup do
-      DatabaseCleaner.start
-    end
-
+    # Use DatabaseRewinder for database cleaning
     teardown do
-      DatabaseCleaner.clean
+      DatabaseRewinder.clean
     end
 
     # Reset Telegram bot after each test
