@@ -213,6 +213,105 @@ module MocksHelper
     # Этот метод оставлен для совместимости
   end
 
+  # Мокирование LLM модели (Ruby-LLM)
+  # @param response_text [String] текст ответа модели
+  # @param model_name [String] название модели
+  # @return [Mocha::Mock] мок LLM модели
+  def mock_llm_model(response_text = 'Test response', model_name = 'gpt-4')
+    model = mock('llm_model')
+    model.stubs(:chat).returns(response_text)
+    model.stubs(:model_id).returns(model_name)
+    model.stubs(:name).returns(model_name)
+    model.stubs(:provider).returns('openai')
+    model
+  end
+
+  # Мокирование вебхука Telegram
+  # @param message_text [String] текст сообщения
+  # @param chat_id [Integer] ID чата
+  # @param user_id [Integer] ID пользователя
+  # @return [Hash] данные вебхука
+  def mock_telegram_webhook(message_text = 'test', chat_id = 12345, user_id = 67890)
+    {
+      'update_id' => rand(1000000..9999999),
+      'message' => {
+        'message_id' => rand(1000..9999),
+        'from' => {
+          'id' => user_id,
+          'is_bot' => false,
+          'first_name' => 'Test',
+          'username' => 'test_user',
+          'language_code' => 'en'
+        },
+        'chat' => {
+          'id' => chat_id,
+          'first_name' => 'Test',
+          'username' => 'test_user',
+          'type' => 'private'
+        },
+        'date' => Time.now.to_i,
+        'text' => message_text
+      }
+    }
+  end
+
+  # Мокирование канала Telegram
+  # @param overrides [Hash] параметры для переопределения
+  # @return [Hash] данные канала
+  def mock_telegram_channel(overrides = {})
+    defaults = {
+      'id' => -1001234567890,
+      'username' => 'testchannel',
+      'title' => 'Test Channel',
+      'type' => 'channel',
+      'description' => 'Test channel description'
+    }
+    defaults.merge(overrides)
+  end
+
+  # Мокирование ошибки сети
+  # @param message [String] сообщение об ошибке
+  # @return [Net::TimeoutError] исключение
+  def mock_network_error(message = 'Network timeout')
+    Net::TimeoutError.new(message)
+  end
+
+  # Мокирование ответа API с пагинацией
+  # @param items [Array] элементы для пагинации
+  # @param per_page [Integer] элементов на странице
+  # @return [Hash] ответ API с пагинацией
+  def mock_paginated_response(items, per_page = 10)
+    total_pages = (items.length.to_f / per_page).ceil
+    {
+      'data' => items.first(per_page),
+      'pagination' => {
+        'current_page' => 1,
+        'total_pages' => total_pages,
+        'total_count' => items.length,
+        'per_page' => per_page
+      }
+    }
+  end
+
+  # Мокирование валидации модели
+  # @param model [ActiveRecord::Base] модель для валидации
+  # @param errors [Hash] ошибки валидации
+  def mock_validation_errors(model, errors)
+    errors.each do |field, messages|
+      messages.each do |message|
+        model.errors.add(field, message)
+      end
+    end
+  end
+
+  # Создание тестового набора данных для бенчмарков
+  # @param count [Integer] количество записей
+  # @param factory [Symbol] фабрика для создания
+  # @return [Array] массив тестовых данных
+  def create_test_dataset(count, factory = :telegram_user)
+    Array.new(count) { |i| create(factory, "test_#{i}") }
+  end
+
   # Создание набора моков для базового теста
   # @param overrides [Hash] параметры для переопределения
   # @return [Hash] хеш с моками
@@ -243,5 +342,94 @@ module MocksHelper
 
     # Мокирование конфигурации
     ApplicationConfig.stubs(:[]).returns({})
+  end
+
+  # Создание мока для бота с отслеживанием вызовов send_message
+  # @return [Array, Object] массив для отслеживания вызовов и мок бота
+  def mock_bot_with_message_tracking
+    send_message_calls = []
+
+    mock_bot = Object.new
+    mock_bot.define_singleton_method(:send_message) do |chat_id:, text:, parse_mode:|
+      send_message_calls << { chat_id: chat_id, text: text, parse_mode: parse_mode }
+    end
+
+    [ send_message_calls, mock_bot ]
+  end
+
+  # Создание мока для бота с ошибкой при отправке
+  # @param error_message [String] сообщение об ошибке
+  # @return [Object] мок бота
+  def mock_bot_with_error(error_message = 'Invalid token')
+    mock_bot = Object.new
+    mock_bot.define_singleton_method(:send_message) do |chat_id:, text:, parse_mode:|
+      raise Telegram::Bot::Error.new(error_message)
+    end
+    mock_bot
+  end
+
+  # Установка мока для Telegram.bots
+  # @param mock_bot [Object] мок бота для установки
+  def setup_telegram_bots_mock(mock_bot)
+    Telegram.stub(:bots, { default: mock_bot }) do
+      yield
+    end
+  end
+
+  # Очистка системных настроек для тестов
+  def cleanup_system_settings(keys = [ 'debug_mode' ])
+    keys = [ keys ] unless keys.is_a?(Array)
+    SystemSetting.where(key: keys).delete_all
+  end
+
+  # Установка системной настройки для тестов
+  # @param key [String] ключ настройки
+  # @param value [String, Boolean, Integer] значение
+  # @param description [String] описание настройки
+  def set_system_setting(key, value, description = nil)
+    SystemSetting.set(key, value, description)
+  end
+
+  # Создание тестовых объектов для отладки
+  # @param overrides [Hash] параметры для переопределения
+  # @return [OpenStruct] тестовый объект
+  def create_test_channel(overrides = {})
+    defaults = {
+      id: 456,
+      username: 'testchannel',
+      title: 'Test Channel'
+    }
+    OpenStruct.new(defaults.merge(overrides))
+  end
+
+  # Создание тестового сообщения
+  # @param overrides [Hash] параметры для переопределения
+  # @return [OpenStruct] тестовое сообщение
+  def create_test_message(overrides = {})
+    defaults = {
+      id: 123,
+      content: 'test message',
+      text: 'test message'
+    }
+    OpenStruct.new(defaults.merge(overrides))
+  end
+
+  # Создание тестовой ошибки
+  # @param message [String] сообщение об ошибке
+  # @param error_class [Class] класс ошибки
+  # @return [Exception] экземпляр ошибки
+  def create_test_error(message = 'Test error', error_class = StandardError)
+    error_class.new(message)
+  end
+
+  # Проверка количества админов в системе
+  # @param expected_count [Integer] ожидаемое количество
+  def assert_admin_count(expected_count)
+    assert_equal expected_count, TelegramUser.where(is_admin: true).count
+  end
+
+  # Очистка тестовых админов
+  def cleanup_test_admins
+    TelegramUser.where(is_admin: true).where.not(id: telegram_users(:admin_user)&.id).destroy_all
   end
 end

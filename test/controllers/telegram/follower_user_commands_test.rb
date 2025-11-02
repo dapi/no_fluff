@@ -10,6 +10,7 @@ module Telegram
 end
 
 class Telegram::FollowerUserCommandsTest < ActionDispatch::IntegrationTest
+  include TelegramHelper
   setup do
     @bot = Telegram.bot
     @bot.reset
@@ -19,37 +20,6 @@ class Telegram::FollowerUserCommandsTest < ActionDispatch::IntegrationTest
     @bot.reset if @bot
   end
 
-  def create_user_update(user_id: 123456, username: 'testuser', command: '/start')
-    {
-      'update_id' => 1,
-      'message' => {
-        'message_id' => 1,
-        'from' => {
-          'id' => user_id,
-          'username' => username,
-          'first_name' => 'Test',
-          'last_name' => 'User',
-          'language_code' => 'ru',
-          'is_premium' => false
-        },
-        'chat' => { 'id' => user_id, 'type' => 'private' },
-        'text' => command
-      }
-    }
-  end
-
-  def send_webhook_update(update)
-    post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
-  end
-
-  def extract_message_content(requests)
-    message_requests = requests.select { |method, _| method == :sendMessage }
-    return nil if message_requests.empty?
-
-    method, params = message_requests.first
-    params.first
-  end
 
   def create_admin_user(user_id: 123456, username: 'admin')
     # Ensure no admins exist so first user becomes admin
@@ -103,7 +73,7 @@ class Telegram::FollowerUserCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
 
     assert_includes message_content[:text], '📞 Авторизация пользователя с телефоном +7 912 345-67-89 начата'
@@ -125,7 +95,7 @@ class Telegram::FollowerUserCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], '❌'
     assert_includes message_content[:text], 'Неверный формат номера телефона'
@@ -147,7 +117,7 @@ class Telegram::FollowerUserCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], '❌'
     assert_includes message_content[:text], 'уже существует'
@@ -177,7 +147,7 @@ class Telegram::FollowerUserCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], '✅'
     assert_includes message_content[:text], 'успешно авторизован'
@@ -193,7 +163,7 @@ class Telegram::FollowerUserCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], '❌'
     assert_includes message_content[:text], 'не найден'
@@ -224,7 +194,7 @@ class Telegram::FollowerUserCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
 
     # Пропускаем этот тест так как мокинг AuthorizationService требует сложной настройки
@@ -249,7 +219,7 @@ class Telegram::FollowerUserCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], '✅'
     assert_includes message_content[:text], 'удален'
@@ -269,7 +239,7 @@ class Telegram::FollowerUserCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], '❌'
     assert_includes message_content[:text], 'не найден'
@@ -287,7 +257,7 @@ class Telegram::FollowerUserCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], '📋 Список Follower users:'
     assert_includes message_content[:text], '+7 912 345-67-89'
@@ -307,7 +277,7 @@ class Telegram::FollowerUserCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], 'Follower users не найдены'
   end
@@ -322,7 +292,7 @@ class Telegram::FollowerUserCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     text = message_content[:text]
 
@@ -348,7 +318,7 @@ class Telegram::FollowerUserCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], '🚫'
     assert_includes message_content[:text], '🚫 Доступ запрещен'
@@ -368,7 +338,7 @@ class Telegram::FollowerUserCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], '🚫'
     assert_includes message_content[:text], '🚫 Доступ запрещен'
@@ -388,7 +358,7 @@ class Telegram::FollowerUserCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], '🚫'
     assert_includes message_content[:text], '🚫 Доступ запрещен'
@@ -408,7 +378,7 @@ class Telegram::FollowerUserCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], '🚫'
     assert_includes message_content[:text], '🚫 Доступ запрещен'

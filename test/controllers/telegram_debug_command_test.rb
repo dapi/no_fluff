@@ -1,6 +1,7 @@
 require 'test_helper'
 
 class TelegramDebugCommandTest < ActionDispatch::IntegrationTest
+  include TelegramHelper
   setup do
     @bot = Telegram.bot
     @bot.reset
@@ -30,38 +31,6 @@ class TelegramDebugCommandTest < ActionDispatch::IntegrationTest
     SystemSetting.where(key: 'debug_mode').delete_all
   end
 
-  # Helper methods
-  def create_user_update(user_id: 123456, username: 'testuser', command: '/debug')
-    {
-      'update_id' => 1,
-      'message' => {
-        'message_id' => 1,
-        'from' => {
-          'id' => user_id,
-          'username' => username,
-          'first_name' => 'Test',
-          'last_name' => 'User',
-          'language_code' => 'ru',
-          'is_premium' => false
-        },
-        'chat' => { 'id' => user_id, 'type' => 'private' },
-        'text' => command
-      }
-    }
-  end
-
-  def send_webhook_update(update)
-    post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
-  end
-
-  def extract_message_content(requests)
-    message_requests = requests.select { |method, _| method == :sendMessage }
-    return nil if message_requests.empty?
-
-    method, params = message_requests.first
-    params.first
-  end
 
   # Access control tests
   test 'should allow admin to use debug command' do
@@ -72,7 +41,7 @@ class TelegramDebugCommandTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], I18n.t('telegram_bot.debug.enabled')
   end
@@ -85,7 +54,7 @@ class TelegramDebugCommandTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], I18n.t('telegram_bot.debug.access_denied')
   end
@@ -100,7 +69,7 @@ class TelegramDebugCommandTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     # Пользователь будет создан автоматически, но не будет админом
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], I18n.t('telegram_bot.debug.access_denied')
   end
@@ -118,7 +87,7 @@ class TelegramDebugCommandTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert DebugNotifier.enabled?
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], I18n.t('telegram_bot.debug.enabled')
   end
@@ -137,7 +106,7 @@ class TelegramDebugCommandTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_not DebugNotifier.enabled?
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], I18n.t('telegram_bot.debug.disabled')
   end
@@ -248,7 +217,7 @@ class TelegramDebugCommandTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], '/debug — включить/выключить режим отладки'
   end
@@ -261,7 +230,7 @@ class TelegramDebugCommandTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_not_includes message_content[:text], '/debug — включить/выключить режим отладки'
   end

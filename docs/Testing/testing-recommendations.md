@@ -710,4 +710,361 @@ end
 - ⚠️ **Код от фреймворков** (сам Rails)
 - ⚠️ **Внешние библиотеки** (проверяйте только интеграцию)
 
-Эта документация поможет поддерживать консистентность и качество тестов в проекте NoFluff.
+## MocksHelper - Унифицированные моки
+
+### 1. Базовые моки
+
+```ruby
+# ✅ Используйте встроенные моки из MocksHelper
+test 'should handle user limits correctly' do
+  limit_checker = mock_limit_checker(allowed: false, user_id: 12345)
+
+  service = SubscriptionService.new(user)
+  service.stubs(:limit_checker).returns(limit_checker)
+
+  result = service.add_channel(channel)
+  assert_not result[:success]
+  assert_includes result[:error], 'limit exceeded'
+end
+
+# ✅ Мокирование Telegram клиента
+test 'should send welcome message' do
+  client = mock_telegram_client
+  Telegram.stubs(:bot).returns(client)
+
+  service = TelegramBotService.new
+  service.send_welcome(12345, 'Welcome!')
+
+  # Проверка вызовов
+  assert client.called?
+end
+```
+
+### 2. Продвинутые моки
+
+```ruby
+# ✅ Мокирование LLM моделей
+test 'should process message with LLM' do
+  llm_mock = mock_llm_model('Processed response', 'gpt-4')
+
+  service = LLMProcessingService.new
+  service.stubs(:llm_model).returns(llm_mock)
+
+  result = service.process('Original message')
+  assert_equal 'Processed response', result
+end
+
+# ✅ Мокирование вебхуков Telegram
+test 'should handle webhook update' do
+  webhook_data = mock_telegram_webhook('/start', 12345, 67890)
+
+  service = WebhookService.new
+  result = service.process_update(webhook_data)
+
+  assert result[:success]
+end
+
+# ✅ Мокирование ответов API с пагинацией
+test 'should handle paginated response' do
+  items = ['item1', 'item2', 'item3']
+  response = mock_paginated_response(items, 2)
+
+  service.stubs(:api_call).returns(response)
+
+  result = service.fetch_items
+  assert_equal 2, result[:data].length
+  assert_equal 3, result[:pagination][:total_count]
+end
+```
+
+### 3. Комплексные сценарии
+
+```ruby
+# ✅ Создание набора моков для сложных тестов
+test 'complete subscription workflow' do
+  mocks = setup_basic_mocks(
+    limit_checker: { allowed: true },
+    telegram_client: { username: 'test_bot' },
+    application_config: { 'limits' => { 'free_channels' => 5 } }
+  )
+
+  # Настройка моков
+  Telegram.stubs(:bot).returns(mocks[:telegram_client])
+  ApplicationConfig.stubs(:[]).returns(mocks[:application_config])
+
+  # Тестирование workflow
+  user = telegram_users(:one)
+  channel = channels(:one)
+
+  service = SubscriptionService.new(user)
+  result = service.subscribe(channel)
+
+  assert result[:success]
+  assert user.subscriptions.exists?(channel: channel)
+end
+
+# ✅ Мокирование ошибок API
+test 'should handle Telegram API errors' do
+  error = mock_telegram_api_error(429, 'Too many requests')
+
+  service = TelegramNotificationService.new
+  service.stubs(:send_message).raises(error)
+
+  result = service.notify_user(12345, 'Test message')
+  assert_not result[:success]
+  assert_includes result[:error], 'rate limit'
+end
+```
+
+### 4. Хелперы для создания тестовых данных
+
+```ruby
+# ✅ Используйте хелперы для создания тестовых объектов
+test 'should process channel data' do
+  channel_data = create_test_channel(
+    id: 12345,
+    username: 'testchannel',
+    title: 'Test Channel'
+  )
+
+  result = ChannelProcessor.process(channel_data)
+  assert result[:success]
+end
+
+# ✅ Создание наборов данных для бенчмарков
+test 'should handle large dataset efficiently' do
+  users = create_test_dataset(100, :telegram_user)
+
+  start_time = Time.now
+  result = BulkUserService.process(users)
+  end_time = Time.now
+
+  assert result[:success]
+  assert (end_time - start_time) < 5.0  # Должно выполняться менее 5 секунд
+end
+```
+
+## Оптимизация тестов (Этапы 1-6 рефакторинга)
+
+### 1. Использование AssertionHelper
+
+```ruby
+# ✅ Новые assertion методы
+test 'should validate admin access' do
+  user = telegram_users(:admin_user)
+  assert_admin_access(user)
+end
+
+test 'should validate response format' do
+  response = service.process_request(data)
+  assert_response_format(response, success: true, data: Hash)
+end
+```
+
+### 2. Оптимизированные фикстуры
+
+```ruby
+# ✅ Улучшенные фикстуры с реальными данными
+test 'should use realistic user preferences' do
+  user = telegram_users(:one)
+  preferences = user_preferences(:one)
+
+  assert preferences.topic_weights.present?
+  assert_equal 1.5, preferences.adjusted_importance_threshold
+  assert_equal 'medium', preferences.personalization_data['preferred_length']
+end
+```
+
+### 3. Тестирование с FactoryHelper
+
+```ruby
+# ✅ Создание тестовых данных с фабрик
+test 'should handle user with multiple subscriptions' do
+  user = create_test_user_with_subscriptions(
+    username: 'multi_sub_user',
+    subscription_count: 5
+  )
+
+  assert_equal 5, user.subscriptions.count
+  assert user.subscriptions.all? { |sub| sub.active? }
+end
+
+test 'should handle digest with items' do
+  digest = create_test_digest_with_items(
+    user: telegram_users(:one),
+    items_count: 3
+  )
+
+  assert_equal 3, digest.user_digest_items.count
+  assert digest.user_digest_items.all? { |item| item.position.present? }
+end
+```
+
+### 4. Тестирование с TelegramHelper
+
+```ruby
+# ✅ Упрощенное тестирование Telegram бота
+test 'should handle command processing' do
+  bot = setup_test_bot
+  user = telegram_users(:one)
+
+  message = create_telegram_message(user, '/start')
+  response = process_telegram_command(bot, message)
+
+  assert_command_success(response)
+  assert_includes response[:text], I18n.t('telegram_bot.start.welcome')
+end
+
+test 'should handle callback queries' do
+  bot = setup_test_bot
+  user = telegram_users(:one)
+
+  callback = create_telegram_callback(user, 'settings:')
+  response = process_telegram_callback(bot, callback)
+
+  assert_callback_handled(response)
+end
+```
+
+### 5. Профилирование производительности
+
+```ruby
+# ✅ Измерение времени выполнения
+test 'should complete processing within time limit' do
+  start_time = Time.now
+
+  result = HeavyProcessingService.process(large_dataset)
+
+  processing_time = Time.now - start_time
+  assert processing_time < 2.0, "Processing took #{processing_time}s, expected < 2.0s"
+  assert result[:success]
+end
+
+# ✅ Бенчмаркинг
+test 'benchmark subscription creation' do
+  iterations = 100
+
+  time = Benchmark.realtime do
+    iterations.times do
+      Subscription.create!(
+        telegram_user: telegram_users(:one),
+        channel: channels(:one)
+      )
+    end
+  end
+
+  avg_time = time / iterations
+  assert avg_time < 0.01, "Average creation time: #{avg_time}s"
+end
+```
+
+### 6. Тестирование системных настроек
+
+```ruby
+# ✅ Работа с системными настройками в тестах
+test 'should respect debug mode setting' do
+  set_system_setting('debug_mode', true, 'Enable debug logging')
+
+  service = DebugService.new
+  result = service.process_debug_info
+
+  assert result[:debug_enabled]
+
+  cleanup_system_settings('debug_mode')
+end
+
+test 'should handle feature flags' do
+  set_system_setting('premium_enabled', false)
+
+  user = telegram_users(:one)
+  result = SubscriptionService.check_premium_access(user)
+
+  assert_not result[:premium_available]
+
+  cleanup_system_settings('premium_enabled')
+end
+```
+
+## Новые паттерны после рефакторинга
+
+### 1. Унифицированная структура тестов
+
+```ruby
+# ✅ Стандартизированная структура
+class ExampleTest < ActiveSupport::TestCase
+  include MocksHelper
+  include AssertionHelper
+  include FactoryHelper
+
+  setup do
+    setup_telegram_mocks
+    @user = telegram_users(:one)
+  end
+
+  teardown do
+    cleanup_test_admins
+    reset_all_mocks
+  end
+
+  # Группировка тестов по типу
+  test 'validations: should require username' do
+    # тест валидации
+  end
+
+  test 'associations: should have many subscriptions' do
+    # тест ассоциаций
+  end
+
+  test 'business logic: should respect user limits' do
+    # тест бизнес-логики
+  end
+
+  test 'error handling: should handle API failures' do
+    # тест обработки ошибок
+  end
+end
+```
+
+### 2. Тестирование с помощью хелперов
+
+```ruby
+# ✅ Комплексные тесты с использованием всех хелперов
+test 'complete user onboarding with optimizations' do
+  # Подготовка данных
+  user = create_test_user(username: 'newbie')
+  bot = setup_test_bot
+
+  # Мокирование внешних сервисов
+  llm_mock = mock_llm_model('Welcome response!')
+  service = OnboardingService.new(user)
+  service.stubs(:llm).returns(llm_mock)
+
+  # Тестирование процесса
+  result = service.complete_onboarding
+
+  # Проверки с помощью хелперов
+  assert_response_format(result, success: true)
+  assert_user_exists_with_attributes(user, username: 'newbie')
+  assert_command_sent(result[:bot_response])
+end
+```
+
+### 3. Измерение производительности
+
+```ruby
+# ✅ Тесты с замером времени
+test 'should process 1000 subscriptions within performance budget' do
+  subscriptions = create_test_dataset(1000, :subscription)
+
+  processing_time = Benchmark.realtime do
+    result = BulkSubscriptionProcessor.process(subscriptions)
+    assert result[:success]
+  end
+
+  # Бюджет производительности: менее 5 секунд
+  assert processing_time < 5.0,
+    "Processing took #{processing_time.round(2)}s, budget is 5.0s"
+end
+```
+
+Эта документация поможет поддерживать консистентность и качество тестов в проекте NoFluff с учетом всех оптимизаций и новых паттернов, внедренных в ходе рефакторинга тестовой системы.

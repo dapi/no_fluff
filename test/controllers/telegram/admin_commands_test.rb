@@ -1,6 +1,7 @@
 require 'test_helper'
 
 class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
+  include TelegramHelper
   setup do
     @bot = Telegram.bot
     @bot.reset
@@ -10,37 +11,6 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
     @bot.reset if @bot
   end
 
-  def create_user_update(user_id: 123456, username: 'testuser', command: '/start')
-    {
-      'update_id' => 1,
-      'message' => {
-        'message_id' => 1,
-        'from' => {
-          'id' => user_id,
-          'username' => username,
-          'first_name' => 'Test',
-          'last_name' => 'User',
-          'language_code' => 'ru',
-          'is_premium' => false
-        },
-        'chat' => { 'id' => user_id, 'type' => 'private' },
-        'text' => command
-      }
-    }
-  end
-
-  def send_webhook_update(update)
-    post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
-  end
-
-  def extract_message_content(requests)
-    message_requests = requests.select { |method, _| method == :sendMessage }
-    return nil if message_requests.empty?
-
-    method, params = message_requests.first
-    params.first
-  end
 
   # Создание тестовых данных
   def create_test_channels
@@ -137,7 +107,7 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], 'Список каналов в системе'
     assert_includes message_content[:text], 'popular_channel'
@@ -163,7 +133,7 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     text = message_content[:text]
 
@@ -203,7 +173,7 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     text = message_content[:text]
 
@@ -231,7 +201,7 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     text = message_content[:text]
 
@@ -257,7 +227,7 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], I18n.t('telegram_bot.channels.admin_list.admin_only')
   end
@@ -287,7 +257,7 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     # Проверяем что есть заголовок списка каналов
     assert_includes message_content[:text], '📊 Список каналов в системе'
@@ -331,7 +301,7 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     text = message_content[:text]
 
@@ -366,7 +336,7 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     text = message_content[:text]
 
@@ -393,7 +363,7 @@ class Telegram::AdminCommandsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     text = message_content[:text]
 

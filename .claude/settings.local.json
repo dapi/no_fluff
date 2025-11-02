@@ -57,7 +57,18 @@
       "mcp__serena__check_onboarding_performed",
       "Bash(time:*)",
       "Bash(git commit:*)",
-      "Bash(./bin/rubocop:*)"
+      "Bash(./bin/rubocop:*)",
+      "Bash(echo:*)",
+      "Bash(~/.bashrc)",
+      "Bash(export TAVILY_API_KEY=\"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\":*)",
+      "Bash(npx -y tavily-mcp@0.1.2:*)",
+      "Bash(curl:*)",
+      "Bash(claude:*)",
+      "Bash(pkill:*)",
+      "Bash(timeout:*)",
+      "Bash(COVERAGE=true ./bin/rails test:*)",
+      "Bash(npx:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

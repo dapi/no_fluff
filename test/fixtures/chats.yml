@@ -2,7 +2,7 @@
 
 one:
   telegram_user: one
-  model:
+  model: one
   session_type: 0
   status: 0
   context: {}
@@ -11,7 +11,7 @@ one:
 
 two:
   telegram_user: two
-  model:
+  model: two
   session_type: 1
   status: 1
   context: {}

@@ -4,36 +4,22 @@ require 'ostruct'
 
 class DebugNotifierTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
+  include TelegramHelper
+  include MocksHelper
+
   def setup
-    # Очищаем настройки перед каждым тестом
-    SystemSetting.where(key: 'debug_mode').delete_all
+    # Используем helper для очистки настроек
+    cleanup_system_settings('debug_mode')
 
-    # Создаем администраторов и обычных пользователей
-    @admin1 = TelegramUser.create!(
-      username: 'admin1',
-      first_name: 'Admin',
-      language_code: 'ru',
-      is_admin: true
-    )
-
-    @admin2 = TelegramUser.create!(
-      username: 'admin2',
-      first_name: 'Admin2',
-      language_code: 'ru',
-      is_admin: true
-    )
-
-    @regular_user = TelegramUser.create!(
-      username: 'regular1',
-      first_name: 'Regular',
-      language_code: 'ru',
-      is_admin: false
-    )
+    # Создаем администраторов и обычных пользователей через helper
+    @admin1 = create_admin_user(username: 'admin1', first_name: 'Admin', language_code: 'ru')
+    @admin2 = create_admin_user(username: 'admin2', first_name: 'Admin2', language_code: 'ru')
+    @regular_user = create_telegram_user(username: 'regular1', first_name: 'Regular', language_code: 'ru', is_admin: false)
   end
 
   def teardown
-    # Очищаем настройки после каждого теста
-    SystemSetting.where(key: 'debug_mode').delete_all
+    # Используем helper для очистки настроек
+    cleanup_system_settings('debug_mode')
   end
 
   # enabled? tests
@@ -42,12 +28,12 @@ class DebugNotifierTest < ActiveSupport::TestCase
   end
 
   test 'enabled? should return false when debug mode is set to false' do
-    SystemSetting.set('debug_mode', false)
+    set_system_setting('debug_mode', false)
     assert_not DebugNotifier.enabled?
   end
 
   test 'enabled? should return true when debug mode is set to true' do
-    SystemSetting.set('debug_mode', true)
+    set_system_setting('debug_mode', true)
     assert DebugNotifier.enabled?
   end
 
@@ -76,7 +62,7 @@ class DebugNotifierTest < ActiveSupport::TestCase
 
   # disable! tests
   test 'disable! should disable debug mode' do
-    SystemSetting.set('debug_mode', true)
+    set_system_setting('debug_mode', true)
     DebugNotifier.disable!
     assert_not DebugNotifier.enabled?
 
@@ -95,7 +81,7 @@ class DebugNotifierTest < ActiveSupport::TestCase
   end
 
   test 'toggle! should disable debug mode when enabled' do
-    SystemSetting.set('debug_mode', true)
+    set_system_setting('debug_mode', true)
     assert DebugNotifier.enabled?
 
     result = DebugNotifier.toggle!
@@ -106,7 +92,7 @@ class DebugNotifierTest < ActiveSupport::TestCase
 
   # notify tests
   test 'notify should return 0 when debug mode is disabled' do
-    SystemSetting.set('debug_mode', false)
+    set_system_setting('debug_mode', false)
 
     result = DebugNotifier.notify('error', 'Test message')
 
@@ -114,10 +100,8 @@ class DebugNotifierTest < ActiveSupport::TestCase
   end
 
   test 'notify should return 0 when no admins exist' do
-    SystemSetting.set('debug_mode', true)
-    @admin1.destroy!
-    @admin2.destroy!
-    # Удаляем также админа из фикстур
+    set_system_setting('debug_mode', true)
+    # Удаляем всех админов включая тех, что в фикстурах
     TelegramUser.where(is_admin: true).destroy_all
 
     result = DebugNotifier.notify('error', 'Test message')
@@ -126,7 +110,7 @@ class DebugNotifierTest < ActiveSupport::TestCase
   end
 
   test 'notify should return admin count when debug mode is enabled' do
-    SystemSetting.set('debug_mode', true)
+    set_system_setting('debug_mode', true)
 
     result = DebugNotifier.notify('error', 'Test message')
 
@@ -134,7 +118,7 @@ class DebugNotifierTest < ActiveSupport::TestCase
   end
 
   test 'notify should return 0 for invalid message type' do
-    SystemSetting.set('debug_mode', true)
+    set_system_setting('debug_mode', true)
 
     result = DebugNotifier.notify('invalid_type', 'Test message')
 
@@ -142,7 +126,7 @@ class DebugNotifierTest < ActiveSupport::TestCase
   end
 
   test 'notify should enqueue job for valid message type' do
-    SystemSetting.set('debug_mode', true)
+    set_system_setting('debug_mode', true)
 
     assert_enqueued_jobs 1 do
       DebugNotifier.notify('error', 'Test message')
@@ -150,7 +134,7 @@ class DebugNotifierTest < ActiveSupport::TestCase
   end
 
   test 'notify should pass context to job' do
-    SystemSetting.set('debug_mode', true)
+    set_system_setting('debug_mode', true)
     context = { user_id: 123, action: 'test' }
 
     assert_enqueued_jobs 1 do
@@ -160,7 +144,7 @@ class DebugNotifierTest < ActiveSupport::TestCase
 
   # Convenience method tests
   test 'error should call notify with error type' do
-    SystemSetting.set('debug_mode', true)
+    set_system_setting('debug_mode', true)
 
     assert_enqueued_jobs 1 do
       DebugNotifier.error('Error message')
@@ -168,7 +152,7 @@ class DebugNotifierTest < ActiveSupport::TestCase
   end
 
   test 'warning should call notify with warning type' do
-    SystemSetting.set('debug_mode', true)
+    set_system_setting('debug_mode', true)
 
     assert_enqueued_jobs 1 do
       DebugNotifier.warning('Warning message')
@@ -176,7 +160,7 @@ class DebugNotifierTest < ActiveSupport::TestCase
   end
 
   test 'info should call notify with info type' do
-    SystemSetting.set('debug_mode', true)
+    set_system_setting('debug_mode', true)
 
     assert_enqueued_jobs 1 do
       DebugNotifier.info('Info message')
@@ -184,7 +168,7 @@ class DebugNotifierTest < ActiveSupport::TestCase
   end
 
   test 'success should call notify with success type' do
-    SystemSetting.set('debug_mode', true)
+    set_system_setting('debug_mode', true)
 
     assert_enqueued_jobs 1 do
       DebugNotifier.success('Success message')
@@ -192,9 +176,9 @@ class DebugNotifierTest < ActiveSupport::TestCase
   end
 
   test 'channel_error should call notify with channel_update_error type' do
-    SystemSetting.set('debug_mode', true)
-    channel = OpenStruct.new(id: 456, username: 'testchannel')
-    error = StandardError.new('Test error')
+    set_system_setting('debug_mode', true)
+    channel = create_test_channel
+    error = create_test_error
 
     assert_enqueued_jobs 1 do
       DebugNotifier.channel_error(channel, error, { extra: 'context' })
@@ -202,10 +186,9 @@ class DebugNotifierTest < ActiveSupport::TestCase
   end
 
   test 'message_processing_error should call notify with message_processing_error type' do
-    SystemSetting.set('debug_mode', true)
-    # Создаем заглушку для сообщения
-    message = OpenStruct.new(id: 123, content: 'test message')
-    error = StandardError.new('Test error')
+    set_system_setting('debug_mode', true)
+    message = create_test_message
+    error = create_test_error
 
     assert_enqueued_jobs 1 do
       DebugNotifier.message_processing_error(message, error, { extra: 'context' })
@@ -213,7 +196,7 @@ class DebugNotifierTest < ActiveSupport::TestCase
   end
 
   test 'system_alert should call notify with system_alert type' do
-    SystemSetting.set('debug_mode', true)
+    set_system_setting('debug_mode', true)
 
     assert_enqueued_jobs 1 do
       DebugNotifier.system_alert('System alert message')
@@ -222,10 +205,8 @@ class DebugNotifierTest < ActiveSupport::TestCase
 
   # notify_error tests
   test 'notify_error should determine error type correctly' do
-    SystemSetting.set('debug_mode', true)
-
-    # StandardError - should use 'error' type
-    standard_error = StandardError.new('Standard error')
+    set_system_setting('debug_mode', true)
+    standard_error = create_test_error('Standard error')
 
     assert_enqueued_jobs 1 do
       DebugNotifier.notify_error(standard_error)
@@ -233,8 +214,8 @@ class DebugNotifierTest < ActiveSupport::TestCase
   end
 
   test 'notify_error should include custom message' do
-    SystemSetting.set('debug_mode', true)
-    error = StandardError.new('Original error')
+    set_system_setting('debug_mode', true)
+    error = create_test_error('Original error')
     custom_message = 'Custom error message'
 
     assert_enqueued_jobs 1 do
@@ -243,8 +224,8 @@ class DebugNotifierTest < ActiveSupport::TestCase
   end
 
   test 'notify_error should include context and error details' do
-    SystemSetting.set('debug_mode', true)
-    error = StandardError.new('Test error')
+    set_system_setting('debug_mode', true)
+    error = create_test_error
     context = { user_id: 123 }
 
     assert_enqueued_jobs 1 do
@@ -258,9 +239,7 @@ class DebugNotifierTest < ActiveSupport::TestCase
   end
 
   test 'has_admins? should return false when no admins exist' do
-    @admin1.destroy!
-    @admin2.destroy!
-    # Удаляем также админа из фикстур
+    # Удаляем всех админов включая тех, что в фикстурах
     TelegramUser.where(is_admin: true).destroy_all
 
     assert_not DebugNotifier.has_admins?
@@ -293,7 +272,7 @@ class DebugNotifierTest < ActiveSupport::TestCase
   end
 
   test 'should accept all valid message types' do
-    SystemSetting.set('debug_mode', true)
+    set_system_setting('debug_mode', true)
 
     DebugNotifier::MESSAGE_TYPES.each do |type|
       assert_enqueued_jobs 1 do
@@ -321,7 +300,7 @@ class DebugNotifierTest < ActiveSupport::TestCase
   end
 
   test 'should handle context with different data types' do
-    SystemSetting.set('debug_mode', true)
+    set_system_setting('debug_mode', true)
 
     context = {
       string: 'test string',

@@ -1,6 +1,7 @@
 require 'test_helper'
 
 class Telegram::SettingsAgentTest < ActiveSupport::TestCase
+  include TelegramHelper
   def setup
     @bot = Telegram.bot
     @bot.reset
@@ -20,14 +21,6 @@ class Telegram::SettingsAgentTest < ActiveSupport::TestCase
     @bot.reset if @bot
   end
 
-  # Helper method для извлечения содержимого сообщения
-  def extract_message_content(requests)
-    message_requests = requests.select { |method, _| method == :sendMessage }
-    return nil if message_requests.empty?
-
-    method, params = message_requests.first
-    params.first
-  end
 
   # Тесты для инициализации
   test '#initialize сохраняет переданные зависимости' do
@@ -50,7 +43,7 @@ class Telegram::SettingsAgentTest < ActiveSupport::TestCase
   test '#show_settings отправляет сообщение с текстом настроек' do
     @agent.show_settings
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], I18n.t('telegram_bot.settings.title')
   end
@@ -58,7 +51,7 @@ class Telegram::SettingsAgentTest < ActiveSupport::TestCase
   test '#show_settings включает все секции настроек в текст' do
     @agent.show_settings
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     # Проверяем наличие локализованных меток настроек
     assert_includes message_content[:text], I18n.t('telegram_bot.settings.delivery_frequency.label')
@@ -69,7 +62,7 @@ class Telegram::SettingsAgentTest < ActiveSupport::TestCase
   test '#show_settings отправляет inline клавиатуру' do
     @agent.show_settings
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_not_nil message_content[:reply_markup]
   end
@@ -129,7 +122,7 @@ class Telegram::SettingsAgentTest < ActiveSupport::TestCase
 
     # Проверяем что было отправлено сообщение об успехе
     assert_operator @bot.requests.size, :>=, 1
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], I18n.t('telegram_bot.settings.success.updated')
   end
@@ -155,7 +148,7 @@ class Telegram::SettingsAgentTest < ActiveSupport::TestCase
   test '#update_setting отправляет сообщение об успехе' do
     @agent.update_setting('delivery_frequency', 'real_time')
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], I18n.t('telegram_bot.settings.success.updated')
   end
@@ -182,7 +175,7 @@ class Telegram::SettingsAgentTest < ActiveSupport::TestCase
 
     # Проверяем что было отправлено сообщение об ошибке
     assert_operator @bot.requests.size, :>=, 1
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
   end
 
@@ -197,7 +190,7 @@ class Telegram::SettingsAgentTest < ActiveSupport::TestCase
 
     # Проверяем что было отправлено сообщение об ошибке
     assert_operator @bot.requests.size, :>=, 1
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
   end
 

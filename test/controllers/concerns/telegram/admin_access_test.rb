@@ -1,6 +1,7 @@
 require 'test_helper'
 
 class Telegram::AdminAccessTest < ActionDispatch::IntegrationTest
+  include TelegramHelper
   setup do
     @bot = Telegram.bot
     @bot.reset
@@ -10,37 +11,6 @@ class Telegram::AdminAccessTest < ActionDispatch::IntegrationTest
     @bot.reset if @bot
   end
 
-  def create_user_update(user_id: 123456, username: 'testuser', command: '/start')
-    {
-      'update_id' => 1,
-      'message' => {
-        'message_id' => 1,
-        'from' => {
-          'id' => user_id,
-          'username' => username,
-          'first_name' => 'Test',
-          'last_name' => 'User',
-          'language_code' => 'ru',
-          'is_premium' => false
-        },
-        'chat' => { 'id' => user_id, 'type' => 'private' },
-        'text' => command
-      }
-    }
-  end
-
-  def send_webhook_update(update)
-    post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
-  end
-
-  def extract_message_content(requests)
-    message_requests = requests.select { |method, _| method == :sendMessage }
-    return nil if message_requests.empty?
-
-    method, params = message_requests.first
-    params.first
-  end
 
   test 'admin user with is_admin: true can access protected commands' do
     admin_user = TelegramUser.create!(

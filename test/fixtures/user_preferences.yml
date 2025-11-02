@@ -2,16 +2,16 @@
 
 one:
   telegram_user: one
-  topic_weights: 
-  channel_weights: 
+  topic_weights: {"technology": 0.8, "business": 0.6}
+  channel_weights: {"test_channel_one": 0.9}
   adjusted_importance_threshold: 1.5
-  personalization_data: 
+  personalization_data: {"preferred_length": "medium", "topics": ["tech", "ai"]}
   last_updated_at: 2025-10-01 14:40:50
 
 two:
   telegram_user: two
-  topic_weights: 
-  channel_weights: 
-  adjusted_importance_threshold: 1.5
-  personalization_data: 
+  topic_weights: {"politics": 0.7, "sports": 0.8}
+  channel_weights: {"test_channel_two": 0.7}
+  adjusted_importance_threshold: 2.0
+  personalization_data: {"preferred_length": "short", "topics": ["news", "sports"]}
   last_updated_at: 2025-10-01 14:40:50

@@ -2,66 +2,26 @@ require 'test_helper'
 
 class DebugFunctionalityTest < ActionDispatch::IntegrationTest
   include ActiveJob::TestHelper
+  include TelegramHelper
+  include MocksHelper
 
   setup do
     @bot = Telegram.bot
     @bot.reset
 
-    # Создаем администратора и обычного пользователя
-    @admin_user = TelegramUser.create!(
-      username: 'admin_integration',
-      first_name: 'Admin',
-      language_code: 'ru',
-      is_admin: true
-    )
+    # Создаем администратора и обычного пользователя через helper
+    @admin_user = create_admin_user(username: 'admin_integration', first_name: 'Admin', language_code: 'ru')
+    @regular_user = create_telegram_user(username: 'user_integration', first_name: 'User', language_code: 'ru', is_admin: false)
 
-    @regular_user = TelegramUser.create!(
-      username: 'user_integration',
-      first_name: 'User',
-      language_code: 'ru',
-      is_admin: false
-    )
-
-    # Очищаем настройки
-    SystemSetting.where(key: 'debug_mode').delete_all
+    # Используем helper для очистки настроек
+    cleanup_system_settings('debug_mode')
   end
 
   teardown do
     @bot.reset if @bot
-    SystemSetting.where(key: 'debug_mode').delete_all
+    cleanup_system_settings('debug_mode')
   end
 
-  def create_user_update(user_id: 123456, username: 'testuser', command: '/debug')
-    {
-      'update_id' => 1,
-      'message' => {
-        'message_id' => 1,
-        'from' => {
-          'id' => user_id,
-          'username' => username,
-          'first_name' => 'Test',
-          'last_name' => 'User',
-          'language_code' => 'ru',
-          'is_premium' => false
-        },
-        'chat' => { 'id' => user_id, 'type' => 'private' },
-        'text' => command
-      }
-    }
-  end
-
-  def send_webhook_update(update)
-    post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
-  end
-
-  def extract_message_content(requests)
-    message_requests = requests.select { |method, _| method == :sendMessage }
-    return nil if message_requests.empty?
-
-    method, params = message_requests.first
-    params.first
-  end
 
   # Полный тест цикла работы команды /debug
   test 'complete debug functionality workflow' do
@@ -77,7 +37,7 @@ class DebugFunctionalityTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert DebugNotifier.enabled?
 
-    message_content1 = extract_message_content(@bot.requests)
+    message_content1 = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content1
     assert_includes message_content1[:text], I18n.t('telegram_bot.debug.enabled')
 
@@ -103,7 +63,7 @@ class DebugFunctionalityTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_not DebugNotifier.enabled?
 
-    message_content2 = extract_message_content(@bot.requests)
+    message_content2 = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content2
     assert_includes message_content2[:text], I18n.t('telegram_bot.debug.disabled')
 
@@ -157,13 +117,8 @@ class DebugFunctionalityTest < ActionDispatch::IntegrationTest
   end
 
   test 'debug command works correctly with multiple admins' do
-    # Создаем второго администратора
-    admin2 = TelegramUser.create!(
-      username: 'admin2_integration',
-      first_name: 'Admin2',
-      language_code: 'ru',
-      is_admin: true
-    )
+    # Создаем второго администратора через helper
+    admin2 = create_admin_user(username: 'admin2_integration', first_name: 'Admin2', language_code: 'ru')
 
     # Первый администратор включает режим
     update1 = create_user_update(user_id: @admin_user.telegram_id,
@@ -191,7 +146,7 @@ class DebugFunctionalityTest < ActionDispatch::IntegrationTest
     # Создаем тестовый сервис который вызывает ошибку
     test_service = Class.new do
       def self.test_method
-        raise StandardError.new('Test service error')
+        raise create_test_error('Test service error')
       end
     end
 
@@ -231,7 +186,7 @@ class DebugFunctionalityTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    admin_help_content = extract_message_content(@bot.requests)
+    admin_help_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil admin_help_content
     assert_includes admin_help_content[:text], '/debug — включить/выключить режим отладки'
 
@@ -244,7 +199,7 @@ class DebugFunctionalityTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    regular_help_content = extract_message_content(@bot.requests)
+    regular_help_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil regular_help_content
     assert_not_includes regular_help_content[:text], '/debug — включить/выключить режим отладки'
   end

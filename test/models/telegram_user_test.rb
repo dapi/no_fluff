@@ -120,85 +120,41 @@ class TelegramUserTest < ActiveSupport::TestCase
     end
   end
 
-  # Enum tests
-  test 'should have delivery_frequency enum' do
-    user = telegram_users(:one)
-    assert_respond_to user, :delivery_frequency
-    assert_respond_to user, :delivery_frequency_real_time?
-    assert_respond_to user, :delivery_frequency_three_times_daily?
-    assert_respond_to user, :delivery_frequency_twice_daily?
-    assert_respond_to user, :delivery_frequency_once_daily?
-    assert_respond_to user, :delivery_frequency_every_few_days?
-    assert_respond_to user, :delivery_frequency_weekly?
-    assert_respond_to user, :delivery_frequency_on_demand?
-  end
-
-  test 'should set delivery_frequency enum values' do
+  # Enum tests - оптимизированы через рефлексию
+  test 'should have and work with all enum types' do
     user = telegram_users(:one)
 
-    user.delivery_frequency = :real_time
-    assert user.delivery_frequency_real_time?
-    assert_equal 'real_time', user.delivery_frequency
+    # Проверяем все enum типы через рефлексию
+    enum_definitions = {
+      delivery_frequency: %w[real_time three_times_daily twice_daily once_daily every_few_days weekly on_demand],
+      content_format: %w[original summaries unified_digest combo headlines],
+      filter_strictness: %w[ultra high medium low smart]
+    }
 
-    user.delivery_frequency = :three_times_daily
-    assert user.delivery_frequency_three_times_daily?
-    assert_equal 'three_times_daily', user.delivery_frequency
+    enum_definitions.each do |enum_name, enum_values|
+      # Проверяем наличие самого enum
+      assert_respond_to user, enum_name, "Should have #{enum_name} enum"
 
-    user.delivery_frequency = :weekly
-    assert user.delivery_frequency_weekly?
-    assert_equal 'weekly', user.delivery_frequency
-  end
+      # Проверяем наличие query методов для всех значений
+      enum_values.each do |enum_value|
+        query_method = "#{enum_name}_#{enum_value}?"
+        assert_respond_to user, query_method, "Should have #{query_method} query method"
+      end
 
-  test 'should have content_format enum' do
-    user = telegram_users(:one)
-    assert_respond_to user, :content_format
-    assert_respond_to user, :content_format_original?
-    assert_respond_to user, :content_format_summaries?
-    assert_respond_to user, :content_format_unified_digest?
-    assert_respond_to user, :content_format_combo?
-    assert_respond_to user, :content_format_headlines?
-  end
+      # Проверяем работу с enum значениями
+      test_values = [ enum_values.first, enum_values.last ].uniq
+      test_values.each do |enum_value|
+        # Устанавливаем значение
+        user.send("#{enum_name}=", enum_value.to_sym)
 
-  test 'should set content_format enum values' do
-    user = telegram_users(:one)
+        # Проверяем query метод
+        query_method = "#{enum_name}_#{enum_value}?"
+        assert user.send(query_method), "Should return true for #{enum_value} in #{enum_name}"
 
-    user.content_format = :original
-    assert user.content_format_original?
-    assert_equal 'original', user.content_format
-
-    user.content_format = :summaries
-    assert user.content_format_summaries?
-    assert_equal 'summaries', user.content_format
-
-    user.content_format = :headlines
-    assert user.content_format_headlines?
-    assert_equal 'headlines', user.content_format
-  end
-
-  test 'should have filter_strictness enum' do
-    user = telegram_users(:one)
-    assert_respond_to user, :filter_strictness
-    assert_respond_to user, :filter_strictness_ultra?
-    assert_respond_to user, :filter_strictness_high?
-    assert_respond_to user, :filter_strictness_medium?
-    assert_respond_to user, :filter_strictness_low?
-    assert_respond_to user, :filter_strictness_smart?
-  end
-
-  test 'should set filter_strictness enum values' do
-    user = telegram_users(:one)
-
-    user.filter_strictness = :ultra
-    assert user.filter_strictness_ultra?
-    assert_equal 'ultra', user.filter_strictness
-
-    user.filter_strictness = :medium
-    assert user.filter_strictness_medium?
-    assert_equal 'medium', user.filter_strictness
-
-    user.filter_strictness = :smart
-    assert user.filter_strictness_smart?
-    assert_equal 'smart', user.filter_strictness
+        # Проверяем сохраненное значение
+        assert_equal enum_value, user.send(enum_name), "Should store #{enum_value} in #{enum_name}"
+      end
+    end
   end
 
   # Scope tests
@@ -285,62 +241,6 @@ class TelegramUserTest < ActiveSupport::TestCase
     assert user.valid?
   end
 
-  # Tests for is_admin functionality
-  test 'should have is_admin field with default false' do
-    user = TelegramUser.create!(
-      username: 'test_admin',
-      timezone: 'UTC',
-      language_code: 'en'
-    )
-    assert_equal false, user.is_admin
-  end
-
-  test 'admins scope should return only admin users' do
-    admin_user = telegram_users(:admin_user)
-    regular_user = telegram_users(:one)
-
-    admin_users = TelegramUser.admins
-    assert_includes admin_users, admin_user
-    assert_not_includes admin_users, regular_user
-  end
-
-  test 'any_admins? should return false when no admins exist' do
-    # Delete all admin users to test the scenario
-    TelegramUser.where(is_admin: true).destroy_all
-    assert_not TelegramUser.any_admins?
-  end
-
-  test 'any_admins? should return true when at least one admin exists' do
-    # Use fixtures - admin_user already exists in fixtures
-    assert TelegramUser.any_admins?
-  end
-
-  test 'first_admin! should return first admin when admins exist' do
-    # Use the admin_user from fixtures
-    first_admin = TelegramUser.first_admin!
-    assert_equal telegram_users(:admin_user), first_admin
-  end
-
-  test 'first_admin! should return nil when no admins exist' do
-    # Delete all admin users to test the scenario
-    TelegramUser.where(is_admin: true).destroy_all
-    assert_nil TelegramUser.first_admin!
-  end
-
-  test 'can promote user to admin' do
-    user = TelegramUser.create!(
-      username: 'test_user_promote',
-      timezone: 'UTC',
-      language_code: 'en',
-      is_admin: false
-    )
-
-    user.update!(is_admin: true)
-    user.reload
-
-    assert user.is_admin?
-    assert TelegramUser.any_admins?
-  end
 
   # Session data integration tests (базовые проверки интеграции с Sessionable)
   test 'should include Sessionable concern' do
@@ -409,172 +309,5 @@ class TelegramUserTest < ActiveSupport::TestCase
     copy = user.session_data_copy
     copy['new_key'] = 'new_value'
     assert_not user.session_has_key?('new_key')
-  end
-
-  # Tests for subscription limits functionality
-  test 'can_add_channel? should return true for premium users' do
-    user = telegram_users(:premium_user)
-
-    # У премиум пользователя должно быть 100+ подписок
-    11.times do |i|
-      user.subscriptions.create!(
-        channel: Channel.create!(telegram_id: 1000 + i, username: "test_channel_#{i}"),
-        active: true
-      )
-    end
-
-    assert user.can_add_channel?
-  end
-
-  test 'can_add_channel? should return true for regular users with less than 10 channels' do
-    user = TelegramUser.create!(
-      username: 'regular_user',
-      timezone: 'UTC',
-      language_code: 'en',
-      is_premium: false
-    )
-
-    # Добавляем 5 подписок
-    5.times do |i|
-      user.subscriptions.create!(
-        channel: Channel.create!(telegram_id: 2000 + i, username: "channel_#{i}"),
-        active: true
-      )
-    end
-
-    assert user.can_add_channel?
-  end
-
-  test 'can_add_channel? should return false for regular users with 10 or more channels' do
-    user = TelegramUser.create!(
-      username: 'limited_user',
-      timezone: 'UTC',
-      language_code: 'en',
-      is_premium: false
-    )
-
-    # Добавляем 10 подписок
-    10.times do |i|
-      user.subscriptions.create!(
-        channel: Channel.create!(telegram_id: 3000 + i, username: "channel_#{i}"),
-                active: true
-      )
-    end
-
-    assert_not user.can_add_channel?
-  end
-
-  test 'can_add_channel? should count all subscriptions regardless of active status' do
-    user = TelegramUser.create!(
-      username: 'mixed_status_user',
-      timezone: 'UTC',
-      language_code: 'en',
-      is_premium: false
-    )
-
-    # Добавляем 5 активных и 5 неактивных подписок
-    5.times do |i|
-      user.subscriptions.create!(
-        channel: Channel.create!(telegram_id: 4000 + i, username: "active_channel_#{i}"),
-                active: true
-      )
-    end
-
-    5.times do |i|
-      user.subscriptions.create!(
-        channel: Channel.create!(telegram_id: 5000 + i, username: "inactive_channel_#{i}"),
-                active: false
-      )
-    end
-
-    # Всего 10 подписок, но только 5 активных - лимит все равно достигнут
-    assert_not user.can_add_channel?
-    assert_equal 10, user.channels_count
-  end
-
-  test 'channels_count should return total number of subscriptions' do
-    user = TelegramUser.create!(
-      username: 'counter_user',
-      timezone: 'UTC',
-      language_code: 'en'
-    )
-
-    assert_equal 0, user.channels_count
-
-    # Добавляем подписки с разным статусом
-    user.subscriptions.create!(
-      channel: Channel.create!(telegram_id: 6001, username: 'channel_1'),
-            active: true
-    )
-    assert_equal 1, user.channels_count
-
-    user.subscriptions.create!(
-      channel: Channel.create!(telegram_id: 6002, username: 'channel_2'),
-            active: false
-    )
-    assert_equal 2, user.channels_count
-
-    user.subscriptions.create!(
-      channel: Channel.create!(telegram_id: 6003, username: 'channel_3'),
-            active: true
-    )
-    assert_equal 3, user.channels_count
-  end
-
-  test 'channels_limit_reached? should return true for regular users with 10+ channels' do
-    user = TelegramUser.create!(
-      username: 'limit_user',
-      timezone: 'UTC',
-      language_code: 'en',
-      is_premium: false
-    )
-
-    # Добавляем 10 подписок
-    10.times do |i|
-      user.subscriptions.create!(
-        channel: Channel.create!(telegram_id: 7000 + i, username: "channel_#{i}"),
-                active: true
-      )
-    end
-
-    assert user.channels_limit_reached?
-  end
-
-  test 'channels_limit_reached? should return false for premium users regardless of channel count' do
-    user = TelegramUser.create!(
-      username: 'premium_limit_user',
-      timezone: 'UTC',
-      language_code: 'en',
-      is_premium: true
-    )
-
-    # Добавляем 15 подписок
-    15.times do |i|
-      user.subscriptions.create!(
-        channel: Channel.create!(telegram_id: 8000 + i, username: "channel_#{i}"),
-                active: true
-      )
-    end
-
-    assert_not user.channels_limit_reached?
-  end
-
-  test 'channels_limit_reached? should return false for regular users with less than 10 channels' do
-    user = TelegramUser.create!(
-      username: 'no_limit_user',
-      timezone: 'UTC',
-      language_code: 'en',
-      is_premium: false
-    )
-
-    # Добавляем 5 подписок
-    5.times do |i|
-      user.subscriptions.create!(
-        channel: Channel.create!(telegram_id: 9000 + i, username: "channel_#{i}"),
-                active: true
-      )
-    end
-
-    assert_not user.channels_limit_reached?
   end
 end

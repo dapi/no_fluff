@@ -1,6 +1,9 @@
 require 'test_helper'
 
 class Channels::BotJoinNotificationServiceTest < ActiveSupport::TestCase
+  include TelegramHelper
+  include MocksHelper
+
   def setup
     # Используем существующего админа из фикстур
     @admin_user = telegram_users(:admin_user)
@@ -10,30 +13,15 @@ class Channels::BotJoinNotificationServiceTest < ActiveSupport::TestCase
 
   test 'should send success notifications to all admins' do
     # Создаем второго администратора
-    admin2 = TelegramUser.create!(
+    admin2 = create_admin_with_params(
       username: 'admin2',
-      telegram_id: 999999,
-      first_name: 'Admin',
-      last_name: 'User',
-      is_admin: true
+      telegram_id: 999999
     )
 
-    # Мокаем бота
-    send_message_calls = []
+    # Используем helper для создания мока бота с отслеживанием
+    send_message_calls, mock_bot = mock_bot_with_message_tracking
 
-    # Создаем mock API
-    mock_api = Object.new
-    mock_api.define_singleton_method(:send_message) do |chat_id:, text:, parse_mode:|
-      send_message_calls << { chat_id: chat_id, text: text, parse_mode: parse_mode }
-    end
-
-    # Создаем mock bot
-    mock_bot = Object.new
-    mock_bot.define_singleton_method(:send_message) do |chat_id:, text:, parse_mode:|
-      send_message_calls << { chat_id: chat_id, text: text, parse_mode: parse_mode }
-    end
-
-    Telegram.stub(:bots, { default: mock_bot }) do
+    setup_telegram_bots_mock(mock_bot) do
       service = Channels::BotJoinNotificationService.new
       service.notify_success(@channel)
     end
@@ -51,15 +39,10 @@ class Channels::BotJoinNotificationServiceTest < ActiveSupport::TestCase
   test 'should send failure notifications to all admins' do
     error_message = 'Channel not found'
 
-    # Мокаем бота
-    send_message_calls = []
+    # Используем helper для создания мока бота с отслеживанием
+    send_message_calls, mock_bot = mock_bot_with_message_tracking
 
-    mock_bot = Object.new
-    mock_bot.define_singleton_method(:send_message) do |chat_id:, text:, parse_mode:|
-      send_message_calls << { chat_id: chat_id, text: text, parse_mode: parse_mode }
-    end
-
-    Telegram.stub(:bots, { default: mock_bot }) do
+    setup_telegram_bots_mock(mock_bot) do
       service = Channels::BotJoinNotificationService.new
       service.notify_failure(@channel, error_message)
     end
@@ -76,15 +59,10 @@ class Channels::BotJoinNotificationServiceTest < ActiveSupport::TestCase
     # Убираем права администратора у всех
     TelegramUser.where(is_admin: true).update_all(is_admin: false)
 
-    # Мокаем бота
-    send_message_calls = []
+    # Используем helper для создания мока бота с отслеживанием
+    send_message_calls, mock_bot = mock_bot_with_message_tracking
 
-    mock_bot = Object.new
-    mock_bot.define_singleton_method(:send_message) do |chat_id:, text:, parse_mode:|
-      send_message_calls << { chat_id: chat_id, text: text, parse_mode: parse_mode }
-    end
-
-    Telegram.stub(:bots, { default: mock_bot }) do
+    setup_telegram_bots_mock(mock_bot) do
       service = Channels::BotJoinNotificationService.new
       service.notify_success(@channel)
       service.notify_failure(@channel, 'Test error')
@@ -95,15 +73,12 @@ class Channels::BotJoinNotificationServiceTest < ActiveSupport::TestCase
   end
 
   test 'should handle Telegram API errors gracefully' do
-    # Мокаем бота который вызывает ошибку
-    mock_bot = Object.new
-    mock_bot.define_singleton_method(:send_message) do |chat_id:, text:, parse_mode:|
-      raise Telegram::Bot::Error.new('Invalid token')
-    end
+    # Используем helper для создания мока бота с ошибкой
+    mock_bot = mock_bot_with_error('Invalid token')
 
     # Не должно вызывать исключение
     assert_nothing_raised do
-      Telegram.stub(:bots, { default: mock_bot }) do
+      setup_telegram_bots_mock(mock_bot) do
         service = Channels::BotJoinNotificationService.new
         service.notify_success(@channel)
       end
@@ -111,15 +86,10 @@ class Channels::BotJoinNotificationServiceTest < ActiveSupport::TestCase
   end
 
   test 'should log notification sending' do
-    # Мокаем бота
-    send_message_calls = []
+    # Используем helper для создания мока бота с отслеживанием
+    send_message_calls, mock_bot = mock_bot_with_message_tracking
 
-    mock_bot = Object.new
-    mock_bot.define_singleton_method(:send_message) do |chat_id:, text:, parse_mode:|
-      send_message_calls << { chat_id: chat_id, text: text, parse_mode: parse_mode }
-    end
-
-    Telegram.stub(:bots, { default: mock_bot }) do
+    setup_telegram_bots_mock(mock_bot) do
       service = Channels::BotJoinNotificationService.new
       assert_logs('Sent bot join success notifications') do
         service.notify_success(@channel)
@@ -136,15 +106,10 @@ class Channels::BotJoinNotificationServiceTest < ActiveSupport::TestCase
       bot_join_at: 1.hour.ago
     )
 
-    # Мокаем бота
-    send_message_calls = []
+    # Используем helper для создания мока бота с отслеживанием
+    send_message_calls, mock_bot = mock_bot_with_message_tracking
 
-    mock_bot = Object.new
-    mock_bot.define_singleton_method(:send_message) do |chat_id:, text:, parse_mode:|
-      send_message_calls << { chat_id: chat_id, text: text, parse_mode: parse_mode }
-    end
-
-    Telegram.stub(:bots, { default: mock_bot }) do
+    setup_telegram_bots_mock(mock_bot) do
       service = Channels::BotJoinNotificationService.new
       service.notify_success(@channel)
     end
@@ -162,15 +127,10 @@ class Channels::BotJoinNotificationServiceTest < ActiveSupport::TestCase
   test 'should include error details in failure message' do
     error = 'Forbidden: bot was kicked from the channel'
 
-    # Мокаем бота
-    send_message_calls = []
+    # Используем helper для создания мока бота с отслеживанием
+    send_message_calls, mock_bot = mock_bot_with_message_tracking
 
-    mock_bot = Object.new
-    mock_bot.define_singleton_method(:send_message) do |chat_id:, text:, parse_mode:|
-      send_message_calls << { chat_id: chat_id, text: text, parse_mode: parse_mode }
-    end
-
-    Telegram.stub(:bots, { default: mock_bot }) do
+    setup_telegram_bots_mock(mock_bot) do
       service = Channels::BotJoinNotificationService.new
       service.notify_failure(@channel, error)
     end
@@ -181,22 +141,5 @@ class Channels::BotJoinNotificationServiceTest < ActiveSupport::TestCase
     assert_includes message, 'Test Channel'
     assert_includes message, error
     assert_equal 'Markdown', send_message_calls.first[:parse_mode]
-  end
-
-  private
-
-  def assert_logs(expected_message)
-    log_output = StringIO.new
-    logger = Logger.new(log_output)
-
-    original_logger = Rails.logger
-    Rails.logger = logger
-
-    yield
-
-    log_content = log_output.string
-    assert_includes log_content, expected_message
-  ensure
-    Rails.logger = original_logger
   end
 end

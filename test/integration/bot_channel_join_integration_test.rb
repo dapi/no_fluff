@@ -1,17 +1,20 @@
 require 'test_helper'
 
 class BotChannelJoinIntegrationTest < ActionDispatch::IntegrationTest
+  include MocksHelper
+
   test 'complete workflow: add channel -> bot joins -> process posts' do
     # Создаем пользователя
     user = telegram_users(:one)
 
-    # Создаем мок для LimitChecker
-    limit_checker = Object.new
+    # Создаем мок для LimitChecker через helper
+    limit_checker = mock_limit_checker(allowed: true)
     limit_checker.define_singleton_method(:can_add_channel?) { true }
     limit_checker.define_singleton_method(:current_channels_count) { 0 }
 
     Limits::LimitChecker.stub(:new, limit_checker) do
-      # Создаем мок для ApplicationConfig
+      # Создаем мок для ApplicationConfig через helper
+      mock_config = mock_application_config({ 'free_channels_limit' => 10 })
       ApplicationConfig.stub(:free_channels_limit, 10) do
         # Создаем мок для успешного ответа Telegram API
         mock_bot = Object.new
@@ -29,7 +32,7 @@ class BotChannelJoinIntegrationTest < ActionDispatch::IntegrationTest
           }
         end
 
-        Telegram.stub(:bots, { default: mock_bot }) do
+        setup_telegram_bots_mock(mock_bot) do
           # 1. Пользователь добавляет канал через ChannelService
           service = Telegram::ChannelService.new(mock_bot)
           result = service.add_channel_for_user(user, 'test_channel')
@@ -69,8 +72,8 @@ class BotChannelJoinIntegrationTest < ActionDispatch::IntegrationTest
     # Создаем пользователя
     user = telegram_users(:one)
 
-    # Создаем мок для LimitChecker
-    limit_checker = Object.new
+    # Создаем мок для LimitChecker через helper
+    limit_checker = mock_limit_checker(allowed: true)
     limit_checker.define_singleton_method(:can_add_channel?) { true }
     limit_checker.define_singleton_method(:current_channels_count) { 0 }
 
@@ -96,7 +99,7 @@ class BotChannelJoinIntegrationTest < ActionDispatch::IntegrationTest
         channel = nil
 
         # Сначала добавляем канал успешно
-        Telegram.stub(:bots, { default: mock_bot }) do
+        setup_telegram_bots_mock(mock_bot) do
           service = Telegram::ChannelService.new(mock_bot)
           result = service.add_channel_for_user(user, 'private_channel')
 
@@ -105,7 +108,7 @@ class BotChannelJoinIntegrationTest < ActionDispatch::IntegrationTest
           assert_equal 'not_joined', channel.bot_join_status
         end
 
-        # Создаем мок для неудачного вступления бота
+        # Создаем мок для неудачного вступления бота через helper
         mock_bot_for_join = Object.new
         mock_bot_for_join.define_singleton_method(:get_chat) do |chat_id:|
           {
@@ -115,7 +118,7 @@ class BotChannelJoinIntegrationTest < ActionDispatch::IntegrationTest
           }
         end
 
-        Telegram.stub(:bots, { default: mock_bot_for_join }) do
+        setup_telegram_bots_mock(mock_bot_for_join) do
           Channels::BotJoinJob.perform_now(channel.id)
           channel.reload
           assert_equal 'join_failed', channel.bot_join_status
@@ -223,7 +226,7 @@ class BotChannelJoinIntegrationTest < ActionDispatch::IntegrationTest
       }
     end
 
-    Telegram.stub(:bots, { default: mock_bot }) do
+    setup_telegram_bots_mock(mock_bot) do
       service = Telegram::ChannelService.new(mock_bot)
       result = service.add_channel_to_database(channel.username)
 

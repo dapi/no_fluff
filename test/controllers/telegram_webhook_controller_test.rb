@@ -1,6 +1,7 @@
 require 'test_helper'
 
 class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
+  include TelegramHelper
   setup do
     @bot = Telegram.bot
     @bot.reset
@@ -11,24 +12,6 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
   end
 
   # Helper methods для создания тестовых данных
-  def create_user_update(user_id: 123456, username: 'testuser', command: '/start')
-    {
-      'update_id' => 1,
-      'message' => {
-        'message_id' => 1,
-        'from' => {
-          'id' => user_id,
-          'username' => username,
-          'first_name' => 'Test',
-          'last_name' => 'User',
-          'language_code' => 'ru',
-          'is_premium' => false
-        },
-        'chat' => { 'id' => user_id, 'type' => 'private' },
-        'text' => command
-      }
-    }
-  end
 
   def create_callback_update(user_id: 123456, username: 'testuser', data: 'test:')
     {
@@ -50,26 +33,8 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     }
   end
 
-  def send_webhook_update(update)
-    post telegram_webhook_path, params: update.to_json,
-      headers: { 'Content-Type' => 'application/json' }
-  end
 
-  def extract_message_content(requests)
-    message_requests = requests.select { |method, _| method == :sendMessage }
-    return nil if message_requests.empty?
 
-    method, params = message_requests.first
-    params.first
-  end
-
-  def extract_edited_message_content(requests)
-    edit_requests = requests.select { |method, _| method == :editMessageText }
-    return nil if edit_requests.empty?
-
-    method, params = edit_requests.first
-    params.first
-  end
 
   # High-level тесты на уровне пользовательского поведения
 
@@ -91,7 +56,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     # Проверяем что было отправлено приветственное сообщение
     assert_operator @bot.requests.size, :>=, 1
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], I18n.t('telegram_bot.start.welcome')
     assert_not_nil message_content[:reply_markup]
@@ -123,7 +88,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     assert_equal 'existing_user', existing_user.username
 
     # Проверяем что было отправлено сообщение
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], I18n.t('telegram_bot.start.welcome')
   end
@@ -134,7 +99,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], I18n.t('telegram_bot.help.commands')
   end
@@ -151,7 +116,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     user = TelegramUser.find_by(username: 'first_admin')
     assert user.is_admin?, 'First user should become admin'
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], I18n.t('telegram_bot.start.first_admin')
   end
@@ -168,7 +133,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     user = TelegramUser.find_by(username: 'regular_user')
     assert_not user.is_admin?, 'Regular user should not become admin'
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], I18n.t('telegram_bot.start.welcome')
     assert_not_includes message_content[:text], I18n.t('telegram_bot.start.first_admin')
@@ -261,7 +226,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     end
 
     # Проверяем что было отправлено сообщение об успехе
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], 'удалён'
   end
@@ -282,7 +247,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], I18n.t('telegram_bot.settings.title')
 
@@ -317,7 +282,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
       # Проверяем что был хотя бы один запрос к боту
       assert_operator @bot.requests.size, :>=, 1
 
-      message_content = extract_message_content(@bot.requests)
+      message_content = extract_message_content_from_requests(@bot.requests)
       if message_content
         # Если есть сообщение, проверяем что оно не пустое
         assert message_content[:text].length > 0
@@ -352,7 +317,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
 
       assert_response :success
 
-      message_content = extract_message_content(@bot.requests)
+      message_content = extract_message_content_from_requests(@bot.requests)
       assert_not_nil message_content
       assert_includes message_content[:text], "Вы написали: #{message_text}"
     end
@@ -443,7 +408,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], 'Channel 1'
     assert_includes message_content[:text], 'Channel 2'
@@ -466,7 +431,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     # Проверяем что сообщение обработано без использования сессий
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], 'Вы написали: Hello bot!'
   end
@@ -505,7 +470,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     # Проверяем что администратор видит расширенную справку
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], 'Доступные команды:'
     assert_includes message_content[:text], 'Команды администратора:'
@@ -531,7 +496,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     # Проверяем что обычный пользователь видит базовую справку
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], 'Доступные команды:'
     assert_not_includes message_content[:text], 'Команды администратора:'
@@ -558,7 +523,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
 
     # Команда не должна обрабатываться основным контроллером
     # Проверяем что бот получил ответ об отказе в доступе (из AdminSessionManagement)
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], I18n.t('telegram_bot.admin_sessions.access_denied')
   end
@@ -585,7 +550,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     assert_equal 'John', admin_user.get_session('user_name')
 
     # Проверяем ответное сообщение
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], 'Я запомнил ваше имя: John'
   end
@@ -609,7 +574,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     # Проверяем ответное сообщение
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], 'Привет, Alice! Я помню ваше имя.'
   end
@@ -638,7 +603,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     assert_empty admin_user.session_data
 
     # Проверяем ответное сообщение
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], 'Я все забыл'
   end
@@ -663,7 +628,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     # Проверяем ответное сообщение
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], 'Данные сессии:'
     assert_includes message_content[:text], 'user_name: Charlie'
@@ -691,7 +656,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
       assert_response :success
 
       # Проверяем сообщение об отказе в доступе
-      message_content = extract_message_content(@bot.requests)
+      message_content = extract_message_content_from_requests(@bot.requests)
       assert_not_nil message_content
       assert_includes message_content[:text], I18n.t('telegram_bot.admin_sessions.access_denied')
     end
@@ -722,7 +687,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     send_webhook_update(update2)
     assert_response :success
 
-    message_content2 = extract_message_content(@bot.requests)
+    message_content2 = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content2
     assert_includes message_content2[:text], 'Привет, Diana!'
 
@@ -761,7 +726,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     send_message_requests = @bot.requests.select { |method, _| method == :sendMessage }
     assert_not_empty send_message_requests, 'Should have at least one sendMessage request'
 
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content, 'Should find message content'
 
     # Проверяем что есть хотя бы сообщение об установке команд или сообщение об ошибке
@@ -789,7 +754,7 @@ class TelegramWebhookControllerImprovedTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     # Проверяем сообщение об отказе в доступе
-    message_content = extract_message_content(@bot.requests)
+    message_content = extract_message_content_from_requests(@bot.requests)
     assert_not_nil message_content
     assert_includes message_content[:text], I18n.t('telegram_bot.debug.access_denied')
   end

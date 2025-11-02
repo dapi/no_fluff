@@ -83,6 +83,36 @@ module TelegramHelper
     create_message_update(text: text, user_id: user_id)
   end
 
+  # Создание тестового update для пользователя (расширенная версия)
+  # @param user_id [Integer] ID пользователя
+  # @param username [String] юзернейм пользователя
+  # @param command [String] команда или текст сообщения
+  # @param first_name [String] имя пользователя
+  # @param last_name [String] фамилия пользователя
+  # @param language_code [String] языковой код
+  # @param is_premium [Boolean] является ли пользователем premium
+  # @return [Hash] Telegram update хеш
+  def create_user_update(user_id: 123456, username: 'testuser', command: '/start',
+                        first_name: 'Test', last_name: 'User', language_code: 'ru',
+                        is_premium: false)
+    {
+      'update_id' => 1,
+      'message' => {
+        'message_id' => 1,
+        'from' => {
+          'id' => user_id,
+          'username' => username,
+          'first_name' => first_name,
+          'last_name' => last_name,
+          'language_code' => language_code,
+          'is_premium' => is_premium
+        },
+        'chat' => { 'id' => user_id, 'type' => 'private' },
+        'text' => command
+      }
+    }
+  end
+
   # Извлечение текста сообщения из update
   # @param update [Hash] Telegram update
   # @return [String, nil] текст сообщения
@@ -146,6 +176,23 @@ module TelegramHelper
     create_telegram_user(overrides.merge(is_admin: true))
   end
 
+  # Создание админа с указанными параметрами
+  # @param username [String] юзернейм
+  # @param telegram_id [Integer] ID в Telegram
+  # @param first_name [String] имя
+  # @param last_name [String] фамилия
+  # @param overrides [Hash] дополнительные параметры
+  # @return [TelegramUser] admin пользователь
+  def create_admin_with_params(username:, telegram_id:, first_name: 'Admin', last_name: 'User', overrides: {})
+    create_admin_user(
+      username: username,
+      telegram_id: telegram_id,
+      first_name: first_name,
+      last_name: last_name,
+      **overrides
+    )
+  end
+
   # Проверка наличия кнопки в клавиатуре
   # @param reply_markup [Hash] клавиатура
   # @param button_text [String] текст кнопки
@@ -193,9 +240,58 @@ module TelegramHelper
     end
   end
 
+  # Отправка webhook update в контроллер
+  # @param update [Hash] Telegram update
+  # @param headers [Hash] дополнительные заголовки
+  def send_webhook_update(update, headers = {})
+    default_headers = { 'Content-Type' => 'application/json' }
+    final_headers = default_headers.merge(headers)
+
+    post telegram_webhook_path, params: update.to_json, headers: final_headers
+  end
+
+  # Расширенное извлечение контента из сообщений запросов
+  # @param requests [Array] массив запросов к боту
+  # @return [Hash, nil] параметры сообщения
+  def extract_message_content_from_requests(requests)
+    message_requests = requests.select { |method, _| method == :sendMessage }
+    return nil if message_requests.empty?
+
+    method, params = message_requests.first
+    params.is_a?(Array) ? params.first : params
+  end
+
+  # Извлечение контента из отредактированных сообщений
+  # @param requests [Array] массив запросов к боту
+  # @return [Hash, nil] параметры отредактированного сообщения
+  def extract_edited_message_content(requests)
+    edit_requests = requests.select { |method, _| method == :editMessageText }
+    return nil if edit_requests.empty?
+
+    method, params = edit_requests.first
+    params.is_a?(Array) ? params.first : params
+  end
+
   # Сброс всех запросов бота
   # @param bot [Telegram::Bot::Client] бот для сброса
   def reset_bot_requests(bot = Telegram.bot)
     bot.reset if bot.respond_to?(:reset)
+  end
+
+  # Проверка логирования в тестах
+  # @param expected_message [String] ожидаемое сообщение в логах
+  def assert_logs(expected_message)
+    log_output = StringIO.new
+    logger = Logger.new(log_output)
+
+    original_logger = Rails.logger
+    Rails.logger = logger
+
+    yield
+
+    log_content = log_output.string
+    assert_includes log_content, expected_message
+  ensure
+    Rails.logger = original_logger
   end
 end
