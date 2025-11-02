@@ -76,7 +76,9 @@
       "mcp__serena__read_memory",
       "Bash(python3:*)",
       "mcp__brave-search__brave_web_search",
-      "mcp__sequential-thinking__sequentialthinking"
+      "mcp__sequential-thinking__sequentialthinking",
+      "Bash(rm:*)",
+      "mcp__serena__list_dir"
     ],
     "deny": [],
     "ask": []
