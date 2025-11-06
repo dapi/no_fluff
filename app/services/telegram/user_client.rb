@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
 module Telegram
-  # TelegramUserClient - wrapper for TDLib/MTProto functionality
+  # TelegramUserClient - wrapper for telegram-mtproto-ruby functionality
   # Provides unified interface for Telegram user operations
   #
-  # TODO: Replace mock implementation with actual tdlib-ruby integration
-  # when dependency conflicts are resolved
+  # Uses telegram-mtproto-ruby for MTProto 2.0 protocol implementation
   class UserClient
     include TelegramCredentials
 
@@ -18,30 +17,25 @@ module Telegram
     end
 
     def create_client
-      # Telegram API credentials are now required, no need to check configuration
+      # Ensure API is configured before proceeding
+      raise 'Telegram API not configured. Please set api_id and api_hash in ApplicationConfig.' unless telegram_api_configured?
 
-      # TODO: Replace with actual TDLib client creation
-      # When tdlib-ruby is available:
-      # @client = TDLib::Client.new(
-      #   api_id: @api_credentials[:api_id],
-      #   api_hash: @api_credentials[:api_hash],
-      #   phone_number: @follower_user.phone_number
-      # )
-
-      # Mock implementation for Phase 1
-      mock_client = Object.new
-      mock_client.define_singleton_method(:connected?) { true }
-      mock_client.define_singleton_method(:authorized?) { @follower_user.authorized? }
-
-      @client = mock_client
+      @client = TelegramMtproto::Client.new(
+        api_id: @api_credentials[:api_id],
+        api_hash: @api_credentials[:api_hash],
+        phone_number: @follower_user.phone_number,
+        session_string: @follower_user.session_string
+      )
       true
     end
 
     def connect
       return false unless create_client
 
-      # TODO: Implement actual TDLib connection
       Rails.logger.info "Connecting Telegram client for #{@follower_user.phone_number}"
+
+      # Connect to Telegram servers
+      @client.connect
       true
     rescue StandardError => e
       Rails.logger.error "Failed to connect Telegram client: #{e.message}"
@@ -51,8 +45,14 @@ module Telegram
     def disconnect
       return true unless @client
 
-      # TODO: Implement actual TDLib disconnection
       Rails.logger.info "Disconnecting Telegram client for #{@follower_user.phone_number}"
+
+      # Disconnect from Telegram servers and save session
+      @client.disconnect
+      @client = nil
+      true
+    rescue StandardError => e
+      Rails.logger.error "Failed to disconnect Telegram client: #{e.message}"
       @client = nil
       true
     end
@@ -61,23 +61,19 @@ module Telegram
       return false unless client_connected?
       return false if username.blank?
 
-      # TODO: Replace with actual TDLib implementation
-      # When tdlib-ruby is available:
-      # result = @client.join_channel(username)
-      # handle_result(result)
-
-      # Mock implementation for Phase 1
       Rails.logger.info "Attempting to join channel: #{username}"
 
-      # Simulate API call with delay
+      # Rate limiting
       rate_limit_delay
 
-      # Mock success/failure based on channel name pattern
-      if mock_channel_join_success?(username)
+      # Join channel using MTProto API
+      result = @client.join_chat(username)
+
+      if result[:success]
         Rails.logger.info "Successfully joined channel: #{username}"
-        { success: true, channel_info: mock_channel_info(username) }
+        { success: true, channel_info: result[:chat] }
       else
-        error_message = "Failed to join channel: #{username}"
+        error_message = result[:error] || "Failed to join channel: #{username}"
         Rails.logger.error error_message
         { success: false, error: error_message }
       end
@@ -90,14 +86,21 @@ module Telegram
       return false unless client_connected?
       return false if username.blank?
 
-      # TODO: Replace with actual TDLib implementation
       Rails.logger.info "Attempting to leave channel: #{username}"
 
       rate_limit_delay
 
-      # Mock implementation
-      Rails.logger.info "Successfully left channel: #{username}"
-      { success: true }
+      # Leave channel using MTProto API
+      result = @client.leave_chat(username)
+
+      if result[:success]
+        Rails.logger.info "Successfully left channel: #{username}"
+        { success: true }
+      else
+        error_message = result[:error] || "Failed to leave channel: #{username}"
+        Rails.logger.error error_message
+        { success: false, error: error_message }
+      end
     rescue StandardError => e
       Rails.logger.error "Error leaving channel #{username}: #{e.message}"
       { success: false, error: e.message }
@@ -106,20 +109,20 @@ module Telegram
     def test_connection
       return false unless connect
 
-      # TODO: Replace with actual TDLib test
-      mock_result = {
-        success: true,
-        user_info: {
-          id: @follower_user.id,
-          phone: @follower_user.phone_number,
-          username: @follower_user.username,
-          first_name: @follower_user.first_name,
-          last_name: @follower_user.last_name
-        }
-      }
+      # Test connection by getting self info
+      result = @client.get_me
 
-      Rails.logger.info "Connection test successful for #{@follower_user.phone_number}"
-      mock_result
+      if result[:success]
+        Rails.logger.info "Connection test successful for #{@follower_user.phone_number}"
+        {
+          success: true,
+          user_info: result[:user]
+        }
+      else
+        error_message = result[:error] || 'Connection test failed'
+        Rails.logger.error error_message
+        { success: false, error: error_message }
+      end
     rescue StandardError => e
       Rails.logger.error "Connection test failed: #{e.message}"
       { success: false, error: e.message }
@@ -131,13 +134,19 @@ module Telegram
       return nil unless client_connected?
       return nil if username.blank?
 
-      # TODO: Replace with actual TDLib implementation
       Rails.logger.info "Getting channel info for: #{username}"
 
       rate_limit_delay
 
-      # Mock implementation
-      mock_channel_info(username)
+      # Get channel info using MTProto API
+      result = @client.get_chat(username)
+
+      if result[:success]
+        result[:chat]
+      else
+        Rails.logger.error "Failed to get channel info for #{username}: #{result[:error]}"
+        nil
+      end
     rescue StandardError => e
       Rails.logger.error "Error getting channel info for #{username}: #{e.message}"
       nil
@@ -162,45 +171,28 @@ module Telegram
       sleep(delay) if delay > 0
     end
 
-    def mock_channel_join_success?(username)
-      # Simple mock logic: channels with "test" in name fail, others succeed
-      !username.to_s.downcase.include?('test')
-    end
-
-    def mock_channel_info(username)
-      {
-        id: rand(1000000..9999999),
-        username: username,
-        title: "Mock Channel: #{username}",
-        description: 'This is a mock channel for testing',
-        member_count: rand(100..10000),
-        type: 'channel',
-        verified: rand > 0.8,
-        active: true
-      }
-    end
-
-    def handle_result(result)
-      # TODO: Implement TDLib result handling
-      case result[:success]
-      when true
-        result
-      when false
-        handle_error(result[:error])
-      end
+    def telegram_api_configured?
+      ApplicationConfig.telegram_api_configured?
     end
 
     def handle_error(error)
-      Rails.logger.error "Telegram API error: #{error}"
+      Rails.logger.error "Telegram MTProto API error: #{error}"
 
-      # TODO: Implement proper error handling for different error types
       case error.to_s
       when /FLOOD_WAIT/
         { success: false, error: 'Rate limit exceeded, please try again later', retry_after: 60 }
       when /CHANNEL_PRIVATE/
         { success: false, error: 'Channel is private or you were banned' }
-      when /USERNAME_NOT_OCCUPIED/
+      when /USERNAME_NOT_OCCUPIED/, /CHAT_ID_INVALID/
         { success: false, error: 'Channel does not exist' }
+      when /PHONE_CODE_INVALID/
+        { success: false, error: 'Invalid verification code' }
+      when /PHONE_NUMBER_INVALID/
+        { success: false, error: 'Invalid phone number' }
+      when /SESSION_PASSWORD_NEEDED/
+        { success: false, error: 'Two-factor authentication required' }
+      when /AUTH_KEY_UNREGISTERED/
+        { success: false, error: 'Session expired, please re-authorize' }
       else
         { success: false, error: error.to_s }
       end

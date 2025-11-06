@@ -1,8 +1,35 @@
 # TDLib-ruby Gem
 
-## Обзор
+## ⚠️ ВАЖНО: ИСПОЛЬЗОВАНИЕ ПРЕКРАЩЕНО
+
+**Статус:** ❌ **ЗАМЕНЕН** на telegram-mtproto-ruby (Ноябрь 2025)
+**Причина:** Конфликты зависимостей с Rails 8 (FFI, concurrent-ruby)
+**Решение:** Полная миграция на telegram-mtproto-ruby
+
+---
+
+### ⚠️ Этот документ архивирован
+
+Данная документация оставлена для исторических целей. **TDLib-ruby больше не используется в проекте NoFluff.**
+
+**Актуальная реализация:** Смотрите [telegram-mtproto-ruby](./telegram-bot.md#mtproto-реализация) и [MTProto Implementation](../Architecture/mtproto-ruby-implementation.md)
+
+---
+
+## Исторический обзор
 
 **TDLib-ruby** - это Ruby библиотека для работы с [TDLib](https://github.com/tdlib/td) (Telegram Database Library), официальной библиотеки от Telegram для создания клиентов. Позволяет использовать полный User API Telegram, включая возможности, недоступные через Bot API.
+
+**❌ Почему был заменен:**
+- Конфликты зависимостей с Rails 8
+- FFI 1.15.0 vs 1.17.2
+- concurrent-ruby ~> 1.1 vs 1.3.5
+- Невозможность использования в production
+
+**✅ Что используется вместо:**
+- telegram-mtproto-ruby (pure Ruby)
+- Полная совместимость с Rails 8
+- Production-ready решение
 
 ## Основные возможности
 

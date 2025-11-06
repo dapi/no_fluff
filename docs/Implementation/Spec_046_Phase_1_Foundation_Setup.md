@@ -108,9 +108,10 @@ end
 #### Задачи:
 - [ ] Исследовать доступные MTProto библиотеки для Ruby
   - telegram-rb
-  - tdlib-ruby
+  - ❌ tdlib-ruby (конфликт с Rails 8)
   - pyrogram (через Python bridge)
-- [ ] Выбрать наиболее подходящую библиотеку
+  - ✅ telegram-mtproto-ruby (выбран, pure Ruby)
+- [x] Выбрать наиболее подходящую библиотеку - telegram-mtproto-ruby
 - [ ] Создать gemfile запись
 - [ ] Установить и настроить библиотеку
 - [ ] Создать базовый TelegramUserClient wrapper

@@ -54,37 +54,126 @@ module TelegramCredentials
     respond_to?(:session_string_encrypted) && session_string_encrypted.present?
   end
 
-  # TDLib session management methods
-  def create_tdlib_session
-    return nil unless telegram_api_configured?
+  def has_valid_mtproto_session?
+    return false unless has_session?
 
-    # TODO: Implement actual TDLib session creation
-    # This will be used when tdlib-ruby dependency conflicts are resolved
-    Rails.logger.info "Creating TDLib session for #{phone_number rescue 'unknown user'}"
-    nil
+    begin
+      session_data = JSON.parse(session_string)
+      # Check if session has required fields for MTProto
+      session_data.is_a?(Hash) &&
+      (session_data.key?(:api_id) || session_data.key?('api_id')) &&
+      (session_data.key?(:api_hash) || session_data.key?('api_hash')) &&
+      (session_data.key?(:phone_number) || session_data.key?('phone_number'))
+    rescue JSON::ParserError
+      false
+    end
+  end
+
+  def session_created_at
+    return nil unless has_session?
+
+    begin
+      session_data = JSON.parse(session_string)
+      created_at_value = session_data['created_at'] || session_data[:created_at]
+      created_at_value ? Time.parse(created_at_value) : nil
+    rescue JSON::ParserError, ArgumentError
+      nil
+    end
+  end
+
+  def session_expired?
+    return true unless has_session?
+
+    created_at = session_created_at
+    return true unless created_at
+
+    # Sessions expire after 24 hours
+    created_at < 24.hours.ago
+  end
+
+  def refresh_session_if_needed
+    if session_expired? || !has_valid_mtproto_session?
+      clear_mtproto_session
+      create_mtproto_session
+    else
+      restore_mtproto_session
+    end
+  end
+
+  # MTProto session management methods
+  def create_mtproto_session
+    return nil unless self.class.telegram_api_configured?
+
+    session_data = {
+      api_id: api_credentials[:api_id],
+      api_hash: api_credentials[:api_hash],
+      phone_number: phone_number,
+      created_at: Time.current
+    }
+
+    Rails.logger.info "Creating MTProto session for #{phone_number rescue 'unknown user'}"
+    self.session_string = session_data.to_json
+    session_data
+  end
+
+  def restore_mtproto_session
+    return nil unless has_session?
+
+    begin
+      session_data = JSON.parse(session_string)
+      Rails.logger.info "Restoring MTProto session for #{phone_number rescue 'unknown user'}"
+      session_data
+    rescue JSON::ParserError => e
+      Rails.logger.error "Failed to parse MTProto session data: #{e.message}"
+      nil
+    end
+  end
+
+  def save_mtproto_session(session_data)
+    return false unless session_data.present?
+
+    begin
+      Rails.logger.info "Saving MTProto session for #{phone_number rescue 'unknown user'}"
+
+      # If session_data is already a JSON string (from MTProto client), save it directly
+      if session_data.is_a?(String)
+        self.session_string = session_data
+      else
+        # If it's a hash, convert to JSON
+        self.session_string = session_data.to_json
+      end
+
+      true
+    rescue StandardError => e
+      Rails.logger.error "Failed to save MTProto session: #{e.message}"
+      false
+    end
+  end
+
+  def clear_mtproto_session
+    Rails.logger.info "Clearing MTProto session for #{phone_number rescue 'unknown user'}"
+    self.session_string = nil
+  end
+
+  # Legacy TDLib methods (deprecated - use MTProto methods instead)
+  def create_tdlib_session
+    Rails.logger.warn 'create_tdlib_session is deprecated. Use create_mtproto_session instead.'
+    create_mtproto_session
   end
 
   def restore_tdlib_session
-    return nil unless has_session?
-
-    # TODO: Implement actual TDLib session restoration
-    Rails.logger.info "Restoring TDLib session for #{phone_number rescue 'unknown user'}"
-    nil
+    Rails.logger.warn 'restore_tdlib_session is deprecated. Use restore_mtproto_session instead.'
+    restore_mtproto_session
   end
 
   def save_tdlib_session(session_data)
-    return false unless session_data.present?
-
-    # TODO: Implement actual TDLib session saving
-    Rails.logger.info "Saving TDLib session for #{phone_number rescue 'unknown user'}"
-    self.session_string = session_data.to_json
-    true
+    Rails.logger.warn 'save_tdlib_session is deprecated. Use save_mtproto_session instead.'
+    save_mtproto_session(session_data)
   end
 
   def clear_tdlib_session
-    # TODO: Implement actual TDLib session clearing
-    Rails.logger.info "Clearing TDLib session for #{phone_number rescue 'unknown user'}"
-    self.session_string = nil
+    Rails.logger.warn 'clear_tdlib_session is deprecated. Use clear_mtproto_session instead.'
+    clear_mtproto_session
   end
 
   private

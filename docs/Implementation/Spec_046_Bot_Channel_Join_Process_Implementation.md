@@ -42,11 +42,12 @@
 - [ ] Создать documentation по настройке
 
 #### 1.3 MTProto Library Integration
-- [ ] Исследовать доступные MTProto библиотеки для Ruby
+- [x] Исследовать доступные MTProto библиотеки для Ruby
   - telegram-rb
-  - tdlib-ruby
+  - ❌ tdlib-ruby (конфликт с Rails 8)
   - pyrogram (через Python bridge)
-- [ ] Выбрать наиболее подходящую библиотеку
+  - ✅ telegram-mtproto-ruby (выбран, production)
+- [x] Выбрать наиболее подходящую библиотеку - telegram-mtproto-ruby
 - [ ] Создать gemfile запись
 - [ ] Установить и настроить библиотеку
 - [ ] Создать базовый TelegramUserClient wrapper

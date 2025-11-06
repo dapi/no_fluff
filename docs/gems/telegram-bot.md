@@ -1694,30 +1694,36 @@ Telegram::Bot::ClientStub.stub_all!
 - **telegram-bot-types:** Типы для Telegram Bot API
 - **activesupport:** Для кеширования и других утилит
 - **redis:** Рекомендуется для хранения сессий в production
-- **tdlib-ruby:** Для доступа к User API и преодоления ограничений Bot API
+- **telegram-mtproto-ruby:** ✅ Для доступа к User API через MTProto 2.0 (pure Ruby)
 
-### TDLib-ruby для расширенных возможностей
+### ✅ MTProto-ruby для расширенных возможностей
 
-Для преодоления ограничений Bot API (вступление в каналы, доступ к приватным каналам), проект использует **[tdlib-ruby](./tdlib-ruby.md)**:
+Для преодоления ограничений Bot API (вступление в каналы, доступ к приватным каналам), проект использует **[telegram-mtproto-ruby](../Architecture/mtproto-ruby-implementation.md)**:
 
 ```ruby
-# Пример вступить в канал через User API
-service = TDLib::ChannelService.new
-result = service.join_channel('https://t.me/private_channel')
+# ✅ Пример вступить в канал через MTProto 2.0 (Production)
+client = Telegram::UserClientMtproto.new(follower_user)
+client.connect
+result = client.join_channel('channel_username')
+# => { success: true, channel_info: {...} }
 ```
 
-**Основные преимущества TDLib-ruby:**
+**✅ Основные преимущества telegram-mtproto-ruby:**
 - ✅ Автоматическое вступление в любые каналы
-- ✅ Доступ к приватным каналам через инвайт-ссылки
-- ✅ Полный User API функционал
-- ✅ Официальная поддержка от Telegram
+- ✅ Доступ к приватным каналам через follower user
+- ✅ Полный MTProto 2.0 функционал
+- ✅ Pure Ruby - нет конфликтов зависимостей
+- ✅ Полная совместимость с Rails 8
+- ✅ Production-ready решение
 
-**Использование в проекте:**
+**✅ Использование в проекте:**
 - Для мониторинга каналов, недоступных через Bot API
 - Для получения контента из приватных источников
-- В качестве дополнения к основному функционалу на Bot API
+- В качестве основного решения для User API доступа
 
-Подробная документация: **[TDLib-ruby Implementation](../Architecture/tdlib-ruby-implementation.md)**
+**✅ Статус:** Работает в production 24/7 с ноября 2025
+
+Подробная документация: **[MTProto Implementation](../Architecture/mtproto-ruby-implementation.md)** | **[Migration Summary](../Architecture/MTProto_Migration_Complete_Summary.md)**
 
 ### Инструменты
 

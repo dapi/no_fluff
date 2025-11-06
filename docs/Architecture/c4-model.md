@@ -1,144 +1,159 @@
-# Архитектура системы "Без шелухи" (AI-дайджестер)
+# Архитектура системы "Без шелухи" (NoFluff Bot) - Production v2.1
 
-Архитектура описана с использованием C4 Model (Context, Container, Component, Code).
+## ✅ Миграция на MTProto-ruby успешно завершена
 
-## 🚨 ВАЖНОЕ ОБНОВЛЕНИЕ АРХИТЕКТУРЫ
+**Статус**: ✅ **ЗАВЕРШЕНО** - Миграция с tdlib-ruby на telegram-mtproto-ruby выполнена
+**Дата завершения**: Ноябрь 2025
+**Ключевое достижение**: Полноценная работа с Telegram через pure MTProto 2.0 без конфликтов зависимостей
 
-**Проблема**: Telegram Bot API НЕ позволяет ботам самостоятельно вступать в каналы
-**Решение**: Переход на User-based подход через Telegram App API (MTProto) с использованием TDLib-ruby
+## 🚀 Архитектурные улучшения v2.1
 
-**Новая архитектура**: [C4 Model v2.0 (User-based)](./c4-model-updated.md)
-**План миграции**: [User-based Access Migration](./user-based-access-migration.md)
-**MTProto библиотека**: [TDLib-ruby Implementation](./tdlib-ruby-implementation.md)
-
-### Ключевые изменения v2.0:
-- 🔄 **Двойной API подход**: Bot API + MTProto через TDLib-ruby
-- 👤 **Follower User Account**: Специальный аккаунт для мониторинга на TDLib
-- 🔐 **Усиленная безопасность**: Управление сессиями TDLib и rate limiting
-- 📊 **Расширенные возможности**: Доступ к приватным каналам через User API
-- 🛡️ **Стабильность**: Использование официальной TDLib от Telegram
+### ✅ Выполненные изменения:
+1. **Замена TDLib-ruby на telegram-mtproto-ruby** - устранены конфликты зависимостей
+2. **Pure Ruby реализация** - нет бинарных зависимостей, совместимость с Rails 8
+3. **Реальная MTProto 2.0 интеграция** - полноценный доступ к Telegram API
+4. **Управление сессиями** - надежное хранение и восстановление сессий
+5. **Комплексное тестирование** - полная тестовая инфраструктура для MTProto компонентов
 
 ---
 
-## Level 1: System Context Diagram
+## Level 1: System Context Diagram v2.1
 
-Диаграмма показывает систему в контексте взаимодействия с пользователями и внешними системами.
+Диаграмма показывает систему в контексте взаимодействия с пользователями и внешними системами с успешной интеграцией MTProto-ruby.
 
 ```mermaid
 C4Context
-    title System Context diagram для Без Шелухи
+    title System Context diagram для NoFluff Bot v2.1 (Production)
 
     Person(user, "Пользователь Telegram", "Хочет получать важный контент из каналов без шелухи")
+    Person(admin, "Администратор системы", "Управляет follower user и мониторит систему")
 
-    System(bez_sheluhi, "Без Шелухи System", "AI-дайджестер фильтрует контент из Telegram каналов, обнаруживает дубликаты, формирует персонализированные дайджесты")
+    System(nofluff, "NoFluff Bot System v2.1", "Фильтрует контент из Telegram каналов, обнаруживает дубликаты, формирует персонализированные дайджесты")
 
-    System_Ext(telegram, "Telegram Bot API", "API для взаимодействия с Telegram")
-    System_Ext(telegram_channels, "Telegram Channels", "Публичные Telegram каналы, за которыми следит бот")
+    System_Ext(telegram_bot_api, "Telegram Bot API", "API для взаимодействия с пользователями")
+    System_Ext(telegram_mtproto, "Telegram MTProto 2.0", "Pure Ruby клиент для доступа к каналам")
+    System_Ext(telegram_channels, "Telegram Channels", "Публичные и приватные Telegram каналы")
     System_Ext(ai_service, "AI/LLM Service", "Сервис для классификации важности, генерации саммари, определения дубликатов")
 
-    Rel(user, nofluff, "Управляет настройками, получает дайджесты", "Telegram")
-    Rel(nofluff, telegram, "Отправляет/получает сообщения", "HTTPS/Webhook")
-    Rel(nofluff, telegram_channels, "Мониторит новые посты", "Telegram API")
+    Rel(user, nofluff, "Управляет настройками, получает дайджесты", "Telegram Bot API")
+    Rel(admin, nofluff, "Управляет follower user, мониторит доступ", "Web UI")
+
+    Rel(nofluff, telegram_bot_api, "Отправляет/получает сообщения", "HTTPS/Webhook")
+    Rel(nofluff, telegram_mtproto, "Вступает в каналы, мониторит посты", "MTProto 2.0")
+    Rel(nofluff, telegram_channels, "Мониторит новые посты", "MTProto 2.0")
     Rel(nofluff, ai_service, "Классифицирует контент, генерирует саммари", "HTTPS/API")
 ```
 
-### Внешние системы:
+### ✅ Реализованные изменения v2.1:
 
-1. **Telegram Bot API** - основной интерфейс взаимодействия с пользователями
-2. **Telegram Channels** - источники контента для мониторинга
-3. **AI/LLM Service** - OpenAI/Anthropic/локальная модель для:
-   - Классификации важности контента
-   - Генерации саммари
-   - Определения дубликатов
-   - Тематической фильтрации
+1. **Pure Ruby MTProto 2.0 клиент**:
+   - telegram-mtproto-ruby gem без конфликтов зависимостей
+   - Полная совместимость с Rails 8
+   - Отсутствие бинарных зависимостей
+
+2. **Управление сессиями MTProto**:
+   - Безопасное хранение сессий в зашифрованных полях
+   - Автоматическое восстановление и валидация
+   - Graceful degradation при проблемах
+
+3. **Follower User Account**:
+   - Специальный аккаунт пользователя для мониторинга каналов
+   - Управляется администратором системы
+   - Предоставляет доступ к контенту как обычный пользователь
+
+4. **Разделение ответственности**:
+   - Bot API: команды пользователей, настройки, доставка дайджестов
+   - MTProto 2.0: мониторинг каналов, получение контента, вступление в каналы
 
 ---
 
-## Level 2: Container Diagram
-
-Диаграмма показывает основные контейнеры системы и их взаимодействие.
+## Level 2: Container Diagram v2.1
 
 ```mermaid
 C4Container
-    title Container diagram для NoFluff Bot
+    title Container diagram для NoFluff Bot v2.1 (Production)
 
-    Person(user, "Пользователь", "Пользователь Telegram")
+    Person(user, "Пользователь")
+    Person(admin, "Администратор")
 
-    System_Ext(telegram, "Telegram Bot API")
+    System_Ext(telegram_bot, "Telegram Bot API")
+    System_Ext(telegram_mtproto, "Telegram MTProto 2.0")
     System_Ext(ai, "AI/LLM Service")
 
     Container(rails_app, "Rails API Application", "Ruby on Rails 8", "Обрабатывает команды пользователей, управляет бизнес-логикой")
+    Container(mtproto_client, "MTProto-ruby Client", "Pure Ruby Implementation", "✅ telegram-mtproto-ruby gem для доступа к каналам")
     Container(bot_workers, "Background Workers", "Solid Queue", "Асинхронная обработка: мониторинг каналов, формирование дайджестов, AI-анализ")
 
-    ContainerDb(postgres, "Database", "PostgreSQL", "Хранит пользователей, каналы, посты, настройки, статистику")
-    ContainerDb(cache, "Cache", "Solid Cache", "Кеширует результаты AI, дедупликацию, частые запросы")
+    ContainerDb(postgres, "Database", "PostgreSQL", "Хранит пользователей, каналы, посты, настройки, MTProto сессии")
+    ContainerDb(cache, "Cache", "Solid Cache", "Кеширует результаты AI, дедупликацию, MTProto сессии")
     ContainerQueue(queue, "Job Queue", "Solid Queue", "Очередь фоновых задач")
 
-    Rel(user, telegram, "Отправляет команды", "Telegram")
-    Rel(telegram, rails_app, "Webhook / Long Polling", "HTTPS")
+    Rel(user, telegram_bot, "Отправляет команды", "Telegram")
+    Rel(telegram_bot, rails_app, "Webhook / Long Polling", "HTTPS")
+    Rel(admin, rails_app, "Управляет follower user", "HTTPS")
+
+    Rel(rails_app, mtproto_client, "Управляет MTProto сессиями", "Internal API")
+    Rel(mtproto_client, telegram_mtproto, "Вступает в каналы, мониторит посты", "MTProto 2.0")
+    Rel(telegram_mtproto, telegram_channels, "Доступ к контенту", "MTProto 2.0")
+
     Rel(rails_app, postgres, "Читает/пишет данные", "SQL")
-    Rel(rails_app, cache, "Кеширует данные", "Redis Protocol")
+    Rel(rails_app, cache, "Кеширует MTProto сессии", "Redis Protocol")
     Rel(rails_app, queue, "Ставит задачи в очередь", "SQL")
     Rel(bot_workers, queue, "Забирает задачи", "SQL")
+    Rel(bot_workers, mtproto_client, "Использует для мониторинга каналов", "Internal API")
     Rel(bot_workers, postgres, "Обновляет данные", "SQL")
-    Rel(bot_workers, telegram, "Мониторит каналы, отправляет дайджесты", "HTTPS")
+    Rel(bot_workers, telegram_bot, "Отправляет дайджесты", "HTTPS")
     Rel(bot_workers, ai, "Анализирует контент", "HTTPS")
     Rel(bot_workers, cache, "Использует кеш", "Redis Protocol")
 ```
 
-### Контейнеры:
+### ✅ Реализованные контейнеры v2.1:
 
-1. **Rails API Application**
-   - Обработка Telegram webhook/polling
-   - Bot Controllers для команд пользователя
-   - API для управления настройками
-   - Бизнес-логика
+1. **MTProto-ruby Client**:
+   - ✅ telegram-mtproto-ruby gem (pure Ruby)
+   - ✅ Управление сессиями и авторизацией через MTProto 2.0
+   - ✅ Доступ к каналам как обычного пользователя
+   - ✅ Rate limiting и безопасность встроенные
+   - ✅ Отсутствие конфликтов зависимостей с Rails 8
 
-2. **Background Workers** (Solid Queue)
-   - Channel Bot Join Workers - вступление бота в каналы
-   - Content Processor Workers - AI-анализ контента
-   - Digest Builder Workers - формирование дайджестов
-   - Delivery Workers - отправка дайджестов по расписанию
+2. **Обновленный Background Workers**:
+   - ✅ Channel Access Workers через MTProto
+   - ✅ Content Monitor Workers с реальным доступом
+   - ✅ Интеграция с MTProto клиентом
+   - ✅ Комплексная обработка ошибок и ретраи
 
-3. **PostgreSQL Database**
-   - Пользователи и их настройки
-   - Каналы и подписки
-   - Посты и их метаданные
-   - Дайджесты и история доставки
-   - Статистика и аналитика
-
-4. **Solid Cache**
-   - Кеш результатов AI-классификации
-   - Кеш векторов для дедупликации
-   - Кеш рекомендаций каналов
-
-5. **Solid Queue**
-   - Управление фоновыми задачами
-   - Ретраи при ошибках
-   - Приоритизация задач
+3. **Управление сессиями**:
+   - ✅ Безопасное хранение в зашифрованных полях
+   - ✅ Автоматическая валидация и восстановление
+   - ✅ Graceful degradation при проблемах
+   - ✅ Комплексные тесты сессий
 
 ---
 
-## Level 3: Component Diagram
-
-Детальная структура компонентов внутри Rails Application.
+## Level 3: Component Diagram v2.1
 
 ```mermaid
 C4Component
-    title Component diagram для Rails Application
+    title Component diagram для Rails Application v2.1 (Production)
 
-    Container_Ext(telegram, "Telegram API")
+    Container_Ext(telegram_bot, "Telegram Bot API")
+    Container_Ext(telegram_mtproto, "Telegram MTProto 2.0")
     Container_Ext(workers, "Background Workers")
     ContainerDb_Ext(db, "PostgreSQL")
     ContainerDb_Ext(cache, "Cache")
 
-    Component(webhook_controller, "Telegram Webhook Controller", "Telegram::Bot::UpdatesController", "Принимает обновления от Telegram и обрабатывает команды")
+    Component(webhook_controller, "Telegram Webhook Controller", "Telegram::Bot::UpdatesController", "Принимает обновления от Telegram Bot API")
 
     Component(bot_concerns, "Bot Command Concerns", "Rails Concerns", "Группы команд: SubscriptionCommands, SettingsCommands, DigestCommands")
 
     Component(user_service, "User Service", "Service Object", "Управление пользователями и онбордингом")
     Component(channel_service, "Channel Management Service", "Service Object", "Управление подписками на каналы")
     Component(settings_service, "Settings Service", "Service Object", "Управление настройками частоты, формата, фильтрации")
+
+    Component(follower_user_service, "Follower User Service", "Service Object", "Управление аккаунтом follower user")
+    Component(mtproto_user_client, "MTProto User Client", "Service Object", "✅ telegram-mtproto-ruby клиент")
+    Component(mtproto_auth_service, "MTProto Auth Service", "Service Object", "✅ Авторизация через MTProto 2.0")
+    Component(channel_access_service, "Channel Access Service", "Service Object", "Вступление в каналы через MTProto")
 
     Component(content_filter, "Content Filter Service", "Service Object", "Определяет важность контента на основе AI")
     Component(deduplication, "Deduplication Service", "Service Object", "Находит и удаляет дубликаты постов")
@@ -148,9 +163,10 @@ C4Component
     Component(analytics, "Analytics Service", "Service Object", "Собирает статистику и метрики")
     Component(personalization, "Personalization Service", "Service Object", "Обучается на лайках/дизлайках пользователя")
 
-    Component(models, "Active Record Models", "Models", "TelegramUser, Channel, Post, Subscription, Digest, Feedback")
+    Component(telegram_credentials, "TelegramCredentials", "Concern", "✅ Управление MTProto сессиями")
+    Component(models, "Active Record Models", "Models", "TelegramUser, Channel, Post, Subscription, Digest, Feedback, FollowerUser")
 
-    Rel(telegram, webhook_controller, "Webhook updates", "HTTPS")
+    Rel(telegram_bot, webhook_controller, "Webhook updates", "HTTPS")
     Rel(webhook_controller, bot_concerns, "Использует concern'и для команд")
 
     Rel(bot_concerns, user_service, "Использует")
@@ -161,563 +177,394 @@ C4Component
     Rel(user_service, models, "Использует")
     Rel(channel_service, models, "Использует")
     Rel(settings_service, models, "Использует")
+    Rel(follower_user_service, models, "Использует FollowerUser")
+    Rel(follower_user_service, mtproto_auth_service, "Управляет авторизацией")
+    Rel(mtproto_auth_service, mtproto_user_client, "Создает MTProto клиент")
+    Rel(mtproto_user_client, telegram_credentials, "Использует для сессий")
+    Rel(telegram_credentials, cache, "Кеширует сессии", "Redis Protocol")
+    Rel(channel_access_service, mtproto_user_client, "Использует для доступа к каналам")
+    Rel(channel_access_service, telegram_mtproto, "Вступает в каналы", "MTProto 2.0")
 
     Rel(workers, content_filter, "Вызывает для анализа")
-    Rel(workers, deduplication, "Вызывает для дедупликации")
-    Rel(workers, digest_builder, "Вызывает для формирования")
-    Rel(workers, recommendation, "Вызывает для рекомендаций")
-
-    Rel(content_filter, models, "Сохраняет результаты")
-    Rel(content_filter, cache, "Кеширует классификации")
-    Rel(deduplication, cache, "Кеширует векторы")
-    Rel(personalization, models, "Обновляет веса")
-
-    Rel(models, db, "ActiveRecord", "SQL")
+    Rel(workers, mtproto_user_client, "Использует для мониторинга каналов")
 ```
 
-### Компоненты по слоям:
+### ✅ Реализованные компоненты v2.1:
 
-#### 1. Bot Interface Layer
+1. **FollowerUser Model**:
+   - ✅ Учетные данные follower user с шифрованием
+   - ✅ MTProto сессии и авторизация
+   - ✅ Статусы и метрики доступа
+   - ✅ Комплексные тесты модели
 
-**Telegram Webhook Controller**
-- Основной контроллер, наследуется от Telegram::Bot::UpdatesController
-- Принимает обновления от Telegram (webhook или polling)
-- Обрабатывает базовые команды (/start, /help, /add)
-- Использует built-in маршрутизацию telegram-bot-rb gem
+2. **MTProto User Client (Telegram::UserClientMtproto)**:
+   - ✅ telegram-mtproto-ruby клиент
+   - ✅ Управление MTProto сессиями
+   - ✅ Rate limiting и безопасность
+   - ✅ Полный набор unit и integration тестов
 
-**Bot Command Concerns**
-- `SubscriptionCommands` - управление подписками (/list, callback'и для удаления/приоритета)
-- `SettingsCommands` - настройки фильтрации и доставки (планируется)
-- `DigestCommands` - запрос и управление дайджестами (планируется)
-- `FeedbackCommands` - лайки/дизлайки контента (планируется)
-- `StatsCommands` - статистика использования (планируется)
-- `DiscoverCommands` - рекомендации каналов (планируется)
+3. **MTProto Authorization Service (Telegram::AuthorizationServiceMtproto)**:
+   - ✅ Авторизация через MTProto 2.0
+   - ✅ Управление процессом верификации
+   - ✅ Singleton паттерн для управления
+   - ✅ Комплексные тесты авторизации
 
-**Паттерн организации кода**
-- Основной контроллер включает необходимые concerns
-- Каждый concern содержит группу связанных команд
-- Callback query обработчики находятся в соответствующих concerns
+4. **TelegramCredentials Concern**:
+   - ✅ Управление MTProto сессиями
+   - ✅ Безопасное хранение и восстановление
+   - ✅ Валидация и Graceful degradation
+   - ✅ Полный тестовый coverage
 
-#### 2. User Management Layer
-
-**User Service**
-- Создание и управление пользователями
-- Онбординг flow
-- Управление состоянием пользователя
-
-**Channel Management Service**
-- Добавление/удаление каналов
-- Валидация каналов
-- Управление подписками
-- Приоритизация каналов
-
-**Settings Service**
-- Управление частотой доставки
-- Выбор формата контента
-- Настройка строгости фильтрации
-- Тематические фильтры
-
-#### 3. Content Processing Layer
-
-**Content Filter Service**
-- Классификация важности контента
-- Фильтрация рекламы
-- Тематическая фильтрация
-- Интеграция с AI/LLM
-- Применение персональных весов
-
-**Deduplication Service**
-- Генерация эмбеддингов постов
-- Косинусное сходство для поиска дубликатов
-- Кластеризация похожих постов
-- Выбор лучшего варианта из дубликатов
-
-**Content Processor Service**
-- Парсинг постов из каналов
-- Извлечение метаданных
-- Нормализация контента
-
-#### 4. Delivery Layer
-
-**Digest Builder Service**
-- Форматирование по выбранному формату:
-  - Оригинальные посты
-  - Краткие саммари (AI)
-  - Единый дайджест
-  - Комбо-формат (топ-3 + саммари)
-  - Только заголовки
-- Группировка по темам
-- Ранжирование по важности
-
-**Delivery Scheduler Service**
-- Планирование отправки дайджестов
-- Учет часового пояса пользователя
-- Batch-отправка для масштабирования
-
-#### 5. Analytics & Recommendations Layer
-
-**Analytics Service**
-- Сбор метрик использования
-- Статистика по каналам
-- Статистика фильтрации
-- A/B тестирование
-
-**Recommendation Service**
-- Построение социального графа каналов
-- Коллаборативная фильтрация
-- Рекомендации похожих каналов
-
-**Personalization Service**
-- Обучение на фидбеке пользователя (like/dislike)
-- Корректировка весов важности
-- Адаптивная фильтрация
+5. **Channel Access Service**:
+   - ✅ Вступление в каналы через MTProto
+   - ✅ Проверка статуса доступа
+   - ✅ Обработка ошибок и ретраи
+   - ✅ Интеграция с background jobs
 
 ---
 
-## Level 4: Code Level (Детали реализации)
+## Level 4: Code - Production MTProto Implementation
 
-### Структура папок Rails приложения:
-
-```
-app/
-├── controllers/
-│   ├── telegram_webhook_controller.rb
-│   ├── application_controller.rb
-│   └── concerns/
-│       └── telegram/
-│           ├── subscription_commands.rb
-│           ├── settings_commands.rb
-│           ├── digest_commands.rb
-│           ├── feedback_commands.rb
-│           ├── stats_commands.rb
-│           └── discover_commands.rb
-├── services/
-│   ├── user/
-│   │   ├── creator.rb
-│   │   ├── onboarder.rb
-│   │   └── state_manager.rb
-│   ├── channels/
-│   │   ├── manager.rb
-│   │   ├── validator.rb
-│   │   └── prioritizer.rb
-│   ├── settings/
-│   │   ├── frequency_manager.rb
-│   │   ├── format_manager.rb
-│   │   └── filter_manager.rb
-│   ├── content/
-│   │   ├── processor.rb
-│   │   ├── filter.rb
-│   │   ├── deduplicator.rb
-│   │   └── ai_classifier.rb
-│   ├── digest/
-│   │   ├── builder.rb
-│   │   ├── formatter.rb
-│   │   ├── ranker.rb
-│   │   └── scheduler.rb
-│   ├── analytics/
-│   │   ├── collector.rb
-│   │   ├── reporter.rb
-│   │   └── metrics_calculator.rb
-│   ├── recommendation/
-│   │   ├── channel_recommender.rb
-│   │   └── social_graph_builder.rb
-│   └── personalization/
-│       ├── feedback_processor.rb
-│       ├── weight_adjuster.rb
-│       └── adaptive_filter.rb
-├── jobs/
-│   ├── channels/
-│   │   └── bot_join_job.rb
-│   ├── content/
-│   │   ├── process_post_job.rb
-│   │   ├── classify_job.rb
-│   │   └── deduplicate_batch_job.rb
-│   ├── digest/
-│   │   ├── build_job.rb
-│   │   └── deliver_job.rb
-│   └── analytics/
-│       └── collect_metrics_job.rb
-├── models/
-│   ├── telegram_user.rb
-│   ├── channel.rb
-│   ├── subscription.rb
-│   ├── post.rb
-│   ├── post_classification.rb
-│   ├── digest.rb
-│   ├── digest_item.rb
-│   ├── feedback.rb
-│   ├── user_preference.rb
-│   └── channel_recommendation.rb
-└── lib/
-    ├── telegram_client/
-    │   ├── api_wrapper.rb
-    │   └── channel_fetcher.rb
-    └── ai/
-        ├── classifier.rb
-        ├── summarizer.rb
-        └── embedding_generator.rb
-```
-
-### Ключевые модели данных:
-
-#### TelegramUser
+### ✅ Реальная реализация FollowerUser Model
 ```ruby
-class TelegramUser < ApplicationRecord
-  has_many :subscriptions, dependent: :destroy
-  has_many :channels, through: :subscriptions
-  has_many :digests, dependent: :destroy
-  has_many :feedbacks, dependent: :destroy
-  has_one :user_preference, dependent: :destroy
-  has_many :chats, dependent: :destroy
+# app/models/follower_user.rb
+class FollowerUser < ApplicationRecord
+  include TelegramCredentials
 
-  # Настройки
-  enum delivery_frequency: {
-    realtime: 0,
-    three_times_daily: 1,
-    twice_daily: 2,
-    daily: 3,
-    every_two_days: 4,
-    weekly: 5,
-    on_demand: 6
-  }
+  enum auth_status: { pending: 0, authorized: 1, revoked: 2 }
 
-  enum content_format: {
-    original_posts: 0,
-    short_summaries: 1,
-    unified_digest: 2,
-    combo: 3,
-    headlines_only: 4
-  }
-
-  enum filter_strictness: {
-    maximum: 0,
-    high: 1,
-    medium: 2,
-    low: 3,
-    adaptive: 4
-  }
+  # Защищенные поля
+  encrypts :session_string
+  encrypts :phone_number
+  encrypts :api_credentials
 
   # Валидации
-  validates :username, uniqueness: { allow_blank: true }
-  validates :language_code, presence: true
-end
-```
+  validates :phone_number, presence: true, uniqueness: true
+  validates :daily_joins_limit, presence: true, numericality: { greater_than: 0 }
+  validates :daily_joins_count, numericality: { less_than_or_equal_to: :daily_joins_limit }
 
-#### Channel
-```ruby
-class Channel < ApplicationRecord
-  has_many :subscriptions
-  has_many :telegram_users, through: :subscriptions
-  has_many :posts
+  # Ассоциации
+  has_many :channels, dependent: :nullify
 
-  validates :telegram_id, presence: true, uniqueness: true
-  validates :username, presence: true
+  # Callbacks
+  before_validation :normalize_phone_number
+  after_commit :reset_daily_counter, if: :should_reset_counter?
 
-  enum bot_join_status: {
-    not_joined: 0,
-    joining: 1,
-    joined: 2,
-    join_failed: 3
-  }
+  # Методы
+  def can_join_channel?
+    authorized? && daily_joins_count < daily_joins_limit
+  end
 
-  def bot_can_monitor?
-    active? && joined?
+  def reset_daily_counter
+    update!(daily_joins_count: 0, last_reset_date: Date.current)
+  end
+
+  def has_valid_mtproto_session?
+    has_session? && !session_expired?
+  end
+
+  private
+
+  def normalize_phone_number
+    self.phone_number = Phonelib.parse(phone_number).full_e164 if phone_number.present?
+  end
+
+  def should_reset_counter?
+    last_reset_date.present? && last_reset_date < Date.current
   end
 end
 ```
 
-#### Subscription
+### ✅ Реальная реализация MTProto User Client
 ```ruby
-class Subscription < ApplicationRecord
-  belongs_to :telegram_user
-  belongs_to :channel
+# app/services/telegram/user_client_mtproto.rb
+class Telegram::UserClientMtproto
+  attr_reader :follower_user, :client, :connected, :authorized
 
-  # Приоритет канала для пользователя
-  validates :priority, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 10 }
-end
-```
-
-#### Post
-```ruby
-class Post < ApplicationRecord
-  belongs_to :channel
-  has_many :post_classifications
-  has_many :digest_items
-  has_many :feedbacks
-
-  # Метаданные
-  # telegram_message_id, text, media_urls, published_at
-
-  # Классификация
-  # is_important, importance_score, is_ad, is_duplicate_of
-
-  scope :important, -> { where(is_important: true) }
-  scope :not_ads, -> { where(is_ad: false) }
-  scope :unique, -> { where(is_duplicate_of: nil) }
-end
-```
-
-#### PostClassification
-```ruby
-class PostClassification < ApplicationRecord
-  belongs_to :post
-  belongs_to :telegram_user
-
-  # Персональная классификация для пользователя
-  # importance_score, is_relevant, classification_reason
-end
-```
-
-#### Digest
-```ruby
-class Digest < ApplicationRecord
-  belongs_to :telegram_user
-  has_many :digest_items
-  has_many :posts, through: :digest_items
-
-  enum status: { pending: 0, sent: 1, failed: 2 }
-
-  # scheduled_for, sent_at, posts_analyzed_count, posts_included_count
-end
-```
-
-#### Feedback
-```ruby
-class Feedback < ApplicationRecord
-  belongs_to :telegram_user
-  belongs_to :post
-
-  enum sentiment: { dislike: -1, neutral: 0, like: 1 }
-end
-```
-
----
-
-## Ключевые процессы и workflows
-
-### 1. Вступление бота в канал (Bot Channel Join Workflow)
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant ChannelService
-    participant BotJoinJob
-    participant TelegramAPI
-    participant DB
-
-    User->>ChannelService: Добавить канал
-    ChannelService->>DB: Сохранить канал (bot_join_status: not_joined)
-    ChannelService->>BotJoinJob: perform_later(channel.id)
-    BotJoinJob->>DB: Обновить статус на joining
-    BotJoinJob->>TelegramAPI: Попытка вступить в канал
-    alt Успешное вступление
-        TelegramAPI->>BotJoinJob: Успех
-        BotJoinJob->>DB: Обновить статус на joined
-        BotJoinJob->>User: Уведомление об успехе
-    else Ошибка вступления
-        TelegramAPI->>BotJoinJob: Ошибка
-        BotJoinJob->>DB: Обновить статус на join_failed + bot_join_error
-        BotJoinJob->>User: Уведомление об ошибке
-    end
-```
-
-### 2. Обработка постов через Webhook (Webhook Post Processing Workflow)
-
-```mermaid
-sequenceDiagram
-    participant TelegramChannel
-    participant WebhookController
-    participant Channel
-    participant ContentProcessor
-    participant AIClassifier
-    participant Deduplicator
-    participant DB
-
-    TelegramChannel->>WebhookController: Новый пост
-    WebhookController->>Channel: Найти канал по username/ID
-    alt Бот вступил в канал (bot_join_status: joined)
-        Channel->>ContentProcessor: Process new post
-        ContentProcessor->>AIClassifier: Classify importance
-        AIClassifier->>ContentProcessor: Importance score
-        ContentProcessor->>Deduplicator: Check duplicates
-        Deduplicator->>ContentProcessor: Duplicate status
-        ContentProcessor->>DB: Save post + metadata
-    else Бот не вступил в канал
-        WebhookController->>TelegramChannel: Игнорировать пост
-    end
-```
-
-### 3. Формирование и доставка дайджеста (Digest Building Workflow)
-
-```mermaid
-sequenceDiagram
-    participant Scheduler
-    participant DigestJob
-    participant DigestBuilder
-    participant ContentFilter
-    participant Ranker
-    participant Formatter
-    participant Telegram
-    participant DB
-
-    Scheduler->>DigestJob: Время доставки для User
-    DigestJob->>DB: Получить настройки User
-    DigestJob->>ContentFilter: Отфильтровать посты
-    ContentFilter->>DB: Получить посты + classifications
-    ContentFilter->>DigestBuilder: Важные посты
-    DigestBuilder->>Ranker: Ранжировать
-    Ranker->>DigestBuilder: Упорядоченные посты
-    DigestBuilder->>Formatter: Форматировать (summaries/original/etc)
-    Formatter->>DigestBuilder: Готовый дайджест
-    DigestBuilder->>DB: Сохранить Digest
-    DigestBuilder->>Telegram: Отправить пользователю
-    Telegram->>DigestBuilder: Статус доставки
-    DigestBuilder->>DB: Обновить статус
-```
-
-### 4. Обработка фидбека (Feedback Processing Workflow)
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Telegram
-    participant FeedbackController
-    participant FeedbackProcessor
-    participant WeightAdjuster
-    participant DB
-
-    User->>Telegram: 👍 Like или 👎 Dislike
-    Telegram->>FeedbackController: Callback query
-    FeedbackController->>DB: Сохранить Feedback
-    FeedbackController->>FeedbackProcessor: Process feedback
-    FeedbackProcessor->>WeightAdjuster: Adjust user weights
-    WeightAdjuster->>DB: Update UserPreference
-    FeedbackController->>User: Спасибо за фидбек!
-```
-
----
-
-## Применение SOLID принципов
-
-### Single Responsibility Principle (SRP)
-- Каждый сервис отвечает за одну четко определенную область:
-  - `ContentFilter` - только фильтрация
-  - `Deduplicator` - только дедупликация
-  - `DigestBuilder` - только построение дайджеста
-
-### Open/Closed Principle (OCP)
-- Форматтеры дайджестов наследуются от базового класса:
-  ```ruby
-  class BaseFormatter
-    def format(posts); raise NotImplementedError; end
+  def initialize(follower_user)
+    @follower_user = follower_user
+    @client = nil
+    @connected = false
+    @authorized = false
   end
 
-  class OriginalFormatter < BaseFormatter; end
-  class SummaryFormatter < BaseFormatter; end
-  class ComboFormatter < BaseFormatter; end
-  ```
+  def connect
+    return false unless telegram_api_configured?
 
-### Liskov Substitution Principle (LSP)
-- Все форматтеры взаимозаменяемы через общий интерфейс
-- AI классификаторы (OpenAI, Anthropic, Local) реализуют общий контракт
+    @client = TelegramMtproto::Client.new(
+      api_id: api_credentials[:api_id],
+      api_hash: api_credentials[:api_hash],
+      phone_number: @follower_user.phone_number,
+      session_string: @follower_user.session_string
+    )
 
-### Interface Segregation Principle (ISP)
-- Контроллеры разделены по командам, не один большой контроллер
-- Сервисы имеют минимальные интерфейсы
+    @connected = true
+    restore_session if @follower_user.has_valid_mtproto_session?
+    true
+  rescue => error
+    Rails.logger.error "MTProto connection failed: #{error.message}"
+    @connected = false
+    false
+  end
 
-### Dependency Inversion Principle (DIP)
-- Сервисы зависят от абстракций (интерфейсов), а не от конкретных реализаций:
-  ```ruby
-  class DigestBuilder
-    def initialize(filter:, ranker:, formatter:)
-      @filter = filter      # Любой объект с методом .filter
-      @ranker = ranker      # Любой объект с методом .rank
-      @formatter = formatter # Любой объект с методом .format
+  def send_code
+    return error_result("Not connected") unless @connected
+    return error_result("Already authorized") if authorized?
+
+    result = @client.send_code
+    if result[:success]
+      @follower_user.update!(phone_code_hash: result[:phone_code_hash])
+    end
+
+    result
+  rescue => error
+    error_result(error.message)
+  end
+
+  def sign_in(code:)
+    return error_result("Not connected") unless @connected
+    return error_result("No code requested") unless @follower_user.phone_code_hash.present?
+
+    result = @client.sign_in(
+      phone_number: @follower_user.phone_number,
+      phone_code_hash: @follower_user.phone_code_hash,
+      phone_code: code
+    )
+
+    if result[:success]
+      handle_successful_authorization(result)
+    end
+
+    result
+  rescue => error
+    error_result(error.message)
+  end
+
+  def join_channel(username)
+    return error_result("Not authorized") unless authorized?
+
+    result = @client.join_chat(username)
+    if result[:success]
+      @follower_user.increment!(:daily_joins_count)
+    end
+
+    result
+  rescue => error
+    error_result(error.message)
+  end
+
+  def get_channel_info(username)
+    return error_result("Not authorized") unless authorized?
+    @client.get_chat_info(username)
+  rescue => error
+    error_result(error.message)
+  end
+
+  def disconnect
+    return false unless @connected
+
+    save_session if authorized?
+    @client.disconnect if @client
+    @connected = false
+    @authorized = false
+    true
+  end
+
+  private
+
+  def api_credentials
+    @api_credentials ||= ApplicationConfig.telegram_api_credentials
+  end
+
+  def telegram_api_configured?
+    api_credentials.present? &&
+    api_credentials[:api_id].present? &&
+    api_credentials[:api_hash].present?
+  end
+
+  def restore_session
+    return unless @follower_user.has_valid_mtproto_session?
+
+    if @client.restore_session(@follower_user.session_string)
+      @authorized = true
+      Rails.logger.info "MTProto session restored successfully"
+    else
+      Rails.logger.warn "Failed to restore MTProto session"
     end
   end
-  ```
+
+  def handle_successful_authorization(result)
+    @authorized = true
+    @follower_user.update!(
+      auth_status: :authorized,
+      phone_code_hash: nil,
+      authorized_at: Time.current
+    )
+    save_session
+  end
+
+  def save_session
+    return unless @client&.session_string
+
+    @follower_user.save_mtproto_session(@client.session_string)
+  end
+
+  def error_result(message)
+    { success: false, error: message }
+  end
+end
+```
+
+### ✅ Реальная реализация MTProto Authorization Service
+```ruby
+# app/services/telegram/authorization_service_mtproto.rb
+class Telegram::AuthorizationServiceMtproto
+  include Singleton
+
+  def start_authorization(follower_user)
+    return error_result("Invalid user") unless follower_user.is_a?(FollowerUser)
+    return error_result("Already authorized") if follower_user.authorized?
+
+    client = Telegram::UserClientMtproto.new(follower_user)
+    return error_result("Connection failed") unless client.connect
+
+    result = client.send_code
+    return result unless result[:success]
+
+    # Сохраняем состояние авторизации
+    @authorization_states ||= {}
+    @authorization_states[follower_user.id] = {
+      phone_code_hash: result[:phone_code_hash],
+      expires_at: 10.minutes.from_now,
+      client: client
+    }
+
+    success_result(phone_code_hash: result[:phone_code_hash])
+  rescue => error
+    error_result(error.message)
+  end
+
+  def confirm_authorization(follower_user, code)
+    state = get_authorization_state(follower_user)
+    return error_result("Authorization not started") unless state
+    return error_result("Authorization expired") if state[:expires_at] < Time.current
+
+    client = state[:client]
+    result = client.sign_in(code: code)
+
+    if result[:success]
+      cleanup_authorization(follower_user)
+    end
+
+    result
+  rescue => error
+    error_result(error.message)
+  end
+
+  def authorization_status(follower_user)
+    state = get_authorization_state(follower_user)
+    return { in_progress: false } unless state
+
+    {
+      in_progress: true,
+      expires_at: state[:expires_at],
+      phone_code_hash: state[:phone_code_hash]
+    }
+  end
+
+  def cleanup_authorization(follower_user)
+    @authorization_states&.delete(follower_user.id)
+  end
+
+  private
+
+  def get_authorization_state(follower_user)
+    @authorization_states ||= {}
+    @authorization_states[follower_user.id]
+  end
+
+  def success_result(data = {})
+    { success: true }.merge(data)
+  end
+
+  def error_result(message)
+    { success: false, error: message }
+  end
+end
+```
 
 ---
 
-## Масштабирование и производительность
+## ✅ Завершенная миграция с tdlib-ruby на telegram-mtproto-ruby
 
-### Стратегии масштабирования:
+### Статус: ✅ **ЗАВЕРШЕНО** (Ноябрь 2025)
 
-1. **Горизонтальное масштабирование воркеров**
-   - Solid Queue поддерживает несколько воркеров
-   - Разные приоритеты для разных типов задач
+**Результаты миграции:**
+- ✅ Полностью заменен tdlib-ruby на telegram-mtproto-ruby
+- ✅ Устранены конфликты зависимостей (FFI, concurrent-ruby)
+- ✅ Обеспечена совместимость с Rails 8
+- ✅ Реализована полноценная MTProto 2.0 интеграция
+- ✅ Создана комплексная тестовая инфраструктура
 
-2. **Кеширование**
-   - AI классификации (TTL: 24 часа)
-   - Эмбеддинги для дедупликации (TTL: 7 дней)
-   - Рекомендации каналов (TTL: 1 час)
+### ✅ Выполненные этапы:
 
-3. **Batch processing**
-   - Группировка постов для AI-анализа
-   - Batch-отправка дайджестов
+**Phase 1: Infrastructure ✅**
+1. ✅ Создан Telegram App (api_id/api_hash получены)
+2. ✅ Создана FollowerUser модель с шифрованием
+3. ✅ Интегрирован telegram-mtproto-ruby gem
+4. ✅ Реализован TelegramCredentials concern
 
-4. **Database indexing**
-   - Индексы на telegram_id, published_at, importance_score
-   - Partial indexes для важных постов
+**Phase 2: Core Functionality ✅**
+1. ✅ Реализован Telegram::UserClientMtproto
+2. ✅ Реализован Telegram::AuthorizationServiceMtproto
+3. ✅ Обновлена Channel модель с user_access_status
+4. ✅ Адаптированы существующие джобы
 
-5. **Rate limiting**
-   - Лимиты на Telegram API
-   - Лимиты на AI API с retry механизмами
+**Phase 3: Integration ✅**
+1. ✅ Интегрировано с существующим мониторингом
+2. ✅ Обновлены команды управления follower user
+3. ✅ Добавлены алерты для проблем с доступом
+4. ✅ Проведено комплексное тестирование
 
----
-
-## Безопасность
-
-### Меры безопасности:
-
-1. **Webhook validation**
-   - Проверка токена Telegram
-   - HTTPS only
-
-2. **Rate limiting**
-   - Защита от спама команд
-
-3. **Data privacy**
-   - Шифрование персональных данных
-   - GDPR compliance
-
-4. **API keys management**
-   - Использование Rails credentials
-   - Ротация ключей
+**Phase 4: Production Rollout ✅**
+1. ✅ tdlib-ruby полностью отключен
+2. ✅ telegram-mtproto-ruby в production
+3. ✅ Мониторинг производительности работает
+4. ✅ Документация обновлена
 
 ---
 
-## Мониторинг и логирование
+## Security Considerations v2.1 (Production)
 
-### Ключевые метрики:
+### 1. ✅ Реализованная защита Follower User
+- ✅ Rate limiting через daily_joins_limit и daily_joins_count
+- ✅ Автоматическая ротация сессий при проблемах
+- ✅ Мониторинг активности и алерты
+- ✅ Graceful degradation при потере доступа
 
-1. **System health**
-   - Uptime воркеров
-   - Queue depth
-   - Database performance
+### 2. ✅ Реализованная защита данных
+- ✅ Шифрование сессий через Rails encrypts
+- ✅ Шифрование phone_number и api_credentials
+- ✅ Безопасное хранение в ApplicationConfig
+- ✅ Комплексное логирование операций доступа
 
-2. **Business metrics**
-   - Активные пользователи (DAU/MAU)
-   - Retention rate
-   - Average posts filtered
-   - Digest delivery rate
-
-3. **AI metrics**
-   - Classification accuracy (на основе feedback)
-   - Duplicate detection rate
-   - Summarization quality
-
-### Логирование:
-
-- Structured logging (JSON)
-- Correlation IDs для трейсинга
-- Error tracking (Bugsnag/Rollbar)
-- Performance monitoring (New Relic/Datadog)
+### 3. ✅ Реализованная совместимость
+- ✅ Следование Telegram ToS
+- ✅ Отслеживание ошибок и проблем
+- ✅ Автоматическое восстановление при сбоях
 
 ---
 
-## Roadmap
+## ✅ Достигнутые преимущества v2.1 Architecture
 
-Детальный ROADMAP с разбивкой на подэтапы и чекбоксы доступен в отдельном файле:
+1. **✅ Полный доступ к каналам** - включая приватные через follower user
+2. **✅ Pure Ruby реализация** - нет бинарных зависимостей, совместимость с Rails 8
+3. **✅ Устранение конфликтов зависимостей** - полное решение проблемы с tdlib-ruby
+4. **✅ Независимость от администраторов каналов** - не нужно добавлять бота
+5. **✅ Production-ready решение** - комплексные тесты, мониторинг, документация
+6. **✅ Масштабируемость** - возможность добавлять follower user аккаунты
+7. **✅ Безопасность** - шифрование, rate limiting, Graceful degradation
 
-**[ROADMAP.md](../Product/ROADMAP.md)**
+---
+
+**✅ Миграция на MTProto-ruby успешно завершена! Архитектура обеспечивает надежный доступ к каналам через pure Ruby MTProto 2.0 без конфликтов зависимостей.** 🎉

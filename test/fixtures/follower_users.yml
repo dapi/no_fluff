@@ -17,6 +17,7 @@ one:
 
 two:
   phone_number: "+0987654321"
+  username: "testuser_two"
   auth_status: 1
   session_string_encrypted: "encrypted_session_data"
   api_credentials_encrypted: "encrypted_credentials"
@@ -34,3 +35,18 @@ two:
   last_authorized_at: <%= 2.hours.ago %>
   last_successful_join: <%= 2.hours.ago %>
   last_activity_at: <%= 1.hour.ago %>
+
+three:
+  phone_number: "+1122334455"
+  username: "testuser_three"
+  auth_status: 0
+  daily_joins_limit: 75
+  daily_joins_count: 10
+  last_reset_date: <%= Date.current %>
+  max_channels: 300
+  channels_count: 10
+  workload_score: 0.15
+  health_score: 90.0
+  consecutive_errors: 0
+  priority: 2
+  specialization: "general"

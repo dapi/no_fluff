@@ -6,7 +6,8 @@
 
 ### Telegram API
 - **[telegram-bot](./telegram-bot.md)** - основной gem для Bot API взаимодействия
-- **[tdlib-ruby](./tdlib-ruby.md)** - User API для доступа к приватным каналам
+- **[tdlib-ruby](./tdlib-ruby.md)** - ❌ ЗАМЕНЕН: User API (архив, конфликт с Rails 8)
+- ✅ **[MTProto Implementation](../Architecture/mtproto-ruby-implementation.md)** - telegram-mtproto-ruby (production)
 
 ### AI и обработка контента
 - **[ruby-llm](./ruby-llm.md)** - унифицированный API для AI провайдеров (OpenAI, Anthropic, Gemini и др.)
@@ -65,12 +66,12 @@ importance_score = response.content.to_i
 ```mermaid
 graph LR
     A[Пользователь] --> B[Bot API<br/>telegram-bot]
-    A --> C[User API<br/>tdlib-ruby]
+    A --> C[✅ User API<br/>telegram-mtproto-ruby]
 
     B --> D[Общение с пользователем]
     B --> E[Публичные каналы]
 
-    C --> F[Приватные каналы]
+    C --> F[✅ Приватные каналы<br/>Production]
     C --> G[Авто-вступление]
 
     E --> H[Content Filter<br/>ruby-llm]
@@ -100,7 +101,8 @@ graph LR
 ```ruby
 # Gemfile
 gem 'telegram-bot'           # Bot API
-gem 'tdlib-ruby'             # User API
+# gem 'tdlib-ruby'           # ❌ ЗАМЕНЕН: конфликт с Rails 8
+gem 'telegram-mtproto-ruby'  # ✅ User API (production)
 gem 'ruby_llm'               # AI провайдеры
 ```
 
@@ -292,7 +294,9 @@ end
 ## 📖 Дополнительная документация
 
 ### Детальная документация
-- **[TDLib-ruby Implementation](../Architecture/tdlib-ruby-implementation.md)** - полная документация по MTProto
+- ❌ **[TDLib-ruby Implementation](../Architecture/tdlib-ruby-implementation.md)** - архив (конфликт с Rails 8)
+- ✅ **[MTProto Implementation](../Architecture/mtproto-ruby-implementation.md)** - production реализация
+- ✅ **[Migration Summary](../Architecture/MTProto_Migration_Complete_Summary.md)** - итоги миграции
 - **[C4 Model](../Architecture/c4-model.md)** - архитектура системы
 - **[User-based Migration](../Architecture/user-based-access-migration.md)** - план миграции
 

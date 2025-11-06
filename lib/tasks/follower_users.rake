@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 namespace :follower_users do
-  desc 'Create a new follower user'
+  desc 'Create a new follower user and start authorization'
   task :create, [ :phone_number ] => :environment do |t, args|
     phone_number = args[:phone_number]
 
@@ -12,6 +12,7 @@ namespace :follower_users do
     end
 
     begin
+      puts "📱 Creating follower user: #{phone_number}"
       user = FollowerUser.create!(
         phone_number: phone_number
       )
@@ -19,11 +20,67 @@ namespace :follower_users do
       puts '✅ FollowerUser created successfully:'
       puts "   ID: #{user.id}"
       puts "   Phone: #{user.phone_number}"
-      puts "   Auth Status: #{user.auth_status}"
       puts ''
-      puts '📝 Next steps:'
-      puts '1. Start authorization: user.start_authorization!'
-      puts "2. Confirm with code: user.confirm_authorization!('12345')"
+
+      puts '🚀 Starting authorization process...'
+      auth_result = user.start_authorization!
+
+      if auth_result[:success]
+        puts "✅ Verification code sent to #{phone_number}"
+        puts "🔑 Phone code hash: #{auth_result[:phone_code_hash]}"
+        puts ''
+        puts '📝 Please enter the verification code you received:'
+        print 'Code: '
+        code = gets.strip
+
+        if code.present?
+          puts ''
+          puts "🔐 Confirming authorization with code: #{code}"
+
+          begin
+            confirm_result = user.confirm_authorization!(code)
+
+            if confirm_result[:success]
+              puts '✅ Authorization successful!'
+              puts "   User: #{confirm_result[:user].phone_number}"
+              puts "   Status: #{confirm_result[:user].auth_status}"
+              puts "   Session: #{confirm_result[:user].has_session? ? 'Saved ✅' : 'Not saved ❌'}"
+              puts "   Channels assigned: #{confirm_result[:user].channels_count}"
+              puts ''
+              puts '🎉 Follower user is ready to use!'
+            else
+              puts "❌ Authorization failed: #{confirm_result[:error]}"
+              puts ''
+              puts '💡 For demo purposes, you can use code: 12345'
+              puts "   Run: rails follower_users:authorize[#{user.id},'12345']"
+            end
+          rescue ActiveRecord::Encryption::Errors::Configuration => e
+            puts "❌ Encryption configuration error: #{e.message}"
+            puts ''
+            puts '💡 This is a demo mode. The user was created but authorization requires proper encryption setup.'
+            puts '📝 To complete authorization manually later, run:'
+            puts "   rails follower_users:authorize[#{user.id},'YOUR_CODE']"
+          rescue StandardError => e
+            puts "❌ Authorization error: #{e.message}"
+            puts ''
+            puts "💡 To complete authorization manually, run:"
+            puts "   rails follower_users:authorize[#{user.id},'YOUR_CODE']"
+          end
+        else
+          puts '❌ No code entered'
+          puts ''
+          puts "💡 To complete authorization later, run:"
+          puts "   rails follower_users:authorize[#{user.id},'YOUR_CODE']"
+          puts ''
+          puts '💡 For demo purposes, you can use:'
+          puts "   rails follower_users:authorize[#{user.id},'12345']"
+        end
+      else
+        puts "❌ Failed to start authorization: #{auth_result[:error]}"
+        puts ''
+        puts "💡 You can try to start authorization manually:"
+        puts "   rails follower_users:authorize[#{user.id}]"
+      end
 
     rescue ActiveRecord::RecordInvalid => e
       puts "❌ Failed to create follower user: #{e.message}"
@@ -64,20 +121,26 @@ namespace :follower_users do
     end
   end
 
-  desc 'Show details of a specific follower user'
-  task :show, [ :id ] => :environment do |t, args|
-    id = args[:id]
+  desc 'Show details of a specific follower user (by phone number or ID)'
+  task :show, [ :identifier ] => :environment do |t, args|
+    identifier = args[:identifier]
 
-    if id.blank?
-      puts '❌ User ID is required'
-      puts 'Usage: rails follower_users:show[1]'
+    if identifier.blank?
+      puts '❌ Phone number or ID is required'
+      puts 'Usage: rails follower_users:show[+1234567890] or rails follower_users:show[1]'
       next
     end
 
-    user = FollowerUser.find_by(id: id)
+    # Try to find by phone number first, then by ID
+    user = if identifier.start_with?('+')
+             FollowerUser.find_by(phone_number: identifier)
+           else
+             FollowerUser.find_by(id: identifier)
+           end
 
     unless user
-      puts "❌ FollowerUser with ID #{id} not found"
+      puts "❌ FollowerUser with identifier '#{identifier}' not found"
+      puts "💡 Try using the phone number (e.g., +1234567890) or user ID"
       next
     end
 
@@ -120,26 +183,32 @@ namespace :follower_users do
     end
   end
 
-  desc 'Authorize a follower user'
-  task :authorize, [ :id, :code ] => :environment do |t, args|
-    id = args[:id]
+  desc 'Authorize a follower user (by phone number or ID)'
+  task :authorize, [ :identifier, :code ] => :environment do |t, args|
+    identifier = args[:identifier]
     code = args[:code]
 
-    if id.blank?
-      puts '❌ User ID is required'
-      puts "Usage: rails follower_users:authorize[1,'12345']"
+    if identifier.blank?
+      puts '❌ Phone number or ID is required'
+      puts "Usage: rails follower_users:authorize[+1234567890,'12345']"
       next
     end
 
-    user = FollowerUser.find_by(id: id)
+    # Try to find by phone number first, then by ID
+    user = if identifier.start_with?('+')
+             FollowerUser.find_by(phone_number: identifier)
+           else
+             FollowerUser.find_by(id: identifier)
+           end
 
     unless user
-      puts "❌ FollowerUser with ID #{id} not found"
+      puts "❌ FollowerUser with identifier '#{identifier}' not found"
+      puts "💡 Try using the phone number (e.g., +1234567890) or user ID"
       next
     end
 
     if user.authorized?
-      puts "ℹ️ User ##{id} is already authorized"
+      puts "ℹ️ User #{user.phone_number} (##{user.id}) is already authorized"
       next
     end
 
@@ -164,39 +233,45 @@ namespace :follower_users do
         puts "🔑 Phone code hash: #{result[:phone_code_hash]}"
         puts ''
         puts '📝 To confirm authorization, run:'
-        puts "   rails follower_users:authorize[#{id},'YOUR_CODE']"
+        puts "   rails follower_users:authorize[#{user.phone_number},'YOUR_CODE']"
         puts ''
-        puts "💡 For demo, you can use: rails follower_users:authorize[#{id},'12345']"
+        puts "💡 For demo, you can use: rails follower_users:authorize[#{user.phone_number},'12345']"
       else
         puts "❌ Failed to start authorization: #{result[:error]}"
       end
     end
   end
 
-  desc 'Revoke authorization for a follower user'
-  task :revoke, [ :id ] => :environment do |t, args|
-    id = args[:id]
+  desc 'Revoke authorization for a follower user (by phone number or ID)'
+  task :revoke, [ :identifier ] => :environment do |t, args|
+    identifier = args[:identifier]
 
-    if id.blank?
-      puts '❌ User ID is required'
-      puts 'Usage: rails follower_users:revoke[1]'
+    if identifier.blank?
+      puts '❌ Phone number or ID is required'
+      puts 'Usage: rails follower_users:revoke[+1234567890] or rails follower_users:revoke[1]'
       next
     end
 
-    user = FollowerUser.find_by(id: id)
+    # Try to find by phone number first, then by ID
+    user = if identifier.start_with?('+')
+             FollowerUser.find_by(phone_number: identifier)
+           else
+             FollowerUser.find_by(id: identifier)
+           end
 
     unless user
-      puts "❌ FollowerUser with ID #{id} not found"
+      puts "❌ FollowerUser with identifier '#{identifier}' not found"
+      puts "💡 Try using the phone number (e.g., +1234567890) or user ID"
       next
     end
 
     unless user.authorized?
-      puts "ℹ️ User ##{id} is not authorized"
+      puts "ℹ️ User #{user.phone_number} (##{user.id}) is not authorized"
       next
     end
 
     if user.revoke_authorization!
-      puts "✅ Authorization revoked for user ##{id}"
+      puts "✅ Authorization revoked for #{user.phone_number} (##{user.id})"
       puts "   Removed from #{user.channels_count} channels"
       puts '   Session data cleared'
     else

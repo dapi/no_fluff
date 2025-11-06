@@ -81,7 +81,12 @@
       "mcp__serena__list_dir",
       "mcp__serena__get_symbols_overview",
       "Bash(bin/rails test:*)",
-      "mcp__serena__find_symbol"
+      "mcp__serena__find_symbol",
+      "Bash(bin/rails follower_users:list:*)",
+      "Bash(bin/rails:*)",
+      "Bash(git restore:*)",
+      "Bash(bundle info:*)",
+      "Bash(bundle:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 module Telegram
-  # AuthorizationService - handles MTProto authorization for follower users
-  # Manages authorization flow, code verification, and session management
-  # Updated to use telegram-mtproto-ruby instead of TDLib mocks
-  class AuthorizationService
+  # AuthorizationServiceMtproto - handles MTProto authorization for follower users
+  # Real Telegram API integration using telegram-mtproto-ruby
+  #
+  # Replaces mock implementation with actual TDLib-like functionality
+  class AuthorizationServiceMtproto
     include Singleton
 
     attr_reader :pending_authorizations
@@ -30,7 +31,7 @@ module Telegram
 
       if result[:success]
         # Create new authorization session
-        authorization = FollowerUserAuthorization.new(follower_user, result[:phone_code_hash])
+        authorization = FollowerUserAuthorizationMtproto.new(follower_user, result[:phone_code_hash])
         authorization.start! # Mark as in progress
         @pending_authorizations[auth_key] = authorization
 
@@ -172,15 +173,15 @@ module Telegram
     end
   end
 
-  # FollowerUserAuthorization - represents an authorization session
-  class FollowerUserAuthorization
+  # FollowerUserAuthorizationMtproto - represents an MTProto authorization session
+  class FollowerUserAuthorizationMtproto
     attr_reader :follower_user, :created_at, :expires_at, :phone_code_hash
 
-    def initialize(follower_user, phone_code_hash = nil)
+    def initialize(follower_user, phone_code_hash)
       @follower_user = follower_user
       @created_at = Time.current
       @expires_at = @created_at + 10.minutes
-      @phone_code_hash = phone_code_hash || "default_phone_code_hash_#{follower_user.id}"
+      @phone_code_hash = phone_code_hash
       @in_progress = false
     end
 

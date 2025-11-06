@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_01_214739) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_02_153324) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -160,6 +160,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_01_214739) do
     t.datetime "last_activity_at", precision: nil
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "username"
     t.index ["auth_status"], name: "index_follower_users_on_auth_status"
     t.index ["channels_count"], name: "index_follower_users_on_channels_count"
     t.index ["daily_joins_count"], name: "index_follower_users_on_daily_joins_count"
