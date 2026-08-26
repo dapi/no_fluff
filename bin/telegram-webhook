@@ -1,57 +1,114 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/usr/bin/env python3
+"""Configure the No Fluff Telegram webhook without exposing the bot token."""
 
-readonly action="${1:-}"
-readonly infra="${INFRA:-../brandymint/infra}"
-readonly domain="${DOMAIN:-no-fluff.brandymint.ru}"
-readonly namespace="no-fluff-production"
+from __future__ import annotations
 
-[[ "$action" == "set" || "$action" == "info" ]] || {
-  echo "Usage: $0 <set|info>" >&2
-  exit 2
-}
-[[ "$domain" =~ ^[a-z0-9.-]+$ ]] || { echo "Invalid DOMAIN" >&2; exit 2; }
-[[ -d "$infra" ]] || { echo "INFRA directory not found: $infra" >&2; exit 1; }
+import base64
+import hashlib
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
 
-kubectl_cmd=(direnv exec "$infra" kubectl --context=goga-office -n "$namespace")
+import httpx
 
-if [[ "$action" == "set" ]]; then
-  # The quoted script is evaluated inside the production pod, not locally.
-  # shellcheck disable=SC2016
-  "${kubectl_cmd[@]}" exec deployment/no-fluff -c ror -- env WEBHOOK_DOMAIN="$domain" /bin/bash -lc '
-    set -euo pipefail
-    token="${NO_FLUFF_BOT_TOKEN:?NO_FLUFF_BOT_TOKEN is missing}"
-    hash="$(ruby -ropenssl -rbase64 -e '\''print Base64.urlsafe_encode64(OpenSSL::Digest::SHA1.digest(ENV.fetch("NO_FLUFF_BOT_TOKEN")), padding: false)'\'')"
-    webhook_url="https://${WEBHOOK_DOMAIN}/telegram/${hash}"
-    response="$(curl --fail --silent --show-error \
-      --request POST "https://api.telegram.org/bot${token}/setWebhook" \
-      --data-urlencode "url=${webhook_url}" \
-      --data-urlencode "drop_pending_updates=false")"
-    RESPONSE="$response" WEBHOOK_URL="$webhook_url" ruby -rjson -e '\''
-      data = JSON.parse(ENV.fetch("RESPONSE"))
-      abort(data.fetch("description", "setWebhook failed")) unless data["ok"]
-      puts JSON.generate(ok: true, url: ENV.fetch("WEBHOOK_URL"), description: data["description"])
-    '\''
-  '
-else
-  # The quoted script is evaluated inside the production pod, not locally.
-  # shellcheck disable=SC2016
-  "${kubectl_cmd[@]}" exec deployment/no-fluff -c ror -- /bin/bash -lc '
-    set -euo pipefail
-    token="${NO_FLUFF_BOT_TOKEN:?NO_FLUFF_BOT_TOKEN is missing}"
-    response="$(curl --fail --silent --show-error "https://api.telegram.org/bot${token}/getWebhookInfo")"
-    RESPONSE="$response" ruby -rjson -e '\''
-      data = JSON.parse(ENV.fetch("RESPONSE"))
-      abort(data.fetch("description", "getWebhookInfo failed")) unless data["ok"]
-      result = data.fetch("result")
-      puts JSON.pretty_generate(
-        ok: true,
-        url: result["url"],
-        pending_update_count: result["pending_update_count"],
-        last_error_date: result["last_error_date"],
-        last_error_message: result["last_error_message"],
-        max_connections: result["max_connections"]
-      )
-    '\''
-  '
-fi
+
+def fail(message: str) -> None:
+    print(message, file=sys.stderr)
+    raise SystemExit(1)
+
+
+def load_bot_token(infra: Path) -> str:
+    command = [
+        "direnv",
+        "exec",
+        str(infra),
+        "kubectl",
+        "--context=goga-office",
+        "-n",
+        "no-fluff-production",
+        "get",
+        "secret",
+        "no-fluff",
+        "-o",
+        "json",
+    ]
+    result = subprocess.run(command, capture_output=True, text=True, check=False)
+    if result.returncode != 0:
+        fail("Could not read the No Fluff Kubernetes secret.")
+
+    try:
+        encoded = json.loads(result.stdout)["data"]["NO_FLUFF_BOT_TOKEN"]
+        return base64.b64decode(encoded).decode("utf-8")
+    except (KeyError, ValueError, UnicodeDecodeError, json.JSONDecodeError):
+        fail("The Kubernetes secret does not contain a valid NO_FLUFF_BOT_TOKEN.")
+
+
+def webhook_url(domain: str, token: str) -> str:
+    digest = hashlib.sha1(token.encode("utf-8")).digest()
+    token_hash = base64.urlsafe_b64encode(digest).decode("ascii").rstrip("=")
+    return f"https://{domain}/telegram/{token_hash}"
+
+
+def main() -> None:
+    if len(sys.argv) != 2 or sys.argv[1] not in {"set", "info"}:
+        fail(f"Usage: {sys.argv[0]} <set|info>")
+
+    action = sys.argv[1]
+    infra = Path(os.environ.get("INFRA", "../brandymint/infra")).resolve()
+    domain = os.environ.get("DOMAIN", "no-fluff.brandymint.ru")
+    webhook_ip = os.environ.get("WEBHOOK_IP", "94.232.57.6")
+    proxy = os.environ.get("TELEGRAM_PROXY", "socks5://192.168.88.10:1080")
+
+    if not infra.is_dir():
+        fail(f"INFRA directory not found: {infra}")
+    if not domain or any(ch not in "abcdefghijklmnopqrstuvwxyz0123456789.-" for ch in domain):
+        fail("Invalid DOMAIN.")
+
+    token = load_bot_token(infra)
+    api_base = f"https://api.telegram.org/bot{token}"
+
+    try:
+        with httpx.Client(proxy=proxy, timeout=30) as client:
+            if action == "set":
+                url = webhook_url(domain, token)
+                response = client.post(
+                    f"{api_base}/setWebhook",
+                    data={
+                        "url": url,
+                        "ip_address": webhook_ip,
+                        "drop_pending_updates": "false",
+                    },
+                )
+                data = response.json()
+                if not data.get("ok"):
+                    fail(data.get("description", "setWebhook failed"))
+                print(json.dumps({"ok": True, "url": url, "description": data.get("description")}, ensure_ascii=False))
+            else:
+                response = client.get(f"{api_base}/getWebhookInfo")
+                data = response.json()
+                if not data.get("ok"):
+                    fail(data.get("description", "getWebhookInfo failed"))
+                result = data["result"]
+                print(
+                    json.dumps(
+                        {
+                            "ok": True,
+                            "url": result.get("url"),
+                            "ip_address": result.get("ip_address"),
+                            "pending_update_count": result.get("pending_update_count"),
+                            "last_error_date": result.get("last_error_date"),
+                            "last_error_message": result.get("last_error_message"),
+                            "max_connections": result.get("max_connections"),
+                        },
+                        ensure_ascii=False,
+                        indent=2,
+                    )
+                )
+    except (httpx.HTTPError, ValueError, json.JSONDecodeError):
+        fail("Telegram Bot API request failed without exposing credentials.")
+
+
+if __name__ == "__main__":
+    main()

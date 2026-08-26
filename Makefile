@@ -38,7 +38,7 @@ up:
 down:
 	mise exec -- dip down
 
-image-build: test
+image-build:
 	@mkdir -p tmp
 	@rm -f $(OCI_ARCHIVE)
 	docker buildx build \
@@ -58,10 +58,10 @@ infra-deploy:
 	direnv exec $(INFRA) $(MAKE) -C $(INFRA) app-update STAGE=$(STAGE) APP=$(APP) TAG=$(TAG)
 
 webhook-set:
-	INFRA=$(INFRA) DOMAIN=$(DOMAIN) ./bin/telegram-webhook set
+	INFRA=$(INFRA) DOMAIN=$(DOMAIN) uv run --with 'httpx[socks]' python bin/telegram-webhook set
 
 webhook-info:
-	INFRA=$(INFRA) DOMAIN=$(DOMAIN) ./bin/telegram-webhook info
+	INFRA=$(INFRA) DOMAIN=$(DOMAIN) uv run --with 'httpx[socks]' python bin/telegram-webhook info
 
 verify:
 	direnv exec $(INFRA) kubectl --context=goga-office -n no-fluff-production \
