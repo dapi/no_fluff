@@ -7,7 +7,7 @@ IMAGE := $(REGISTRY)/dapi/no_fluff
 TAG ?= $(shell git rev-parse HEAD)
 OCI_ARCHIVE := tmp/no-fluff-$(TAG).oci.tar
 
-.PHONY: help provision test up down image-build image-push deploy-diff infra-deploy webhook-set webhook-info verify deploy
+.PHONY: help provision test up down image-build image-push deploy-diff infra-deploy webhook-set webhook-delete webhook-info verify deploy
 
 help:
 	@echo "No Fluff"
@@ -60,6 +60,9 @@ infra-deploy:
 webhook-set:
 	INFRA=$(INFRA) DOMAIN=$(DOMAIN) uv run --with 'httpx[socks]' python bin/telegram-webhook set
 
+webhook-delete:
+	INFRA=$(INFRA) DOMAIN=$(DOMAIN) uv run --with 'httpx[socks]' python bin/telegram-webhook delete
+
 webhook-info:
 	INFRA=$(INFRA) DOMAIN=$(DOMAIN) uv run --with 'httpx[socks]' python bin/telegram-webhook info
 
@@ -71,4 +74,4 @@ verify:
 	curl --fail --show-error https://$(DOMAIN)/up
 	$(MAKE) webhook-info
 
-deploy: image-push infra-deploy webhook-set verify
+deploy: image-push webhook-delete infra-deploy verify

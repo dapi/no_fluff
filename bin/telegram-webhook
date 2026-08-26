@@ -52,8 +52,8 @@ def webhook_url(domain: str, token: str) -> str:
 
 
 def main() -> None:
-    if len(sys.argv) != 2 or sys.argv[1] not in {"set", "info"}:
-        fail(f"Usage: {sys.argv[0]} <set|info>")
+    if len(sys.argv) != 2 or sys.argv[1] not in {"set", "delete", "info"}:
+        fail(f"Usage: {sys.argv[0]} <set|delete|info>")
 
     action = sys.argv[1]
     infra = Path(os.environ.get("INFRA", "../brandymint/infra")).resolve()
@@ -86,6 +86,15 @@ def main() -> None:
                 if not data.get("ok"):
                     fail(data.get("description", "setWebhook failed"))
                 print(json.dumps({"ok": True, "url": url, "description": data.get("description")}, ensure_ascii=False))
+            elif action == "delete":
+                response = client.post(
+                    f"{api_base}/deleteWebhook",
+                    data={"drop_pending_updates": drop_pending_updates},
+                )
+                data = response.json()
+                if not data.get("ok"):
+                    fail(data.get("description", "deleteWebhook failed"))
+                print(json.dumps({"ok": True, "description": data.get("description")}, ensure_ascii=False))
             else:
                 response = client.get(f"{api_base}/getWebhookInfo")
                 data = response.json()
