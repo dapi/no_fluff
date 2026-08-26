@@ -12,6 +12,7 @@ import socks
 from telethon import TelegramClient
 from telethon.errors import SessionPasswordNeededError
 from telethon.sessions import StringSession
+from telethon.tl.functions.auth import ResendCodeRequest
 
 
 def proxy_from(request):
@@ -41,7 +42,7 @@ async def execute(request):
             sent = await client.send_code_request(request["phone"])
             return {"success": True, "phone_code_hash": sent.phone_code_hash, "session": StringSession.save(client.session), "delivery_type": sent.type.__class__.__name__}
         if operation == "resend_code":
-            sent = await client.resend_code_request(request["phone"], request["phone_code_hash"])
+            sent = await client(ResendCodeRequest(request["phone"], request["phone_code_hash"]))
             return {"success": True, "phone_code_hash": sent.phone_code_hash, "session": StringSession.save(client.session), "delivery_type": sent.type.__class__.__name__}
         if operation == "confirm_code":
             try:
