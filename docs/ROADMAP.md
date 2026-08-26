@@ -464,6 +464,12 @@
 
 ---
 
+### 1.14. Production MTProto delivery slice (Spec 055)
+- [x] Добавить durable DB ledger доставки `TelegramUser`/`Post`
+- [x] Исключить duplicate deliveries при concurrent workers и сохранить retry после ошибки Bot API
+- [x] Настроить bounded recurring MTProto sync активных подписанных публичных каналов
+- [x] Перевести добавление публичного канала на MTProto resolve/join и initial sync
+
 ## Phase 2: Улучшенная фильтрация и персонализация
 
 ### 2.1. AI Sessions Infrastructure (персонализация)

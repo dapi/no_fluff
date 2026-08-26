@@ -1,8 +1,10 @@
 # Сервис для работы с Telegram каналами
 module Telegram
   class ChannelService
-    def initialize(bot = Telegram.bot)
+    def initialize(bot = Telegram.bot, follower_user: nil, mtproto_client: nil)
       @bot = bot
+      @follower_user = follower_user
+      @mtproto_client = mtproto_client
     end
 
     # Парсит username канала из различных форматов
@@ -112,26 +114,30 @@ module Telegram
         }
       end
 
-      # Получаем информацию о канале
-      channel_info = get_channel_info(username)
-
-      unless channel_info
+      channel_result = resolve_and_join_public_channel(username)
+      unless channel_result[:success]
         return {
           success: false,
           channel: nil,
-          message: I18n.t('telegram_bot.channels.add.not_found', channel: "@#{username}")
+          message: channel_result[:message]
         }
       end
 
-      # Находим или создаем канал в БД
-      channel = Channel.find_or_initialize_by(telegram_id: channel_info[:id])
+      channel_info = channel_result.fetch(:channel)
+      follower_user = channel_result.fetch(:follower_user)
+      channel = Channel.find_by(telegram_id: channel_info.fetch(:id)) || Channel.find_or_initialize_by(username: channel_info.fetch(:username))
 
       if channel.new_record?
         channel.assign_attributes(
-          username: channel_info[:username] || username,
+          telegram_id: channel_info.fetch(:id),
+          username: channel_info.fetch(:username),
           title: channel_info[:title],
           description: channel_info[:description],
-          subscribers_count: channel_info[:member_count]
+          subscribers_count: channel_info[:member_count],
+          follower_user: follower_user,
+          assignment_status: :assigned,
+          assigned_at: Time.current,
+          user_access_status: :joined
         )
 
         unless channel.save
@@ -142,25 +148,20 @@ module Telegram
           }
         end
 
-        # Запускаем задачу для вступления бота в канал
-        Channels::BotJoinJob.perform_later(channel.id)
+        follower_user.join_channel!
+        channel.mark_user_join_success
       else
-        # Обновляем информацию о канале
         channel.update(
+          username: channel_info.fetch(:username),
           title: channel_info[:title],
           description: channel_info[:description],
-          subscribers_count: channel_info[:member_count]
+          subscribers_count: channel_info[:member_count],
+          follower_user: follower_user,
+          assignment_status: :assigned,
+          assigned_at: Time.current,
+          user_access_status: :joined
         )
-
-        # Если канал был деактивирован - активируем его
-        if !channel.active?
-          channel.activate!
-        end
-
-        # Если канал еще не вступал, запускаем задачу для вступления
-        if channel.not_joined?
-          Channels::BotJoinJob.perform_later(channel.id)
-        end
+        channel.activate! unless channel.active?
       end
 
       {
@@ -215,7 +216,9 @@ module Telegram
         }
       end
 
-      # Добавляем или обновляем канал в базе данных
+      existing_subscription = user.subscriptions.joins(:channel).find_by(channels: { username: username })
+      return existing_subscription_result(existing_subscription, user) if existing_subscription
+
       channel_result = add_channel_to_database(channel_username)
 
       unless channel_result[:success]
@@ -253,6 +256,7 @@ module Telegram
       subscription = user.subscriptions.build(channel: channel)
 
       if subscription.save
+        Channels::MtprotoChannelSyncJob.perform_later(channel.id, channel.follower_user_id, Channels::MtprotoChannelSync::DEFAULT_LIMIT)
         {
           success: true,
           message: I18n.t('telegram_bot.channels.add.success',
@@ -296,6 +300,36 @@ module Telegram
         success: false,
         message: I18n.t('telegram_bot.channels.add.error', error: e.message)
       }
+    end
+
+    def resolve_and_join_public_channel(username)
+      follower_user = @follower_user || FollowerUser.next_available
+      return mtproto_failure('telegram_bot.channels.add.mtproto_unavailable') unless follower_user&.authorized? && follower_user.session_string.present?
+
+      client = @mtproto_client || UserClientMtproto.new(follower_user)
+      resolved = client.resolve_channel("@#{username}")
+      return mtproto_failure('telegram_bot.channels.add.not_found', channel: "@#{username}") unless resolved[:success]
+
+      joined = client.join_channel("@#{username}")
+      return mtproto_failure('telegram_bot.channels.add.mtproto_unavailable') unless joined[:success]
+
+      { success: true, channel: joined.fetch(:channel).symbolize_keys, follower_user: follower_user }
+    rescue StandardError => e
+      Bugsnag.notify(e) { |bugsnag| bugsnag.metadata = { username: username, action: 'resolve_and_join_public_channel' } }
+      mtproto_failure('telegram_bot.channels.add.mtproto_unavailable')
+    end
+
+    def mtproto_failure(key, **options)
+      { success: false, message: I18n.t(key, **options) }
+    end
+
+    def existing_subscription_result(subscription, user)
+      if subscription.active?
+        { success: false, message: I18n.t('telegram_bot.channels.add.already_subscribed', channel: "@#{subscription.channel.username}") }
+      else
+        subscription.activate!
+        { success: true, message: I18n.t('telegram_bot.channels.add.success', channel: "@#{subscription.channel.username}", count: user.channels_count), channel: subscription.channel }
+      end
     end
 
     # Удаляет канал из подписок пользователя

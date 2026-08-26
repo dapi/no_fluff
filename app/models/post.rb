@@ -6,6 +6,7 @@ class Post < ApplicationRecord
   has_many :user_digests, through: :user_digest_items
   has_many :feedbacks, dependent: :destroy
   has_many :post_classifications, dependent: :destroy
+  has_many :deliveries, dependent: :destroy
 
   # Validations
   validates :telegram_message_id, presence: true, uniqueness: { scope: :channel_id }

@@ -12,4 +12,12 @@ class RecurringTasksTest < ActiveSupport::TestCase
 
     assert_empty missing, "Missing recurring job classes: #{missing.uniq.join(', ')}"
   end
+
+  test 'production recurring sync uses the channels queue' do
+    recurring = YAML.safe_load_file(Rails.root.join('config/recurring.yml'), aliases: true)
+    task = recurring.fetch('production').fetch('recurring_mtproto_channel_sync')
+
+    assert_equal 'Channels::RecurringMtprotoChannelSyncJob', task.fetch('class')
+    assert_equal 'channels', task.fetch('queue')
+  end
 end

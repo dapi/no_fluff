@@ -7,6 +7,7 @@ class TelegramUser < ApplicationRecord
   has_many :user_digests, dependent: :destroy
   has_many :chats, dependent: :destroy
   has_many :feedbacks, dependent: :destroy
+  has_many :deliveries, dependent: :destroy
   has_one :user_preference, dependent: :destroy
 
   # Enums

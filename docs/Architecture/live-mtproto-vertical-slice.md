@@ -6,6 +6,23 @@ The application-owned path is `Channels::MtprotoChannelSyncJob`. It restores the
 
 `Content::ProcessPostJob` performs the configured LLM classification and only queues `Content::DeliverPostsJob` when that result is deliverable. Imported MTProto posts are delivered as bot messages containing the source text and canonical `t.me/<channel>/<message>` link; the bot is not required to be a member of the source channel.
 
+## Durable delivery and recurring synchronization
+
+Successful bot delivery is persisted in the `deliveries` ledger with a
+PostgreSQL-unique `(telegram_user_id, post_id)` pair. The delivery worker locks
+the post before checking and recording the ledger, so concurrent attempts cannot
+send the same user/post pair twice. A rejected Bot API response creates no
+ledger record and uses the job retry policy.
+
+`Channels::RecurringMtprotoChannelSyncJob` runs every five minutes in
+production and development. It serializes recurring runs with Solid Queue,
+selects only active subscribed public channels assigned to an authorized
+follower with an encrypted session, and queues bounded channel syncs. The
+existing channel lock and post unique index preserve sync idempotency.
+
+The public `/add` path resolves and joins through the MTProto follower client;
+the Bot API remains solely the polling transport and delivery interface.
+
 ## Production evidence — 2026-08-26
 
 Pilot channel: `@problemhunt`. Test follower account: the authorized Kazakhstan development line recorded in the private telecom registry.

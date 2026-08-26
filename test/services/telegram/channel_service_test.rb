@@ -1,6 +1,22 @@
 require 'test_helper'
 
 class Telegram::ChannelServiceTest < ActiveSupport::TestCase
+  include ActiveJob::TestHelper
+
+  class MtprotoClientFake
+    attr_reader :resolved, :joined
+
+    def resolve_channel(username)
+      @resolved = username
+      { success: true, channel: { id: 90_001, username: 'mtproto_public_channel', title: 'MTProto public channel' } }
+    end
+
+    def join_channel(username)
+      @joined = username
+      { success: true, channel: { id: 90_001, username: 'mtproto_public_channel', title: 'MTProto public channel' } }
+    end
+  end
+
   setup do
     @bot = Telegram.bot
     @service = Telegram::ChannelService.new(@bot)
@@ -126,6 +142,30 @@ class Telegram::ChannelServiceTest < ActiveSupport::TestCase
     assert_not_includes result[:message], 'лимит' if result[:message]
   end
 
+  test 'adds a public channel through MTProto resolve and join, then enqueues its initial sync' do
+    follower = follower_users(:one)
+    follower.update!(auth_status: :authorized, session_string: 'session', health_score: 90)
+    client = MtprotoClientFake.new
+    service = Telegram::ChannelService.new(@bot, follower_user: follower, mtproto_client: client)
+
+    @bot.expects(:get_chat).never
+
+    assert_enqueued_jobs 1, only: Channels::MtprotoChannelSyncJob do
+      result = service.add_channel_for_user(@user, '@mtproto_public_channel')
+
+      assert result[:success]
+      assert_equal I18n.t('telegram_bot.channels.add.success', channel: '@mtproto_public_channel', count: @user.channels_count), result[:message]
+    end
+
+    channel = Channel.find_by!(telegram_id: 90_001)
+    assert_equal 'joined', channel.user_access_status
+    assert_equal follower, channel.follower_user
+    assert Subscription.exists?(telegram_user: @user, channel: channel)
+    assert_equal [ channel.id, follower.id, Channels::MtprotoChannelSync::DEFAULT_LIMIT ], enqueued_jobs.last[:args]
+    assert_equal '@mtproto_public_channel', client.resolved
+    assert_equal '@mtproto_public_channel', client.joined
+  end
+
   # Тесты remove_channel_for_user
 
   test 'remove_channel_for_user returns error for invalid format' do
@@ -224,32 +264,19 @@ class Telegram::ChannelServiceTest < ActiveSupport::TestCase
 
   # Тесты add_channel_to_database
 
-  test 'add_channel_to_database creates new channel with username' do
-    # Мокаем get_channel_info чтобы возвращать тестовые данные
-    mock_channel_info = {
-      id: 12345,
-      username: 'testchannel',
-      title: 'Test Channel',
-      description: 'Test Description',
-      member_count: 1000
-    }
-
-    @service.stubs(:get_channel_info).returns(mock_channel_info)
-
-    result = @service.add_channel_to_database('@testchannel')
+  test 'add_channel_to_database creates a channel from MTProto data' do
+    follower = follower_users(:one)
+    follower.update!(auth_status: :authorized, session_string: 'session', health_score: 90)
+    result = Telegram::ChannelService.new(@bot, follower_user: follower, mtproto_client: MtprotoClientFake.new).add_channel_to_database('@mtproto_public_channel')
 
     assert result[:success]
     assert_not_nil result[:channel]
     assert_nil result[:message]
 
     channel = result[:channel]
-    assert_equal 12345, channel.telegram_id
-    assert_equal 'testchannel', channel.username
-    assert_equal 'Test Channel', channel.title
-    assert_equal 'Test Description', channel.description
-    assert_equal 1000, channel.subscribers_count
-
-    # Возвращаем оригинальный метод
-    @service.unstub(:get_channel_info)
+    assert_equal 90_001, channel.telegram_id
+    assert_equal 'mtproto_public_channel', channel.username
+    assert_equal 'MTProto public channel', channel.title
+    assert_equal 'joined', channel.user_access_status
   end
 end

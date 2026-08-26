@@ -1,5 +1,7 @@
 # Фоновая задача для доставки постов пользователю через форвардинг
 class Content::DeliverPostsJob < ApplicationJob
+  class DeliveryFailed < StandardError; end
+
   queue_as :content
 
   retry_on StandardError, wait: 30.seconds, attempts: 3
@@ -25,19 +27,18 @@ class Content::DeliverPostsJob < ApplicationJob
   private
 
   def deliver_single_post(user, post, bot)
-    response = bot.send_message(
-      chat_id: user.telegram_id,
-      text: delivery_text(post)
-    )
+    post.with_lock do
+      return if Delivery.exists?(telegram_user: user, post: post)
 
-    if response['ok']
-      Rails.logger.debug "Successfully forwarded post #{post.id} to user #{user.username}"
-    else
-      Rails.logger.error "Failed to forward post #{post.id} to user #{user.username}: #{response["description"]}"
+      response = bot.send_message(
+        chat_id: user.telegram_id,
+        text: delivery_text(post)
+      )
+      raise DeliveryFailed, 'Telegram Bot API rejected delivery' unless response['ok']
+
+      Delivery.create!(telegram_user: user, post: post, metadata: { telegram_message_id: post.telegram_message_id })
+      Rails.logger.debug "Successfully delivered post #{post.id} to user #{user.username}"
     end
-
-    # Небольшая задержка между сообщениями чтобы избежать rate limits
-    sleep(0.1)
   rescue StandardError => e
     Rails.logger.error "Failed to deliver post #{post.id} to user #{user.id}: #{e.class}"
     raise

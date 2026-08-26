@@ -41,3 +41,4 @@ en:
       add:
         success: "✅ Channel %{channel} added!\n\nTotal channels: %{count}"
         updated: "✅ Channel %{channel} updated!"
+        mtproto_unavailable: "❌ The channel could not be connected right now. Please try again later."

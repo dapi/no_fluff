@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_08_26_085000) do
+ActiveRecord::Schema[8.0].define(version: 2026_08_26_194731) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -113,6 +113,17 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_26_085000) do
     t.index ["status"], name: "index_chats_on_status"
     t.index ["telegram_user_id", "session_type"], name: "index_chats_on_telegram_user_id_and_session_type"
     t.index ["telegram_user_id"], name: "index_chats_on_telegram_user_id"
+  end
+
+  create_table "deliveries", force: :cascade do |t|
+    t.bigint "telegram_user_id", null: false
+    t.bigint "post_id", null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["post_id"], name: "index_deliveries_on_post_id"
+    t.index ["telegram_user_id", "post_id"], name: "index_deliveries_on_telegram_user_id_and_post_id", unique: true
+    t.index ["telegram_user_id"], name: "index_deliveries_on_telegram_user_id"
   end
 
   create_table "deploy_notifications", force: :cascade do |t|
@@ -380,6 +391,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_26_085000) do
   add_foreign_key "channels", "follower_users"
   add_foreign_key "chats", "models"
   add_foreign_key "chats", "telegram_users"
+  add_foreign_key "deliveries", "posts"
+  add_foreign_key "deliveries", "telegram_users"
   add_foreign_key "feedbacks", "posts"
   add_foreign_key "feedbacks", "telegram_users"
   add_foreign_key "messages", "chats"
