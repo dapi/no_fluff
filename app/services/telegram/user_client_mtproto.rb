@@ -34,6 +34,10 @@ module Telegram
       invoke(base_request.merge(operation: 'send_code', session: nil))
     end
 
+    def resend_code(phone_code_hash:, session:)
+      invoke(base_request.merge(operation: 'resend_code', phone_code_hash:, session:))
+    end
+
     def confirm_code(code:, phone_code_hash:, session:)
       invoke(base_request.merge(operation: 'confirm_code', code:, phone_code_hash:, session:))
     end
@@ -61,7 +65,7 @@ module Telegram
     end
 
     def success(response)
-      response.slice(:success, :phone_code_hash, :session, :user).merge(expires_at: 10.minutes.from_now)
+      response.slice(:success, :phone_code_hash, :session, :user, :delivery_type).merge(expires_at: 10.minutes.from_now)
     end
 
     def parse_proxy(proxy_url)

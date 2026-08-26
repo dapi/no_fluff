@@ -26,6 +26,20 @@ class Telegram::UserClientMtprotoTest < ActiveSupport::TestCase
                    proxy: { scheme: 'socks5', host: 'proxy.example', port: 1080 } }, helper.requests.first)
   end
 
+  test 'resends a code using the persisted pending session and hash' do
+    helper = FakeHelper.new(success: true, phone_code_hash: 'next-hash', session: 'next-session', delivery_type: 'SentCodeTypeSms')
+    client = Telegram::UserClientMtproto.new(@user, helper:)
+    result = client.resend_code(phone_code_hash: 'persisted-hash', session: 'persisted-session')
+
+    assert_equal true, result[:success]
+    assert_equal 'next-hash', result[:phone_code_hash]
+    assert_equal 'next-session', result[:session]
+    assert_equal 'SentCodeTypeSms', result[:delivery_type]
+    assert_equal 'resend_code', helper.requests.first[:operation]
+    assert_equal 'persisted-hash', helper.requests.first[:phone_code_hash]
+    assert_equal 'persisted-session', helper.requests.first[:session]
+  end
+
   test 'confirms code using the persisted pending session and hash' do
     helper = FakeHelper.new(success: true, session: 'authorized-session', user: { id: 42, username: 'follower' })
     client = Telegram::UserClientMtproto.new(@user, helper:)

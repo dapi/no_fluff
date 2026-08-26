@@ -39,7 +39,10 @@ async def execute(request):
         operation = request.get("operation")
         if operation == "send_code":
             sent = await client.send_code_request(request["phone"])
-            return {"success": True, "phone_code_hash": sent.phone_code_hash, "session": StringSession.save(client.session)}
+            return {"success": True, "phone_code_hash": sent.phone_code_hash, "session": StringSession.save(client.session), "delivery_type": sent.type.__class__.__name__}
+        if operation == "resend_code":
+            sent = await client.resend_code_request(request["phone"], request["phone_code_hash"])
+            return {"success": True, "phone_code_hash": sent.phone_code_hash, "session": StringSession.save(client.session), "delivery_type": sent.type.__class__.__name__}
         if operation == "confirm_code":
             try:
                 user = await client.sign_in(request["phone"], request["code"], phone_code_hash=request["phone_code_hash"])
