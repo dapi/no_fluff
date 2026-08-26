@@ -39,16 +39,13 @@ class FollowerUserTest < ActiveSupport::TestCase
 
   # Authorization flow tests
   test 'should start authorization when phone number present' do
-    # Mock ApplicationConfig to return true for API configuration
-    ApplicationConfig.stubs(:telegram_api_configured?).returns(true)
-
-    # Mock AuthorizationService to return success
     mock_service = mock('authorization_service')
-    mock_service.expects(:start_authorization).with(@follower_user).returns(success: true, phone_code_hash: 'test_hash')
-    Telegram::AuthorizationService.stubs(:instance).returns(mock_service)
+    mock_service.expects(:start_authorization).with(@follower_user).returns(success: true, expires_at: 10.minutes.from_now)
+    Telegram::AuthorizationServiceMtproto.stubs(:instance).returns(mock_service)
 
     result = @follower_user.start_authorization!
-    assert_equal({ success: true, phone_code_hash: 'test_hash' }, result)
+    assert result[:success]
+    assert result[:expires_at]
   end
 
   test 'should not start authorization when no phone number' do

@@ -3,6 +3,8 @@ class FollowerUser < ApplicationRecord
   # Uses ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY from environment
   encrypts :session_string_encrypted
   encrypts :api_credentials_encrypted
+  encrypts :pending_session_encrypted
+  encrypts :pending_phone_code_hash_encrypted
 
   # Include Telegram credentials functionality
   include TelegramCredentials
@@ -42,13 +44,13 @@ class FollowerUser < ApplicationRecord
     return false unless phone_number.present?
     return false if authorized? # Already authorized
 
-    Telegram::AuthorizationService.instance.start_authorization(self)
+    Telegram::AuthorizationServiceMtproto.instance.start_authorization(self)
   end
 
   def confirm_authorization!(code)
     return false if code.blank?
 
-    result = Telegram::AuthorizationService.instance.confirm_authorization(self, code)
+    result = Telegram::AuthorizationServiceMtproto.instance.confirm_authorization(self, code)
     return result unless result[:success]
 
     # Auto-assign channels after successful authorization
@@ -59,7 +61,7 @@ class FollowerUser < ApplicationRecord
   def authorization_status
     return { status: :not_started } unless pending?
 
-    Telegram::AuthorizationService.instance.authorization_status(self)
+    Telegram::AuthorizationServiceMtproto.instance.authorization_status(self)
   end
 
   def needs_authorization?
@@ -108,6 +110,22 @@ class FollowerUser < ApplicationRecord
 
   def revoked?
     auth_status == 'revoked'
+  end
+
+  def pending_session_string
+    pending_session_encrypted
+  end
+
+  def pending_session_string=(value)
+    self.pending_session_encrypted = value
+  end
+
+  def pending_phone_code_hash
+    pending_phone_code_hash_encrypted
+  end
+
+  def pending_phone_code_hash=(value)
+    self.pending_phone_code_hash_encrypted = value
   end
 
   # Instance methods

@@ -59,6 +59,7 @@ def main() -> None:
     infra = Path(os.environ.get("INFRA", "../brandymint/infra")).resolve()
     domain = os.environ.get("DOMAIN", "no-fluff.brandymint.ru")
     webhook_ip = os.environ.get("WEBHOOK_IP", "94.232.57.6")
+    drop_pending_updates = os.environ.get("DROP_PENDING_UPDATES", "false")
     proxy = os.environ.get("TELEGRAM_PROXY", "socks5://192.168.88.10:1080")
 
     if not infra.is_dir():
@@ -78,7 +79,7 @@ def main() -> None:
                     data={
                         "url": url,
                         "ip_address": webhook_ip,
-                        "drop_pending_updates": "false",
+                        "drop_pending_updates": drop_pending_updates,
                     },
                 )
                 data = response.json()

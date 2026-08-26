@@ -11,6 +11,7 @@ class ApplicationConfig < Anyway::Config
               :deepseek_api_key,
               :telegram_api_id,
               :telegram_api_hash,
+              :telegram_mtproto_proxy,
               :session_encryption_key,
               :active_record_encryption_primary_key,
               :active_record_encryption_deterministic_key,
@@ -26,7 +27,7 @@ class ApplicationConfig < Anyway::Config
     rate_limit_delay_between_requests: 2.seconds
 
   required :bot_token unless Rails.env.test?
-  required :telegram_api_id, :telegram_api_hash unless Rails.env.test?
+  required :telegram_api_id, :telegram_api_hash, :telegram_mtproto_proxy unless Rails.env.test?
   required :active_record_encryption_primary_key,
            :active_record_encryption_deterministic_key,
            :active_record_encryption_key_derivation_salt unless Rails.env.test?

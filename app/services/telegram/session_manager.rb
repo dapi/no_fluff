@@ -155,7 +155,7 @@ module Telegram
     def connect
       return false if @active
 
-      @client = Telegram::UserClient.new(@follower_user)
+      @client = Telegram::UserClientMtproto.new(@follower_user)
       result = @client.connect
 
       if result

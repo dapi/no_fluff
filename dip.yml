@@ -52,16 +52,9 @@ interaction:
       run_options: [rm]
 
   jobs:
-    description: Run Solid Queue workers
+    description: Run Solid Queue workers and the Telegram poller
     service: app
-    command: ./bin/jobs
-    compose:
-      run_options: [rm]
-
-  bot:
-    description: Run Telegram bot poller
-    service: app
-    command: bundle exec rake telegram:bot:poller
+    command: ./bin/jobs-supervisor
     compose:
       run_options: [rm]
 

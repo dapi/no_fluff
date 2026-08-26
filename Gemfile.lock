@@ -510,7 +510,6 @@ GEM
       httpclient (~> 2.7)
     telegram-bot-types (0.7.0)
       dry-struct (~> 1.0)
-    telegram-mtproto-ruby (0.1.0)
     temple (0.10.4)
     thor (1.4.0)
     thruster (0.1.15)
@@ -579,7 +578,6 @@ DEPENDENCIES
   state_machines-activerecord (~> 0.6)
   telegram-bot (~> 0.16.7)
   telegram-bot-types (~> 0.7.0)
-  telegram-mtproto-ruby (~> 0.1.0)
   thruster
   tzinfo-data
 

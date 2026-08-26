@@ -3,7 +3,7 @@
 module Telegram
   # AuthorizationService - handles MTProto authorization for follower users
   # Manages authorization flow, code verification, and session management
-  # Updated to use telegram-mtproto-ruby instead of TDLib mocks
+  # Legacy compatibility service. New authorization uses AuthorizationServiceMtproto.
   class AuthorizationService
     include Singleton
 

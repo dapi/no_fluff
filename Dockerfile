@@ -16,7 +16,7 @@ WORKDIR /rails
 
 # Install base packages
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 libvips postgresql-client nodejs npm privoxy && \
+    apt-get install --no-install-recommends -y curl libjemalloc2 libvips postgresql-client nodejs npm privoxy python3 python3-pip && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Set production environment
@@ -68,6 +68,8 @@ FROM base
 # Copy built artifacts: gems, application
 COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --from=build /rails /rails
+
+RUN python3 -m pip install --no-cache-dir --break-system-packages -r /rails/requirements-telethon.txt
 
 # Run and own only the runtime files as a non-root user for security
 RUN groupadd --system --gid 1000 rails && \

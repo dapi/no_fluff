@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+children=()
+
+terminate_children() {
+  trap - TERM INT
+  kill -TERM "${children[@]}" 2>/dev/null || true
+}
+
+"./bin/jobs" &
+children+=("$!")
+bundle exec rake telegram:bot:poller &
+children+=("$!")
+
+trap 'terminate_children' TERM INT
+
+set +e
+wait -n "${children[@]}"
+status=$?
+set -e
+terminate_children
+wait "${children[@]}" 2>/dev/null || true
+exit "$status"

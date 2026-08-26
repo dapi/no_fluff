@@ -50,6 +50,15 @@ dip down
 |------------|----------|--------------|--------|
 | `NO_FLUFF_TELEGRAM_BOT_TOKEN` | API токен Telegram бота от [@BotFather](https://t.me/botfather) | ✅ | `1234567890:ABCdefGHIjklMNOpqrsTUVwxyz` |
 | `NO_FLUFF_TELEGRAM_BOT_USERNAME` | Username бота (без @) | ✅ | `bez_sheluhi_bot` |
+| `NO_FLUFF_TELEGRAM_MTPROTO_PROXY` | SOCKS5 proxy для Telegram user API | ✅ production | `socks5://proxy-host:1080` |
+
+### Production Telegram delivery
+
+В production бот получает обновления исходящим long polling (`telegram:bot:poller`) через
+настроенный HTTP proxy. Webhook не используется для доставки обновлений: домен и TLS остаются
+нужны только для health/app доступа. После deploy удалите webhook через `bin/telegram-webhook`
+и убедитесь, что единственный jobs-процесс запущен командой `bin/jobs-supervisor`; он совместно
+контролирует Solid Queue и один poller. Проверка deploy не должна ожидать доставку webhook.
 
 ### AI / LLM
 
@@ -132,11 +141,11 @@ rails follower_users:create[+1234567890]
 ```ruby
 # Инициировать отправку verification code
 result = follower_user.start_authorization!
-# => { success: true, phone_code_hash: "abc123..." }
+# => { success: true, expires_at: ... }
 
 # Статус авторизации
 status = follower_user.authorization_status
-# => { in_progress: true, expires_at: 2025-01-31 12:30:00, phone_code_hash: "abc123..." }
+# => { in_progress: true, expires_at: 2025-01-31 12:30:00 }
 ```
 
 #### 3. **Подтверждение кодом**
@@ -190,7 +199,7 @@ user = FollowerUser.create!(phone_number: "+1234567890")
 
 # Начать авторизацию
 auth_result = user.start_authorization!
-puts "Enter code: #{auth_result[:phone_code_hash]}"
+puts "Enter the code sent to the account before #{auth_result[:expires_at]}"
 
 # Подтвердить (для демо)
 user.confirm_authorization!("12345")

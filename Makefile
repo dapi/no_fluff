@@ -65,9 +65,9 @@ webhook-info:
 
 verify:
 	direnv exec $(INFRA) kubectl --context=goga-office -n no-fluff-production \
-		rollout status deployment/no-fluff --timeout=180s
+		wait --for=condition=Available deployment/no-fluff --timeout=180s
 	direnv exec $(INFRA) kubectl --context=goga-office -n no-fluff-production \
-		rollout status deployment/no-fluff-job-processing --timeout=180s
+		wait --for=condition=Available deployment/no-fluff-job-processing --timeout=180s
 	curl --fail --show-error https://$(DOMAIN)/up
 	$(MAKE) webhook-info
 

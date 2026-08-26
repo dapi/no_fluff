@@ -102,10 +102,6 @@ gem 'state_machines-activerecord', '~> 0.6'
 # Phone number validation
 gem 'phonelib'
 
-# MTProto client for Telegram user API
-# Pure Ruby implementation without dependency conflicts
-gem 'telegram-mtproto-ruby', '~> 0.1.0'
-
 # Legacy TDLib client (commented due to dependency conflicts)
 # Note: FFI 1.15.0 vs 1.17.2, concurrent-ruby ~> 1.1 vs 1.3.5 conflicts
 # gem 'tdlib-ruby'
