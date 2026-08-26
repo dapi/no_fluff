@@ -1,0 +1,60 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: .dockerdev/Dockerfile
+      args:
+        RUBY_VERSION: "3.4.10"
+        NODE_MAJOR: "20"
+        YARN_VERSION: "1.22.19"
+    image: no-fluff-dev:1.0.0
+    volumes:
+      - .:/app:cached
+      - bundle:/usr/local/bundle
+      - node_modules:/app/node_modules
+      - rails_cache:/app/tmp/cache
+    tmpfs:
+      - /tmp:exec
+      - /app/tmp/pids
+    ports:
+      - "3014:3000"
+    environment:
+      RAILS_ENV: ${RAILS_ENV:-development}
+      NO_FLUFF_DATABASE_ADAPTER: postgresql
+      NO_FLUFF_DATABASE_HOST: postgres
+      NO_FLUFF_DATABASE_PORT: "5432"
+      NO_FLUFF_DATABASE_USERNAME: no_fluff
+      NO_FLUFF_DATABASE_PASSWORD: password
+      NO_FLUFF_BOT_TOKEN: ${NO_FLUFF_BOT_TOKEN:-123:development-token}
+      NO_FLUFF_BOT_USERNAME: ${NO_FLUFF_BOT_USERNAME:-no_fluff_development_bot}
+      NO_FLUFF_OPENAI_API_KEY: ${NO_FLUFF_OPENAI_API_KEY:-}
+      NO_FLUFF_DEEPSEEK_API_KEY: ${NO_FLUFF_DEEPSEEK_API_KEY:-}
+      NO_FLUFF_TELEGRAM_API_ID: ${NO_FLUFF_TELEGRAM_API_ID:-1234567}
+      NO_FLUFF_TELEGRAM_API_HASH: ${NO_FLUFF_TELEGRAM_API_HASH:-development-api-hash}
+      NO_FLUFF_SESSION_ENCRYPTION_KEY: ${NO_FLUFF_SESSION_ENCRYPTION_KEY:-development-session-encryption-key}
+      EDITOR: vi
+    depends_on:
+      postgres:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: no_fluff
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: no_fluff_development
+    volumes:
+      - postgres_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U no_fluff -d no_fluff_development"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_dev:
+  bundle:
+  node_modules:
+  rails_cache:

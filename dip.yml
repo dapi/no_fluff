@@ -1,0 +1,123 @@
+version: '8.0'
+
+environment:
+  RAILS_ENV: development
+  PORT: 3014
+
+compose:
+  files:
+    - docker-compose.yml
+  project_name: no-fluff
+
+interaction:
+  up:
+    description: Start PostgreSQL in background
+    runner: docker_compose
+    compose:
+      method: up
+      run_options: [d, postgres]
+
+  down:
+    description: Stop all No Fluff development services
+    runner: docker_compose
+    compose:
+      method: down
+
+  bash:
+    description: Open bash in the application container
+    service: app
+    command: /bin/bash
+    compose:
+      run_options: [rm]
+
+  rails:
+    description: Run Rails commands
+    service: app
+    command: bundle exec rails
+    compose:
+      run_options: [rm]
+    subcommands:
+      s:
+        description: Start Rails server on the configured host port
+        service: app
+        command: bundle exec rails server -b 0.0.0.0 -p 3000
+        compose:
+          run_options: [service-ports, rm]
+
+  console:
+    description: Open Rails console
+    service: app
+    command: bundle exec rails console
+    compose:
+      run_options: [rm]
+
+  jobs:
+    description: Run Solid Queue workers
+    service: app
+    command: ./bin/jobs
+    compose:
+      run_options: [rm]
+
+  bot:
+    description: Run Telegram bot poller
+    service: app
+    command: bundle exec rake telegram:bot:poller
+    compose:
+      run_options: [rm]
+
+  bundle:
+    description: Run Bundler commands
+    service: app
+    command: bundle
+    compose:
+      run_options: [no-deps, rm]
+
+  yarn:
+    description: Run Yarn commands
+    service: app
+    command: yarn
+    compose:
+      run_options: [no-deps, rm]
+
+  test:
+    description: Prepare test databases and run the full Rails test suite
+    service: app
+    command: /bin/bash -lc "bundle exec rails db:prepare && bundle exec rails test"
+    environment:
+      RAILS_ENV: test
+    compose:
+      run_options: [rm]
+
+  rubocop:
+    description: Run RuboCop
+    service: app
+    command: bundle exec rubocop
+    compose:
+      run_options: [no-deps, rm]
+
+  brakeman:
+    description: Run Brakeman
+    service: app
+    command: bundle exec brakeman
+    compose:
+      run_options: [no-deps, rm]
+
+  psql:
+    description: Open PostgreSQL console
+    service: postgres
+    command: psql -U no_fluff -d no_fluff_development
+
+  logs:
+    description: Tail Rails development log
+    service: app
+    command: tail -f log/development.log
+    compose:
+      run_options: [no-deps, rm]
+
+provision:
+  - dip compose build
+  - dip compose up -d postgres
+  - dip bundle install
+  - dip yarn install --frozen-lockfile
+  - dip rails db:prepare
+  - echo "Provision complete. Run 'dip rails s', 'dip jobs', and 'dip bot' as needed."

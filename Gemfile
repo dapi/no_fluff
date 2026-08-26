@@ -39,6 +39,7 @@ gem 'thruster', require: false
 group :development do
   gem 'claude-on-rails'
   gem 'claude_swarm'
+  gem 'dip', '~> 8.3', require: false
 end
 
 group :development, :test do
