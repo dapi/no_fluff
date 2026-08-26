@@ -6,6 +6,12 @@ if [ -z "${LD_PRELOAD+x}" ]; then
     export LD_PRELOAD
 fi
 
+# Telegram Bot API is not reachable directly from goga-office. Run a local
+# HTTP CONNECT bridge that forwards through the canonical office SOCKS5 egress.
+if command -v privoxy >/dev/null 2>&1 && [ -f /rails/config/privoxy/config ]; then
+  privoxy --no-daemon /rails/config/privoxy/config >/tmp/privoxy-stdout.log 2>&1 &
+fi
+
 # If running the rails server then create or migrate existing database
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   ./bin/rails db:prepare

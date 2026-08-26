@@ -1,0 +1,13 @@
+confdir /etc/privoxy
+logdir /tmp
+logfile privoxy.log
+pidfile /tmp/privoxy.pid
+
+listen-address 127.0.0.1:8118
+toggle 1
+enable-remote-toggle 0
+enable-edit-actions 0
+accept-intercepted-requests 0
+
+# Canonical LAN egress from docs/proxy-vpn-registry.md.
+forward-socks5t / 192.168.88.10:1080 .
