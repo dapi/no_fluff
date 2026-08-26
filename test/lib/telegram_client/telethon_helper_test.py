@@ -1,4 +1,5 @@
 import importlib.util
+import asyncio
 import pathlib
 import unittest
 
@@ -32,6 +33,20 @@ class TelethonHelperTest(unittest.TestCase):
             self.assertEqual(helper.error_response(helper.FloodWaitError()), {"success": False, "error_type": "flood_wait", "retry_after": 86400})
         finally:
             helper.FloodWaitError = original
+
+    def test_join_is_idempotent_when_already_participant(self):
+        original = helper.UserAlreadyParticipantError
+        already_participant = type("UserAlreadyParticipantError", (Exception,), {})
+
+        class FakeClient:
+            async def __call__(self, _request):
+                raise already_participant()
+
+        try:
+            helper.UserAlreadyParticipantError = already_participant
+            self.assertIsNone(asyncio.run(helper.join_public_channel(FakeClient(), object())))
+        finally:
+            helper.UserAlreadyParticipantError = original
 
 
 if __name__ == "__main__":

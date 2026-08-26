@@ -19,6 +19,7 @@ from telethon.errors import (
     SessionRevokedError,
     UsernameInvalidError,
     UsernameNotOccupiedError,
+    UserAlreadyParticipantError,
     UserDeactivatedBanError,
 )
 from telethon.sessions import StringSession
@@ -104,6 +105,13 @@ def channel_from_request(request):
         raise ValueError("invalid_username")
 
 
+async def join_public_channel(client, channel):
+    try:
+        await client(JoinChannelRequest(channel))
+    except UserAlreadyParticipantError:
+        return None
+
+
 async def execute(request):
     session = StringSession(request.get("session") or "")
     client = TelegramClient(session, int(request["api_id"]), request["api_hash"], proxy=proxy_from(request))
@@ -134,7 +142,7 @@ async def execute(request):
             return {"success": True, "channel": channel_data(await public_channel(client, request.get("username")))}
         if operation == "join_channel":
             channel = await public_channel(client, request.get("username"))
-            await client(JoinChannelRequest(channel))
+            await join_public_channel(client, channel)
             return {"success": True, "channel": channel_data(channel)}
         if operation == "read_channel_messages":
             limit = int(request.get("limit", 50))

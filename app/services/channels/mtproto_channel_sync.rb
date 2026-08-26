@@ -16,7 +16,10 @@ module Channels
         assign_follower_user!
         return failure(:not_authorized) unless @follower_user.authorized? && @follower_user.session_string.present?
 
-        join_result = joined? ? { success: true, channel: persisted_channel_data } : client.join_channel(@channel.username)
+        resolved_result = client.resolve_channel(public_username)
+        return failure(resolved_result[:error_type], retry_after: resolved_result[:retry_after]) unless resolved_result[:success]
+
+        join_result = joined? ? resolved_result : client.join_channel(public_username)
         return join_failed(join_result) unless join_result[:success]
 
         mark_joined!(join_result.fetch(:channel)) unless joined?
@@ -48,8 +51,8 @@ module Channels
       @channel.user_access_status == 'joined'
     end
 
-    def persisted_channel_data
-      { id: @channel.telegram_id, access_hash: nil, username: @channel.username, title: @channel.title }
+    def public_username
+      "@#{@channel.username.delete_prefix('@')}"
     end
 
     def mark_joined!(data)

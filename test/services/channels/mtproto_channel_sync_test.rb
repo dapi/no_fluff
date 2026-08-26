@@ -6,11 +6,17 @@ class Channels::MtprotoChannelSyncTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
 
   class FakeClient
-    attr_reader :joined, :read
+    attr_reader :resolved, :joined, :read
 
-    def initialize(join_result:, read_result: { success: true, messages: [] })
+    def initialize(join_result:, resolve_result: nil, read_result: { success: true, messages: [] })
       @join_result = join_result
+      @resolve_result = resolve_result || join_result
       @read_result = read_result
+    end
+
+    def resolve_channel(username)
+      @resolved = username
+      @resolve_result
     end
 
     def join_channel(username)
@@ -32,14 +38,18 @@ class Channels::MtprotoChannelSyncTest < ActiveSupport::TestCase
   end
 
   test 'does not mark a channel joined before the live MTProto join succeeds' do
-    client = FakeClient.new(join_result: { success: false, error_type: :private_channel })
+    resolved_channel = { id: @channel.telegram_id, access_hash: 'hash', username: @channel.username, title: @channel.title }
+    client = FakeClient.new(
+      resolve_result: { success: true, channel: resolved_channel },
+      join_result: { success: false, error_type: :private_channel }
+    )
 
     result = Channels::MtprotoChannelSync.new(channel: @channel, follower_user: @follower, client:).call
 
     assert_equal false, result[:success]
     assert_equal 'join_failed', @channel.reload.user_access_status
     assert_equal @follower, @channel.follower_user
-    assert_equal @channel.username, client.joined
+    assert_equal "@#{@channel.username}", client.joined
   end
 
   test 'imports each Telegram message once and enqueues classification but never delivery directly' do
@@ -63,5 +73,21 @@ class Channels::MtprotoChannelSyncTest < ActiveSupport::TestCase
 
     Channels::MtprotoChannelSync.new(channel: @channel, follower_user: @follower, client:, limit: 20).call
     assert_equal 2, @channel.posts.where(telegram_message_id: [ 701, 702 ]).count
+  end
+
+  test 'resolves access hash again when syncing a previously joined channel' do
+    @channel.update!(follower_user: @follower, user_access_status: :joined, assignment_status: :assigned)
+    resolved_channel = { id: @channel.telegram_id, access_hash: 'restored-hash', username: @channel.username, title: @channel.title }
+    client = FakeClient.new(
+      join_result: { success: true, channel: resolved_channel },
+      resolve_result: { success: true, channel: resolved_channel }
+    )
+
+    result = Channels::MtprotoChannelSync.new(channel: @channel, follower_user: @follower, client:).call
+
+    assert_equal true, result[:success]
+    assert_equal "@#{@channel.username}", client.resolved
+    assert_nil client.joined
+    assert_equal 'restored-hash', client.read.dig(:channel, :access_hash)
   end
 end
