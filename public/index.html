@@ -174,21 +174,47 @@
     .section-heading { max-width: 760px; margin-bottom: 58px; }
     .section-heading .lead { max-width: 650px; }
 
-    .before-after { display: grid; grid-template-columns: 1fr 72px 1fr; align-items: stretch; }
-    .flow-card { padding: clamp(28px, 4vw, 48px); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
-    .flow-card.after { background: var(--ink); color: white; border-color: var(--ink); }
-    .flow-label { margin-bottom: 25px; color: var(--muted); font-size: 13px; font-weight: 750; letter-spacing: .09em; text-transform: uppercase; }
-    .after .flow-label { color: #aab3bd; }
-    .feed-list { display: grid; gap: 12px; }
-    .feed-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
-    .after .feed-row { border-color: #343b43; }
-    .feed-row:last-child { padding-bottom: 0; border-bottom: 0; }
-    .feed-channel { font-weight: 650; }
-    .feed-kind { color: var(--muted); font-size: 13px; }
-    .after .feed-kind { color: #aab3bd; }
-    .feed-score { flex: 0 0 auto; color: var(--warning); font-size: 13px; font-weight: 720; }
-    .after .feed-score { color: #75d8a9; }
-    .flow-arrow { display: grid; place-items: center; color: var(--accent); font-size: 30px; }
+    .demo-shell { overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); box-shadow: var(--shadow); }
+    .demo-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 20px 24px; border-bottom: 1px solid var(--line); }
+    .demo-header strong { font-size: 15px; }
+    .demo-badge { color: var(--warning); font-size: 13px; font-weight: 700; }
+    .demo-tabs { display: flex; gap: 6px; padding: 8px; border-bottom: 1px solid var(--line); background: var(--surface-soft); }
+    .demo-tab { min-height: 44px; padding: 10px 16px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; font: inherit; font-size: 14px; font-weight: 650; }
+    .demo-tab[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 5px rgba(31, 38, 46, .09); }
+    .demo-panel { min-height: 420px; padding: clamp(24px, 4vw, 46px); }
+    .demo-panel[hidden] { display: none; }
+    .demo-grid { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(28px, 5vw, 64px); align-items: start; }
+    .demo-column { min-width: 0; }
+    .demo-kicker { margin-bottom: 18px; color: var(--muted); font-size: 12px; font-weight: 750; letter-spacing: .09em; text-transform: uppercase; }
+    .demo-intro { max-width: 620px; margin-bottom: 26px; color: var(--muted); }
+    .post-list { display: grid; gap: 0; border-top: 1px solid var(--line); }
+    .post-row { display: grid; min-width: 0; grid-template-columns: 1fr auto; gap: 18px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+    .post-source { margin-bottom: 3px; font-size: 14px; font-weight: 680; }
+    .post-text { overflow-wrap: anywhere; color: var(--muted); font-size: 14px; }
+    .post-tag { align-self: start; padding: 4px 8px; border-radius: 5px; background: var(--surface-soft); color: var(--muted); font-size: 12px; font-weight: 700; white-space: nowrap; }
+    .post-tag.keep { background: #e5f3eb; color: var(--success); }
+    .post-tag.ad { background: #f8ecdc; color: var(--warning); }
+    .post-tag.skip { background: #eceff2; color: #68717b; }
+    .digest-card { padding: 24px; border-radius: 14px; background: var(--ink); color: white; }
+    .digest-card .demo-kicker { color: #aab3bd; }
+    .digest-entry { padding: 17px 0; border-top: 1px solid #343b43; }
+    .digest-entry:first-of-type { border-top: 0; padding-top: 0; }
+    .digest-entry strong { display: block; margin-bottom: 5px; font-size: 16px; }
+    .digest-entry p { color: #b8c0c9; font-size: 14px; }
+    .digest-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .digest-action { padding: 6px 9px; border: 1px solid #3c4650; border-radius: 6px; color: #cbd2d9; font-size: 12px; text-decoration: none; }
+    .reason-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .reason-card { padding: 22px; border: 1px solid var(--line); border-radius: 12px; }
+    .reason-number { display: block; margin-bottom: 30px; color: var(--accent-dark); font-size: 13px; font-weight: 760; }
+    .reason-card strong { display: block; margin-bottom: 7px; }
+    .reason-card p { color: var(--muted); font-size: 14px; }
+    .control-box { margin-top: 22px; padding: 22px; border-radius: 12px; background: var(--accent-soft); }
+    .control-row { display: flex; justify-content: space-between; gap: 20px; padding: 11px 0; border-bottom: 1px solid rgba(8, 115, 178, .14); }
+    .control-row:last-child { border-bottom: 0; }
+    .control-row span { color: var(--muted); }
+    .demo-details { margin-top: 18px; border: 0; }
+    .demo-details summary { min-height: 44px; color: var(--accent-dark); font-size: 14px; }
+    .demo-details p { padding-bottom: 0; font-size: 14px; }
     .example-note { margin-top: 18px; color: var(--muted); font-size: 13px; }
 
     .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; counter-reset: steps; }
@@ -250,8 +276,8 @@
       .hero-grid { grid-template-columns: 1fr; }
       .hero-copy { max-width: 760px; }
       .product-window { width: min(100%, 620px); transform: none; }
-      .before-after { grid-template-columns: 1fr; gap: 16px; }
-      .flow-arrow { transform: rotate(90deg); }
+      .demo-grid { grid-template-columns: 1fr; }
+      .reason-list { grid-template-columns: 1fr; }
       .steps { grid-template-columns: 1fr; gap: 0; }
       .step { min-height: auto; padding-inline: 0; }
       .step::before { margin-bottom: 24px; }
@@ -281,7 +307,12 @@
       .proof-item, .proof-item:first-child, .proof-item:last-child { padding: 20px 0; border-right: 0; border-bottom: 1px solid var(--line); }
       .proof-item:last-child { border-bottom: 0; }
       .section-heading { margin-bottom: 38px; }
-      .flow-card { padding: 24px 20px; }
+      .demo-header { align-items: flex-start; flex-direction: column; gap: 6px; padding: 17px 18px; }
+      .demo-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow: visible; }
+      .demo-tab { min-width: 0; padding-inline: 6px; white-space: normal; }
+      .demo-panel { min-height: 0; padding: 24px 18px; }
+      .post-row { gap: 10px; }
+      .reason-number { margin-bottom: 14px; }
       .capability-main { padding: 28px 22px; }
       .capability-row { padding: 21px 22px; }
       .founder { padding: 30px 22px; }
@@ -375,26 +406,68 @@
           <h2>Лента остаётся в Telegram. Ручной просмотр — нет.</h2>
           <p class="lead">Целевой сценарий: оценивать новые публикации, не пропускать рекламу и сохранять ссылку на оригинальный пост.</p>
         </div>
-        <div class="before-after">
-          <div class="flow-card">
-            <p class="flow-label">В каналах</p>
-            <div class="feed-list">
-              <div class="feed-row"><div><div class="feed-channel">Отраслевые новости</div><div class="feed-kind">важное обновление</div></div><span class="feed-score">проверить</span></div>
-              <div class="feed-row"><div><div class="feed-channel">Авторский блог</div><div class="feed-kind">рекламная интеграция</div></div><span class="feed-score">реклама</span></div>
-              <div class="feed-row"><div><div class="feed-channel">Продуктовый канал</div><div class="feed-kind">практический разбор</div></div><span class="feed-score">проверить</span></div>
-              <div class="feed-row"><div><div class="feed-channel">Новостной канал</div><div class="feed-kind">обычная сводка</div></div><span class="feed-score">ниже порога</span></div>
-            </div>
+        <div class="demo-shell">
+          <div class="demo-header">
+            <strong>Как меняется поток публикаций</strong>
+            <span class="demo-badge">Демонстрация · фильтр в разработке</span>
           </div>
-          <div class="flow-arrow" aria-hidden="true">→</div>
-          <div class="flow-card after">
-            <p class="flow-label">У тебя</p>
-            <div class="feed-list">
-              <div class="feed-row"><div><div class="feed-channel">Отраслевые новости</div><div class="feed-kind">оригинальный пост</div></div><span class="feed-score">важное</span></div>
-              <div class="feed-row"><div><div class="feed-channel">Продуктовый канал</div><div class="feed-kind">оригинальный пост</div></div><span class="feed-score">важное</span></div>
+          <div class="demo-tabs" role="tablist" aria-label="Этапы демонстрации">
+            <button class="demo-tab" id="tab-now" role="tab" aria-selected="true" aria-controls="panel-now">Сейчас</button>
+            <button class="demo-tab" id="tab-filter" role="tab" aria-selected="false" aria-controls="panel-filter" tabindex="-1">Целевой фильтр</button>
+            <button class="demo-tab" id="tab-control" role="tab" aria-selected="false" aria-controls="panel-control" tabindex="-1">Контроль отбора</button>
+          </div>
+          <div aria-live="polite">
+            <div class="demo-panel" id="panel-now" role="tabpanel" aria-labelledby="tab-now">
+              <div class="demo-grid">
+                <div class="demo-column">
+                  <p class="demo-kicker">Уже в production</p>
+                  <h3>Подписки и оригинальные посты</h3>
+                  <p class="demo-intro">Бот принимает список публичных каналов и пересылает новые публикации без изменения контекста.</p>
+                </div>
+                <div class="demo-column post-list">
+                  <div class="post-row"><div><div class="post-source">Отраслевые новости</div><div class="post-text">Новый отчёт о рынке с исходной ссылкой</div></div><span class="post-tag">оригинал</span></div>
+                  <div class="post-row"><div><div class="post-source">Авторский блог</div><div class="post-text">Рекламная интеграция внутри публикации</div></div><span class="post-tag">оригинал</span></div>
+                  <div class="post-row"><div><div class="post-source">Продуктовый канал</div><div class="post-text">Практический разбор запуска</div></div><span class="post-tag">оригинал</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="demo-panel" id="panel-filter" role="tabpanel" aria-labelledby="tab-filter" hidden>
+              <div class="demo-grid">
+                <div class="demo-column">
+                  <p class="demo-kicker">Следующий этап</p>
+                  <div class="post-list">
+                    <div class="post-row"><div><div class="post-source">Отраслевые новости</div><div class="post-text">Существенное изменение правил рынка</div></div><span class="post-tag keep">оставить</span></div>
+                    <div class="post-row"><div><div class="post-source">Авторский блог</div><div class="post-text">Промокод и предложение курса</div></div><span class="post-tag ad">реклама</span></div>
+                    <div class="post-row"><div><div class="post-source">Новостной канал</div><div class="post-text">Повтор обычной ежедневной сводки</div></div><span class="post-tag skip">ниже порога</span></div>
+                    <div class="post-row"><div><div class="post-source">Продуктовый канал</div><div class="post-text">Разбор с конкретными решениями и цифрами</div></div><span class="post-tag keep">оставить</span></div>
+                  </div>
+                </div>
+                <div class="demo-column digest-card">
+                  <p class="demo-kicker">Что получит пользователь</p>
+                  <div class="digest-entry"><strong>Изменились правила рынка</strong><p>Оригинальная публикация и источник остаются доступными.</p><div class="digest-actions"><span class="digest-action">Полезно</span><span class="digest-action">Не то</span><span class="digest-action">Оригинал</span></div></div>
+                  <div class="digest-entry"><strong>Практический разбор запуска</strong><p>Пост прошёл высокий порог важности без пересказа от имени автора.</p><div class="digest-actions"><span class="digest-action">Полезно</span><span class="digest-action">Не то</span><span class="digest-action">Оригинал</span></div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="demo-panel" id="panel-control" role="tabpanel" aria-labelledby="tab-control" hidden>
+              <p class="demo-kicker">Как снизить страх пропустить важное</p>
+              <div class="reason-list">
+                <div class="reason-card"><span class="reason-number">01</span><strong>Показывать причину</strong><p>У каждого выбранного поста будет короткое объяснение оценки.</p></div>
+                <div class="reason-card"><span class="reason-number">02</span><strong>Оставлять оригинал</strong><p>Пользователь всегда может открыть исходный пост и проверить контекст.</p></div>
+                <div class="reason-card"><span class="reason-number">03</span><strong>Не прятать отброшенное</strong><p>Заголовки ниже порога можно будет раскрыть по запросу.</p></div>
+              </div>
+              <div class="control-box">
+                <div class="control-row"><span>Строгость фильтра</span><strong>Высокая</strong></div>
+                <div class="control-row"><span>Доставка</span><strong>Раз в день</strong></div>
+                <div class="control-row"><span>Формат</span><strong>Оригинальные посты</strong></div>
+              </div>
+              <details class="demo-details"><summary>Показать заголовки ниже порога</summary><p>Эта функция запланирована, чтобы пользователь мог проверить, что бот просмотрел, но не переслал.</p></details>
             </div>
           </div>
         </div>
-        <p class="example-note">Это целевой сценарий следующего этапа, а не описание уже работающего фильтра.</p>
+        <p class="example-note">Демонстрация отделяет работающий контур от целевого: вкладка «Сейчас» описывает production, остальные — следующий этап разработки.</p>
       </div>
     </section>
 
@@ -498,5 +571,35 @@
       <div class="footer-links"><a href="#privacy">Приватность</a><a href="#faq">Вопросы</a><a href="https://t.me/pismenny" target="_blank" rel="noopener">Автор</a><a href="https://t.me/bez_sheluhi_bot" target="_blank" rel="noopener">Бот</a></div>
     </div>
   </footer>
+
+  <script>
+    (() => {
+      const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+
+      function activateTab(tab) {
+        tabs.forEach((item) => {
+          const selected = item === tab;
+          item.setAttribute('aria-selected', String(selected));
+          item.tabIndex = selected ? 0 : -1;
+          document.getElementById(item.getAttribute('aria-controls')).hidden = !selected;
+        });
+      }
+
+      tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => activateTab(tab));
+        tab.addEventListener('keydown', (event) => {
+          if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+          event.preventDefault();
+          let nextIndex = index;
+          if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
+          if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
+          if (event.key === 'Home') nextIndex = 0;
+          if (event.key === 'End') nextIndex = tabs.length - 1;
+          activateTab(tabs[nextIndex]);
+          tabs[nextIndex].focus();
+        });
+      });
+    })();
+  </script>
 </body>
 </html>

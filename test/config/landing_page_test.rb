@@ -25,6 +25,19 @@ class LandingPageTest < ActiveSupport::TestCase
     end
   end
 
+  test 'product demo tabs reference accessible panels' do
+    tabs = @document.css('[role="tab"]')
+    panels = @document.css('[role="tabpanel"]')
+
+    assert_equal 3, tabs.size
+    assert_equal 3, panels.size
+    tabs.each do |tab|
+      panel = @document.at_css("##{tab['aria-controls']}")
+      assert panel
+      assert_equal tab['id'], panel['aria-labelledby']
+    end
+  end
+
   private
 
   def meta_content(selector)
