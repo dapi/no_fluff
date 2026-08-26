@@ -13,6 +13,9 @@ test:
 
   # Session encryption key (тестовое значение)
   session_encryption_key: 'test_session_encryption_key_32_chars'
+  active_record_encryption_primary_key: 'test_primary_key_32_characters_1'
+  active_record_encryption_deterministic_key: 'test_deterministic_key_32_chars'
+  active_record_encryption_key_derivation_salt: 'test_derivation_salt_32_characters'
 
   # LLM Configuration
   llm_default_model: 'deepseek-chat'

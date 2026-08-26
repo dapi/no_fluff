@@ -11,7 +11,10 @@ class ApplicationConfig < Anyway::Config
               :deepseek_api_key,
               :telegram_api_id,
               :telegram_api_hash,
-              :session_encryption_key
+              :session_encryption_key,
+              :active_record_encryption_primary_key,
+              :active_record_encryption_deterministic_key,
+              :active_record_encryption_key_derivation_salt
 
   attr_config llm_default_model: 'deepseek-chat',
     host: 'localhost',
@@ -24,6 +27,9 @@ class ApplicationConfig < Anyway::Config
 
   required :bot_token unless Rails.env.test?
   required :telegram_api_id, :telegram_api_hash unless Rails.env.test?
+  required :active_record_encryption_primary_key,
+           :active_record_encryption_deterministic_key,
+           :active_record_encryption_key_derivation_salt unless Rails.env.test?
 
   def home_url
     if home_subdomain.present?
