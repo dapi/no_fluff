@@ -1,0 +1,135 @@
+#!/usr/bin/env python3
+"""Verify the current No Fluff rollout without waiting for old pod cleanup."""
+
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+import time
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+DEPLOYMENTS = ("no-fluff", "no-fluff-job-processing")
+NAMESPACE = "no-fluff-production"
+CONTEXT = "goga-office"
+
+
+def fail(message: str) -> None:
+    print(message, file=sys.stderr)
+    raise SystemExit(1)
+
+
+def kubectl(infra: Path, *arguments: str) -> dict:
+    command = [
+        "direnv",
+        "exec",
+        str(infra),
+        "kubectl",
+        f"--context={CONTEXT}",
+        "-n",
+        NAMESPACE,
+        *arguments,
+        "-o",
+        "json",
+    ]
+    result = subprocess.run(command, capture_output=True, text=True, check=False)
+    if result.returncode != 0:
+        fail(f"kubectl failed: {' '.join(arguments)}")
+    return json.loads(result.stdout)
+
+
+def ready_condition(pod: dict) -> bool:
+    return any(
+        condition.get("type") == "Ready" and condition.get("status") == "True"
+        for condition in pod.get("status", {}).get("conditions", [])
+    )
+
+
+def rollout_ready(infra: Path) -> tuple[bool, list[str]]:
+    deployments = kubectl(infra, "get", "deployments")
+    replica_sets = kubectl(infra, "get", "replicasets")
+    pods = kubectl(infra, "get", "pods")
+    messages: list[str] = []
+    all_ready = True
+
+    deployment_by_name = {
+        item["metadata"]["name"]: item
+        for item in deployments["items"]
+        if item["metadata"]["name"] in DEPLOYMENTS
+    }
+
+    for name in DEPLOYMENTS:
+        deployment = deployment_by_name.get(name)
+        if deployment is None:
+            messages.append(f"{name}: deployment missing")
+            all_ready = False
+            continue
+
+        uid = deployment["metadata"]["uid"]
+        desired = deployment.get("spec", {}).get("replicas", 1)
+        active_sets = [
+            item
+            for item in replica_sets["items"]
+            if item.get("spec", {}).get("replicas", 0) > 0
+            and any(owner.get("uid") == uid for owner in item["metadata"].get("ownerReferences", []))
+        ]
+        if not active_sets:
+            messages.append(f"{name}: active replica set missing")
+            all_ready = False
+            continue
+
+        current_set = max(active_sets, key=lambda item: item["metadata"].get("creationTimestamp", ""))
+        pod_hash = current_set["metadata"]["labels"]["pod-template-hash"]
+        current_pods = [
+            item
+            for item in pods["items"]
+            if item["metadata"].get("labels", {}).get("pod-template-hash") == pod_hash
+            and item["metadata"].get("deletionTimestamp") is None
+        ]
+        ready = sum(ready_condition(item) for item in current_pods)
+        messages.append(f"{name}: {ready}/{desired} current pods ready")
+        all_ready = all_ready and ready >= desired
+
+    return all_ready, messages
+
+
+def wait_for_rollout(infra: Path, timeout: int) -> None:
+    deadline = time.monotonic() + timeout
+    last_messages: list[str] = []
+    while time.monotonic() < deadline:
+        ready, last_messages = rollout_ready(infra)
+        if ready:
+            print("; ".join(last_messages))
+            return
+        time.sleep(3)
+    fail("Rollout did not become ready: " + "; ".join(last_messages))
+
+
+def check_urls(domain: str) -> None:
+    for path in ("/up", "/", "/icon.svg", "/site.webmanifest", "/og-image.png"):
+        url = f"https://{domain}{path}"
+        try:
+            with urllib.request.urlopen(url, timeout=30) as response:
+                if response.status != 200:
+                    fail(f"{url} returned HTTP {response.status}")
+        except (urllib.error.URLError, TimeoutError) as error:
+            fail(f"{url} is unavailable: {error}")
+        print(f"{url}: 200")
+
+
+def main() -> None:
+    infra = Path(os.environ.get("INFRA", "../brandymint/infra")).resolve()
+    domain = os.environ.get("DOMAIN", "no-fluff.brandymint.ru")
+    timeout = int(os.environ.get("VERIFY_TIMEOUT", "180"))
+    if not infra.is_dir():
+        fail(f"INFRA directory not found: {infra}")
+
+    wait_for_rollout(infra, timeout)
+    check_urls(domain)
+
+
+if __name__ == "__main__":
+    main()

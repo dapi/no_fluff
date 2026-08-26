@@ -67,12 +67,6 @@ webhook-info:
 	INFRA=$(INFRA) DOMAIN=$(DOMAIN) uv run --with 'httpx[socks]' python bin/telegram-webhook info
 
 verify:
-	direnv exec $(INFRA) kubectl --context=goga-office -n no-fluff-production \
-		wait --for=condition=Ready pod -l app.kubernetes.io/instance=no-fluff --timeout=180s
-	curl --fail --show-error --silent https://$(DOMAIN)/up >/dev/null
-	curl --fail --show-error --silent https://$(DOMAIN)/ >/dev/null
-	curl --fail --show-error --silent https://$(DOMAIN)/icon.svg >/dev/null
-	curl --fail --show-error --silent https://$(DOMAIN)/site.webmanifest >/dev/null
-	curl --fail --show-error --silent https://$(DOMAIN)/og-image.png >/dev/null
+	INFRA=$(INFRA) DOMAIN=$(DOMAIN) python3 bin/verify-production
 
 deploy: image-push webhook-delete infra-deploy verify
