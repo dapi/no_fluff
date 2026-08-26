@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_08_26_000000) do
+ActiveRecord::Schema[8.0].define(version: 2026_08_26_085000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -302,11 +302,13 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_26_000000) do
     t.datetime "updated_at", null: false
     t.boolean "is_admin", default: false, null: false
     t.jsonb "session_data", default: {}
+    t.bigint "telegram_id"
     t.index ["content_format"], name: "index_telegram_users_on_content_format"
     t.index ["delivery_frequency"], name: "index_telegram_users_on_delivery_frequency"
     t.index ["is_admin"], name: "index_telegram_users_on_is_admin"
     t.index ["is_premium"], name: "index_telegram_users_on_is_premium"
     t.index ["session_data"], name: "index_telegram_users_on_session_data", using: :gin
+    t.index ["telegram_id"], name: "index_telegram_users_on_telegram_id", unique: true
     t.index ["username"], name: "index_telegram_users_on_username", unique: true
   end
 

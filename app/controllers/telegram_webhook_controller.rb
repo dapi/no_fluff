@@ -282,19 +282,7 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
 
   # Находит или создаёт пользователя в БД
   def find_or_create_user
-    user_data = from
-    # Используем username если есть, иначе используем id в качестве username
-    username = user_data['username'] || "user_#{user_data['id']}"
-
-    @current_user ||= TelegramUser.find_or_create_by(username: username) do |user|
-      user.first_name = user_data['first_name']
-      user.last_name = user_data['last_name']
-      user.language_code = user_data['language_code'] || 'ru'
-      user.is_premium = user_data['is_premium'] || false
-      user.is_bot = user_data['is_bot'] || false
-    end
-
-    # Ничего дополнительно обновлять не нужно - telegram_id будет браться из ID записи
+    @current_user ||= TelegramUser.from_telegram(from)
   end
 
   # Возвращает текущего пользователя

@@ -5,10 +5,11 @@ require 'test_helper'
 class Content::DeliverPostsJobTest < ActiveJob::TestCase
   test 'delivers imported MTProto posts as bot messages with source links' do
     user = telegram_users(:one)
+    user.update!(telegram_id: 42)
     post = posts(:one)
     bot = mock('bot')
     bot.expects(:send_message).with do |arguments|
-      arguments[:chat_id] == user.telegram_id &&
+      arguments[:chat_id] == 42 &&
         arguments[:text].include?('MyText') &&
         arguments[:text].include?('https://t.me/test_channel_one/12345')
     end.returns('ok' => true)

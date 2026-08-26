@@ -48,10 +48,11 @@ class TelegramUser < ApplicationRecord
   scope :non_bots, -> { where(is_bot: false) }
   scope :admins, -> { where(is_admin: true) }
 
-  # Используем ID записи как telegram_id для Telegram API
-  alias_attribute :telegram_id, :id
-
   # Instance methods
+  def telegram_id
+    self[:telegram_id] || id
+  end
+
   def can_add_channel?
     is_premium || channels_count < ApplicationConfig.free_channels_limit
   end
@@ -72,5 +73,25 @@ class TelegramUser < ApplicationRecord
   def self.first_admin!
     return admins.first if any_admins?
     nil
+  end
+
+  def self.from_telegram(user_data)
+    telegram_id = user_data['id'].present? ? Integer(user_data['id']) : nil
+    username = user_data['username'].presence || ("user_#{telegram_id}" if telegram_id)
+    raise ArgumentError, 'Telegram username or id is required' if username.blank?
+
+    user = (find_by(telegram_id:) if telegram_id) || find_or_initialize_by(username:)
+    attributes = {
+      username:,
+      first_name: user_data['first_name'],
+      last_name: user_data['last_name'],
+      language_code: user_data['language_code'].presence || 'ru',
+      is_premium: user_data['is_premium'] || false,
+      is_bot: user_data['is_bot'] || false
+    }
+    attributes[:telegram_id] = telegram_id if telegram_id
+    user.assign_attributes(attributes)
+    user.save!
+    user
   end
 end

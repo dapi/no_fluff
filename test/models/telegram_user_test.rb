@@ -49,6 +49,20 @@ class TelegramUserTest < ActiveSupport::TestCase
     assert_equal 'ru', user.language_code
   end
 
+  test 'binds Telegram identity to the existing username record' do
+    existing = telegram_users(:one)
+    user = TelegramUser.from_telegram(
+      'id' => 943_084_337,
+      'username' => existing.username,
+      'first_name' => 'Danil',
+      'language_code' => 'ru'
+    )
+
+    assert_equal existing.id, user.id
+    assert_equal 943_084_337, user.telegram_id
+    assert_equal 'Danil', user.first_name
+  end
+
   # Association tests
   test 'should have all required associations' do
     user = telegram_users(:one)
