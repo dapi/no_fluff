@@ -4,7 +4,7 @@ require 'test_helper'
 
 class ActiveRecordEncryptionTest < ActiveSupport::TestCase
   test 'uses application config credentials for encrypted records' do
-    config = Rails.application.config.active_record.encryption
+    config = ActiveRecord::Encryption.config
 
     assert_equal ApplicationConfig.active_record_encryption_primary_key, config.primary_key
     assert_equal ApplicationConfig.active_record_encryption_deterministic_key, config.deterministic_key
