@@ -6,16 +6,22 @@ class Content::ProcessPostJob < ApplicationJob
     with_error_context(channel_id: channel_id, post_data: post_data, action: 'process_post') do
       channel = Channel.find(channel_id)
 
-      Rails.logger.info "Processing post #{post_data[:telegram_message_id]} from channel #{channel.username}"
+      post = post_data.is_a?(Hash) ? create_post(channel, post_data) : Post.find(post_data)
+      Rails.logger.info "Processing post #{post.telegram_message_id} from channel #{channel.username}"
 
       # Проверяем, может ли бот мониторить канал
-      unless channel.bot_can_monitor?
-        Rails.logger.info "Skipping post processing: bot cannot monitor channel #{channel.username} (status: #{channel.bot_join_status}, active: #{channel.active?})"
+      unless channel.bot_can_monitor? || channel.user_can_monitor?
+        Rails.logger.info "Skipping post processing: channel cannot be monitored #{channel.username}"
         return
       end
 
-      # Создаем пост в БД
-      post = create_post(channel, post_data)
+      # Bot webhook payloads are retained only for backwards-compatible
+      # persistence. The MTProto path below always supplies a persisted post id
+      # and is the sole path that classifies and delivers imported content.
+      return if post_data.is_a?(Hash)
+
+      classify(post) unless post.classified?
+      return unless deliverable?(post)
 
       Rails.logger.info "Created post #{post.id} in database"
 
@@ -37,17 +43,33 @@ class Content::ProcessPostJob < ApplicationJob
   private
 
   def create_post(channel, post_data)
-    channel.posts.create!(
+    channel.posts.create_or_find_by!(telegram_message_id: post_data[:telegram_message_id]) do |post|
+      post.assign_attributes(
       telegram_message_id: post_data[:telegram_message_id],
       text: post_data[:text],
       media_urls: post_data[:media_urls],
       published_at: post_data[:published_at],
       # Устанавливаем базовые значения для полей, которые могут использоваться в будущем
-      importance_score: 50, # средняя важность по умолчанию
+      importance_score: 0,
       is_ad: false,
       is_fluff: false,
       is_duplicate_of: nil
+      )
+    end
+  end
+
+  def classify(post)
+    result = Content::PostClassifier.new.classify(post)
+    post.update!(
+      importance_score: result.fetch(:importance_score),
+      is_important: result.fetch(:deliverable),
+      is_fluff: !result.fetch(:deliverable),
+      classification_data: result.slice(:deliverable, :confidence)
     )
+  end
+
+  def deliverable?(post)
+    post.classified? && post.is_important? && !post.is_ad? && !post.is_fluff?
   end
 
   def schedule_delivery_for_user(user, post)

@@ -76,4 +76,37 @@ class Telegram::UserClientMtprotoTest < ActiveSupport::TestCase
     assert_equal 'Telegram authorization request failed', result[:error]
     assert_equal :network_error, result[:error_type]
   end
+
+  test 'resolves, joins, and reads through a freshly restored encrypted session' do
+    @user.update!(session_string: 'encrypted-session')
+    helper = FakeHelper.new(
+      { success: true, channel: { id: 99, access_hash: 'access-hash', username: 'public_news', title: 'Public news' } },
+      { success: true, channel: { id: 99, access_hash: 'access-hash', username: 'public_news', title: 'Public news' } },
+      { success: true, messages: [ { id: 17, date: '2026-08-26T10:00:00Z', text: 'hello', views: 12, forwards: 2 } ] }
+    )
+    client = Telegram::UserClientMtproto.new(@user, helper:, proxy_url: 'socks5://proxy.example:1080')
+
+    assert_equal 99, client.resolve_channel('@public_news').dig(:channel, :id)
+    assert_equal 'public_news', client.join_channel('public_news').dig(:channel, :username)
+    assert_equal 17, client.read_channel_messages(channel: { id: 99, access_hash: 'access-hash', username: 'public_news' }, after_message_id: 16, after_date: Time.utc(2026, 8, 25), limit: 25).dig(:messages, 0, :id)
+
+    assert_equal %w[resolve_channel join_channel read_channel_messages], helper.requests.map { |request| request[:operation] }
+    helper.requests.each { |request| assert_equal 'encrypted-session', request[:session] }
+    assert_equal({ scheme: 'socks5', host: 'proxy.example', port: 1080 }, helper.requests.first[:proxy])
+    assert_equal '@public_news', helper.requests.first[:username]
+    assert_equal 16, helper.requests.last[:after_message_id]
+    assert_equal '2026-08-25T00:00:00Z', helper.requests.last[:after_date]
+    assert_equal 25, helper.requests.last[:limit]
+  end
+
+  test 'returns sanitized flood wait metadata without helper error text' do
+    helper = FakeHelper.new(success: false, error_type: 'flood_wait', retry_after: 120, error: 'session-string')
+    result = Telegram::UserClientMtproto.new(@user, helper:).join_channel('public_news')
+
+    assert_equal false, result[:success]
+    assert_equal :flood_wait, result[:error_type]
+    assert_equal 120, result[:retry_after]
+    assert_equal 'Telegram channel request failed', result[:error]
+    refute_includes result.to_s, 'session-string'
+  end
 end

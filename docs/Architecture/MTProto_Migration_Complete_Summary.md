@@ -1,4 +1,10 @@
-# Итоговая документация: Миграция на telegram-mtproto-ruby
+# Архив: заявленная миграция на telegram-mtproto-ruby
+
+> Корректировка статуса (2026-08-26): `telegram-mtproto-ruby` больше не
+> используется. Утверждения ниже о production join/read являются историческими
+> и не подтверждают текущую интеграцию. Актуальный Telethon vertical slice
+> подготовлен, но до отдельного production pilot не считается доказанно рабочим:
+> [live-mtproto-vertical-slice.md](live-mtproto-vertical-slice.md).
 
 ## 📋 Обзор
 

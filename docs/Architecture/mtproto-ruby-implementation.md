@@ -1,4 +1,10 @@
-# MTProto-ruby Implementation Details
+# Historical MTProto-ruby implementation notes
+
+> Status correction (2026-08-26): this document describes a removed historical
+> integration and is not evidence that live channel join/read worked. The
+> current Telethon helper vertical slice is documented in
+> [live-mtproto-vertical-slice.md](live-mtproto-vertical-slice.md); it is
+> prepared for a production pilot but has not yet been production-proven.
 
 Документ описывает реализацию User-based подхода для доступа к Telegram через MTProto-ruby библиотеку.
 

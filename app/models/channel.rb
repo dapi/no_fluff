@@ -133,7 +133,7 @@ class Channel < ApplicationRecord
 
   # Follower user access methods (delegates to ChannelAccess concern)
   def user_can_monitor?
-    active? && joined_by_user?
+    active? && user_access_status == 'joined'
   end
 
   def calculate_activity_score
