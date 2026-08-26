@@ -68,10 +68,11 @@ webhook-info:
 
 verify:
 	direnv exec $(INFRA) kubectl --context=goga-office -n no-fluff-production \
-		wait --for=condition=Available deployment/no-fluff --timeout=180s
-	direnv exec $(INFRA) kubectl --context=goga-office -n no-fluff-production \
-		wait --for=condition=Available deployment/no-fluff-job-processing --timeout=180s
-	curl --fail --show-error https://$(DOMAIN)/up
-	$(MAKE) webhook-info
+		wait --for=condition=Ready pod -l app.kubernetes.io/instance=no-fluff --timeout=180s
+	curl --fail --show-error --silent https://$(DOMAIN)/up >/dev/null
+	curl --fail --show-error --silent https://$(DOMAIN)/ >/dev/null
+	curl --fail --show-error --silent https://$(DOMAIN)/icon.svg >/dev/null
+	curl --fail --show-error --silent https://$(DOMAIN)/site.webmanifest >/dev/null
+	curl --fail --show-error --silent https://$(DOMAIN)/og-image.png >/dev/null
 
 deploy: image-push webhook-delete infra-deploy verify
