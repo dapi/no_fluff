@@ -1,2255 +1,502 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>Без Шелухи - AI-дайджестер для Telegram</title>
-    <meta name="description" content="AI-дайджестер фильтрует Telegram-каналы, убирает рекламу и экономит 40 минут в день. Читай из Telegram каналов только важное с ботом @bez_sheluhi_bot.">
-    <meta name="keywords" content="Telegram бот, AI-дайджестер, фильтр новостей, экономия времени, без шелухи, bez_sheluhi_bot">
-
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://nofluff-bot.com/">
-    <meta property="og:title" content="Без Шелухи - AI-дайджестер для Telegram">
-    <meta property="og:description" content="AI-дайджестер экономит 40 минут в день, фильтруя твои Telegram-каналы. Без рекламы и шелухи.">
-    <meta property="og:image" content="https://nofluff-bot.com/og-image.jpg">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:site_name" content="Без Шелухи">
-    <meta property="og:locale" content="ru_RU">
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://nofluff-bot.com/">
-    <meta property="twitter:title" content="Без Шелухи - AI-дайджестер для Telegram">
-    <meta property="twitter:description" content="AI-дайджестер экономит 40 минут в день, фильтруя твои Telegram-каналы. Без рекламы и шелухи.">
-    <meta property="twitter:image" content="https://nofluff-bot.com/og-image.jpg">
-    <meta property="twitter:creator" content="@bez_sheluhi_bot">
-    <meta property="twitter:site" content="@bez_sheluhi_bot">
-
-    <!-- Favicon -->
-    <link rel="icon" href="/favicon.ico" sizes="any">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
-    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#0088cc">
-    <meta name="msapplication-TileColor" content="#0088cc">
-    <meta name="theme-color" content="#667eea">
-
-    <style>
-        /* ----- CSS Variables ----- */
-        :root {
-            --primary: #0066aa;
-            --primary-dark: #005599;
-            --success: #28a745;
-            --dark: #1a202c;
-            --light: #f8f9fa;
-            --text: #2d3748;
-            --text-light: #4a5568;
-            --border: #e2e8f0;
-            --shadow: 0 2px 10px rgba(0,0,0,0.15);
-            --shadow-light: 0 1px 5px rgba(0,0,0,0.08);
-        }
-
-        /* ----- Reset & Base ----- */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            line-height: 1.6;
-            color: var(--text);
-            background: #fff;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-
-        .container {
-            max-width: 480px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        /* ----- Typography ----- */
-        h1 {
-            font-size: clamp(32px, 6vw, 56px);
-            font-weight: 800;
-            line-height: 1.1;
-            margin-bottom: 24px;
-            color: var(--dark);
-        }
-
-        h2 {
-            font-size: 24px;
-            font-weight: 600;
-            line-height: 1.3;
-            margin-bottom: 12px;
-            color: var(--dark);
-        }
-
-        h3 {
-            font-size: 20px;
-            font-weight: 600;
-            line-height: 1.4;
-            margin-bottom: 8px;
-            color: var(--dark);
-        }
-
-        p {
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 16px;
-            color: var(--text);
-        }
-
-        .small {
-            font-size: 14px;
-            color: var(--text-light);
-        }
-
-        /* ----- Buttons ----- */
-        .btn {
-            display: inline-block;
-            padding: 16px 24px;
-            font-size: 17px;
-            font-weight: 600;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-            min-height: 44px;
-            min-width: 44px;
-            white-space: nowrap;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            box-shadow: var(--shadow);
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(0,136,204,0.3);
-        }
-
-        .btn-secondary {
-            background: var(--light);
-            color: var(--text);
-            border: 1px solid var(--border);
-        }
-
-        .btn-secondary:hover {
-            background: #fff;
-            transform: translateY(-1px);
-        }
-
-        .btn-block {
-            display: block;
-            width: 100%;
-        }
-
-        /* ----- Cards ----- */
-        .card {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow-light);
-            border: 1px solid var(--border);
-        }
-
-        /* ----- Sections ----- */
-        .section {
-            padding: 60px 0;
-        }
-
-        .section-title {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        /* ----- Hero Section ----- */
-        .hero {
-            padding: 40px 0 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            text-align: center;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .hero h1 {
-            color: white;
-            margin-bottom: 20px;
-        }
-
-        .hero-subtitle {
-            font-size: 18px;
-            margin-bottom: 32px;
-            opacity: 0.9;
-        }
-
-        .hero-stats {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-            margin: 40px 0;
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: clamp(20px, 4vw, 32px);
-            font-weight: 800;
-            display: block;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-size: 200% 200%;
-            animation: gradientShift 3s ease infinite;
-        }
-
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .stat-label {
-            font-size: 14px;
-            opacity: 0.8;
-        }
-
-        .cta-button {
-            background: white;
-            color: var(--primary);
-            padding: 18px 32px;
-            font-size: 18px;
-            font-weight: 700;
-            border-radius: 30px;
-            text-decoration: none;
-            display: inline-block;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-            min-height: 52px;
-        }
-
-        .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 30px rgba(0,0,0,0.3);
-        }
-
-        /* ----- Problem Section ----- */
-        .problem {
-            background: #f8f9fa;
-        }
-
-        .problem-grid {
-            display: grid;
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .problem-card {
-            text-align: center;
-            padding: 30px 20px;
-        }
-
-        .problem-icon {
-            font-size: 48px;
-            margin-bottom: 20px;
-            display: block;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border-radius: 20px;
-            padding: 16px;
-            width: 80px;
-            height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            box-shadow: var(--shadow);
-        }
-
-        .problem-card h3 {
-            color: var(--primary);
-            font-size: 22px;
-            margin-bottom: 12px;
-            font-weight: 700;
-        }
-
-        .problem-card p {
-            color: var(--text-light);
-            font-size: 15px;
-            margin-bottom: 0;
-            line-height: 1.5;
-        }
-
-        /* ----- How it Works ----- */
-        .steps {
-            position: relative;
-        }
-
-        .step {
-            text-align: center;
-            margin-bottom: 40px;
-            position: relative;
-        }
-
-        .step:not(:last-child)::after {
-            content: '↓';
-            position: absolute;
-            bottom: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 24px;
-            color: var(--primary);
-        }
-
-        .step-number {
-            width: 60px;
-            height: 60px;
-            background: var(--primary);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: 700;
-            margin: 0 auto 20px;
-        }
-
-        .step-icon {
-            font-size: 40px;
-            margin-bottom: 16px;
-            display: block;
-        }
-
-        /* ----- Testimonials ----- */
-        .testimonials {
-            background: #f8f9fa;
-        }
-
-        .testimonial-carousel {
-            position: relative;
-            overflow: hidden;
-            border-radius: 16px;
-        }
-
-        .testimonial-slide {
-            display: none;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .testimonial-slide.active {
-            display: block;
-        }
-
-        .testimonial-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: var(--light);
-            margin: 0 auto 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-        }
-
-        .testimonial-text {
-            font-style: italic;
-            margin-bottom: 16px;
-            font-size: 16px;
-            line-height: 1.6;
-        }
-
-        .testimonial-author {
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .testimonial-role {
-            font-size: 14px;
-            color: var(--text-light);
-        }
-
-        .testimonial-nav {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 20px;
-        }
-
-        .nav-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--border);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .nav-dot.active {
-            background: var(--primary);
-            width: 24px;
-            border-radius: 4px;
-        }
-
-        /* ----- Interactive Demo ----- */
-        .demo-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .demo-scenarios {
-            display: flex;
-            gap: 8px;
-            padding: 20px;
-            background: var(--light);
-            border-bottom: 1px solid var(--border);
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .scenario-btn {
-            padding: 8px 16px;
-            border: none;
-            background: white;
-            border-radius: 20px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid var(--border);
-        }
-
-        .scenario-btn:hover {
-            background: var(--primary);
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .scenario-btn.active {
-            background: var(--primary);
-            color: white;
-            transform: scale(1.05);
-        }
-
-        /* Column headers */
-        .demo-column-headers {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            padding: 20px;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            border-bottom: 2px solid var(--border);
-        }
-
-        .column-header {
-            text-align: center;
-            padding: 20px;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s ease;
-        }
-
-        .column-header:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-        }
-
-        .was-header {
-            color: #dc3545;
-            font-size: 32px;
-            font-weight: 800;
-            margin: 0 0 10px 0;
-            text-shadow: 2px 2px 4px rgba(220, 53, 69, 0.1);
-        }
-
-        .became-header {
-            color: #28a745;
-            font-size: 32px;
-            font-weight: 800;
-            margin: 0 0 10px 0;
-            text-shadow: 2px 2px 4px rgba(40, 167, 69, 0.1);
-        }
-
-        .header-subtitle {
-            margin: 0;
-            font-size: 16px;
-            color: var(--text-light);
-            font-weight: 500;
-        }
-
-        /* Split container for side-by-side view */
-        .demo-split-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            align-items: start;
-            background: #f8f9fa;
-            padding: 20px;
-        }
-
-        .demo-original,
-        .demo-filtered {
-            display: flex;
-            flex-direction: column;
-            height: 600px;
-        }
-
-        /* Authentic Telegram design */
-        .telegram-header {
-            background: #ffffff;
-            color: #1c1e21;
-            padding: 10px 15px;
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid #e9edef;
-            border-radius: 16px 16px 0 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-        }
-
-        .telegram-header.filtered {
-            border-bottom-color: #c8f6c8;
-        }
-
-        .telegram-header-back {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .telegram-header-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #0088cc, #0066aa);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .telegram-header.filtered .telegram-header-icon {
-            background: linear-gradient(135deg, #25d366, #128c7e);
-        }
-
-        .telegram-header-info {
-            flex: 1;
-        }
-
-        .telegram-header h3 {
-            margin: 0;
-            font-size: 17px;
-            font-weight: 600;
-            color: #1c1e21;
-            line-height: 1.2;
-        }
-
-        .telegram-stats {
-            display: flex;
-            gap: 8px;
-            font-size: 11px;
-            color: #8696a0;
-            font-weight: 500;
-        }
-
-        .telegram-chat {
-            flex: 1;
-            background: #efeae2;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 100"><rect width="100%" height="100%" fill="%23efeae2"/><pattern id="p" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="1" fill="%23ffffff" opacity="0.05"/><circle cx="80" cy="80" r="1" fill="%23ffffff" opacity="0.05"/></pattern><rect width="100%" height="100%" fill="url(%23p)"/></pattern>');
-            overflow-y: auto;
-            overflow-x: hidden;
-            border: 1px solid #e9edef;
-            border-top: none;
-            border-radius: 0 0 16px 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .telegram-chat.filtered {
-            background: #e5f5e5;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 100"><rect width="100%" height="100%" fill="%23e5f5e5"/><pattern id="p2" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="1" fill="%2325d366" opacity="0.05"/><circle cx="80" cy="80" r="1" fill="%2325d366" opacity="0.05"/></pattern><rect width="100%" height="100%" fill="url(%23p2)"/></pattern>');
-            border-color: #c8f6c8;
-            overflow-x: hidden;
-        }
-
-        .telegram-chat-messages {
-            flex: 1;
-            background: #e5f5e5;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 100"><rect width="100%" height="100%" fill="%23e5f5e5"/><pattern id="p3" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="1" fill="%2325d366" opacity="0.05"/><circle cx="80" cy="80" r="1" fill="%2325d366" opacity="0.05"/></pattern><rect width="100%" height="100%" fill="url(%23p3)"/></pattern>');
-            overflow-y: auto;
-            overflow-x: hidden;
-            border: 1px solid #c8f6c8;
-            border-top: none;
-            border-radius: 0 0 16px 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            padding: 20px 0;
-        }
-
-        /* Telegram Chats List */
-        .telegram-chats-list {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            background: #ffffff;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .chats-list {
-            flex: 1;
-            background: #ffffff;
-            overflow-y: auto;
-            border-top: none;
-        }
-
-        .chat-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            border-bottom: 1px solid #f0f0f0;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-            position: relative;
-        }
-
-        .chat-item:hover {
-            background-color: #f8f9fa;
-        }
-
-        .chat-item.unread {
-            background-color: #f8f9fa;
-        }
-
-        .chat-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            margin-right: 12px;
-            background: linear-gradient(135deg, #0088cc, #0066aa);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 18px;
-            flex-shrink: 0;
-        }
-
-        .chat-avatar.ad {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-        }
-
-        .chat-avatar.tech {
-            background: linear-gradient(135deg, #4834d4, #686de0);
-        }
-
-        .chat-avatar.news {
-            background: linear-gradient(135deg, #f9ca24, #f0932b);
-        }
-
-        .chat-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .chat-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 4px;
-        }
-
-        .chat-name {
-            font-weight: 600;
-            font-size: 16px;
-            color: #1c1e21;
-        }
-
-        .chat-time {
-            font-size: 12px;
-            color: #8696a0;
-        }
-
-        .chat-message {
-            font-size: 14px;
-            color: #65676b;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .chat-notifications {
-            background: #0088cc;
-            color: white;
-            border-radius: 10px;
-            padding: 2px 6px;
-            font-size: 11px;
-            font-weight: 600;
-            min-width: 18px;
-            text-align: center;
-            margin-left: 8px;
-        }
-
-        .chat-notifications.many {
-            background: #ff3b30;
-        }
-
-        .chat-notifications.ads {
-            background: #ff9500;
-        }
-
-        /* Authentic Telegram messages */
-        .feed-item {
-            margin: 12px 15px;
-            max-width: 85%;
-            animation: slideIn 0.3s ease forwards;
-            opacity: 0;
-            position: relative;
-            box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
-        }
-
-        .feed-item.important {
-            background: #dcf8c6;
-            border-radius: 18px 18px 4px 18px;
-            position: relative;
-        }
-
-        .feed-item.important::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            right: -7px;
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-width: 10px 0 10px 10px;
-            border-color: transparent transparent transparent #dcf8c6;
-        }
-
-        .feed-item.ad {
-            background: #fffacd;
-            opacity: 0.9;
-            border-radius: 18px 18px 4px 18px;
-        }
-
-        .feed-item.ad::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            right: -7px;
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-width: 10px 0 10px 10px;
-            border-color: transparent transparent transparent #fffacd;
-        }
-
-        .feed-item.duplicate {
-            background: #ffe4e1;
-            opacity: 0.8;
-            border-radius: 18px 18px 4px 18px;
-        }
-
-        .feed-item.duplicate::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            right: -7px;
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-width: 10px 0 10px 10px;
-            border-color: transparent transparent transparent #ffe4e1;
-        }
-
-        .feed-item.filtered-out {
-            animation: fadeOut 0.5s ease forwards;
-        }
-
-        .feed-item.highlight {
-            background: #dcf8c6;
-            border: 1px solid #a5d6a7;
-            border-radius: 18px 18px 4px 18px;
-            transform: scale(1.01);
-            box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
-        }
-
-        .feed-item.highlight::after {
-            border-color: transparent transparent transparent #dcf8c6;
-        }
-
-        .feed-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 4px;
-            padding: 10px 14px 2px;
-        }
-
-        .feed-item-channel {
-            font-weight: 600;
-            color: #0088cc;
-            font-size: 13px;
-            text-decoration: none;
-        }
-
-        .feed-item-time {
-            font-size: 11px;
-            color: #667781;
-        }
-
-        .feed-item-content {
-            color: #111b21;
-            line-height: 1.3125;
-            padding: 0 14px 10px;
-            font-size: 15px;
-            word-wrap: break-word;
-        }
-
-        .feed-item-summary {
-            background: rgba(40, 167, 69, 0.08);
-            border-left: 3px solid #25d366;
-            padding: 8px 14px;
-            margin: 6px 14px 10px;
-            border-radius: 0 8px 8px 0;
-            font-style: italic;
-            font-size: 13px;
-            color: #075e54;
-            line-height: 1.3;
-        }
-
-        .feed-item-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 4px 14px 10px;
-            font-size: 11px;
-            color: #667781;
-        }
-
-        .importance-score {
-            background: #25d366;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 10px;
-        }
-
-        .feed-item-reading-time {
-            color: #8696a0;
-            font-size: 11px;
-        }
-
-        .demo-controls {
-            background: #f8f9fa;
-            padding: 20px;
-            text-align: center;
-            border-top: 1px solid var(--border);
-        }
-
-        .demo-feedback p {
-            margin-bottom: 15px;
-            color: var(--text);
-            font-weight: 600;
-        }
-
-        .progress-bar {
-            margin-top: 20px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 25px;
-            overflow: hidden;
-            height: 8px;
-            position: relative;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4caf50, #8bc34a);
-            border-radius: 25px;
-            animation: progressAnimation 3s ease-in-out;
-            width: 0%;
-        }
-
-        .progress-text {
-            color: white;
-            font-size: 12px;
-            margin-top: 10px;
-            display: block;
-        }
-
-        .feedback-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .feedback-btn {
-            padding: 10px 20px;
-            border: 1px solid var(--border);
-            background: white;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 14px;
-        }
-
-        .feedback-btn:hover {
-            background: var(--primary);
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .btn-large {
-            font-size: 14px;
-            padding: 12px 20px;
-            border-radius: 25px;
-            font-weight: 600;
-            box-shadow: 0 4px 16px rgba(0, 102, 170, 0.3);
-            animation: pulse 2s infinite;
-            white-space: nowrap;
-        }
-
-        .progress-bar {
-            margin-top: 20px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 25px;
-            overflow: hidden;
-            height: 8px;
-            position: relative;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4caf50, #8bc34a);
-            border-radius: 25px;
-            animation: progressAnimation 3s ease-in-out;
-            width: 0%;
-        }
-
-        .progress-text {
-            color: white;
-            font-size: 14px;
-            margin-top: 10px;
-            display: block;
-        }
-
-        .demo-feedback {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .demo-feedback p {
-            margin-bottom: 10px;
-            color: var(--text);
-            font-weight: bold;
-        }
-
-        .feedback-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .feedback-btn {
-            padding: 10px 20px;
-            border: 1px solid var(--border);
-            background: white;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 14px;
-        }
-
-        .feedback-btn:hover {
-            background: var(--primary);
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .demo-cta-text {
-            margin-bottom: 15px;
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--primary);
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes fadeOut {
-            from {
-                opacity: 1;
-                transform: scale(1);
-            }
-            to {
-                opacity: 0;
-                transform: scale(0.9);
-            }
-        }
-
-        @keyframes progressAnimation {
-            0% { width: 0%; }
-            100% { width: 100%; }
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        /* ----- Features ----- */
-        .features-grid {
-            display: grid;
-            gap: 20px;
-        }
-
-        .feature {
-            display: flex;
-            align-items: flex-start;
-            gap: 16px;
-            padding: 20px;
-        }
-
-        .feature-icon {
-            font-size: 24px;
-            flex-shrink: 0;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--light);
-            border-radius: 8px;
-        }
-
-        .feature-content h3 {
-            margin-bottom: 8px;
-            font-size: 18px;
-        }
-
-        .feature-content p {
-            margin-bottom: 0;
-            font-size: 15px;
-            color: var(--text-light);
-            line-height: 1.5;
-        }
-
-        /* ----- Floating CTA ----- */
-        .floating-cta {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
-            transform: translateY(150px);
-            transition: all 0.3s ease;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .floating-cta.show {
-            transform: translateY(0);
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .floating-cta .cta-button {
-            padding: 14px 24px;
-            font-size: 16px;
-            min-height: 48px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-            border-radius: 25px;
-        }
-
-        .floating-cta .cta-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
-        }
-
-        /* ----- Final CTA ----- */
-        .final-cta {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            text-align: center;
-        }
-
-        .final-cta h2 {
-            color: white;
-        }
-
-        .final-cta p {
-            color: rgba(255,255,255,0.9);
-        }
-
-        .final-cta .cta-button {
-            background: white;
-            color: var(--primary);
-            margin-top: 20px;
-        }
-
-        /* ----- Footer ----- */
-        .footer {
-            background: var(--dark);
-            color: white;
-            text-align: center;
-            padding: 30px 0;
-        }
-
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .footer-links a {
-            color: rgba(255,255,255,0.8);
-            text-decoration: none;
-            font-size: 14px;
-        }
-
-        .footer-links a:hover {
-            color: white;
-        }
-
-        /* ----- Animations ----- */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .fade-in-up {
-            animation: fadeInUp 0.6s ease-out;
-        }
-
-        /* ----- Responsive Design ----- */
-
-        /* Mobile (default) - 320px to 767px */
-        @media (max-width: 767px) {
-            .container {
-                padding: 0 16px;
-            }
-
-            h1 {
-                font-size: 24px;
-            }
-
-            h2 {
-                font-size: 20px;
-            }
-
-            /* Demo mobile styles - split layout */
-            .demo-column-headers {
-                grid-template-columns: 1fr;
-                gap: 15px;
-                padding: 15px;
-            }
-
-            .column-header {
-                padding: 15px;
-            }
-
-            .was-header,
-            .became-header {
-                font-size: 24px;
-            }
-
-            .header-subtitle {
-                font-size: 14px;
-            }
-
-            .demo-split-container {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto auto;
-                gap: 15px;
-                padding: 15px;
-            }
-
-            .demo-original,
-            .demo-filtered {
-                height: 400px;
-            }
-
-            
-            .telegram-header {
-                padding: 8px 12px;
-                border-radius: 12px 12px 0 0;
-            }
-
-            .telegram-header-icon {
-                width: 28px;
-                height: 28px;
-                font-size: 14px;
-            }
-
-            .telegram-header h3 {
-                font-size: 15px;
-            }
-
-            .telegram-stats {
-                gap: 6px;
-                font-size: 10px;
-            }
-
-            .telegram-chat {
-                height: 320px;
-                border-radius: 0 0 12px 12px;
-            }
-
-            .feed-item {
-                margin: 8px 10px;
-                max-width: 90%;
-            }
-
-            .feed-item-header {
-                padding: 8px 12px 2px;
-            }
-
-            .feed-item-channel {
-                font-size: 12px;
-            }
-
-            .feed-item-content {
-                padding: 0 12px 8px;
-                font-size: 14px;
-            }
-
-            .feed-item-summary {
-                margin: 6px 12px 8px;
-                padding: 6px 12px;
-                font-size: 12px;
-            }
-
-            .scenario-btn {
-                font-size: 12px;
-                padding: 6px 12px;
-            }
-
-            .btn-large {
-                font-size: 12px;
-                padding: 10px 16px;
-            }
-
-            .demo-controls {
-                padding: 15px;
-            }
-
-            .feedback-buttons {
-                gap: 8px;
-            }
-
-            .feedback-btn {
-                padding: 8px 16px;
-                font-size: 12px;
-            }
-
-            .hero {
-                padding: 30px 0 40px;
-                min-height: 90vh;
-            }
-
-            .hero-stats {
-                gap: 30px;
-            }
-
-            .stat-number {
-                font-size: 20px;
-            }
-
-            .step:not(:last-child)::after {
-                font-size: 20px;
-            }
-
-            .section {
-                padding: 40px 0;
-            }
-        }
-
-        /* Tablet - 768px to 1023px */
-        @media (min-width: 768px) {
-            .container {
-                max-width: 768px;
-            }
-
-            h1 {
-                font-size: 32px;
-            }
-
-            h2 {
-                font-size: 28px;
-            }
-
-            .hero-stats {
-                gap: 60px;
-            }
-
-            .stat-number {
-                font-size: 28px;
-            }
-
-            /* Demo tablet styles - split layout */
-            .demo-column-headers {
-                grid-template-columns: 1fr 1fr;
-                gap: 20px;
-                padding: 20px;
-            }
-
-            .column-header {
-                padding: 18px;
-            }
-
-            .was-header,
-            .became-header {
-                font-size: 28px;
-            }
-
-            .demo-split-container {
-                grid-template-columns: 1fr 1fr;
-                gap: 15px;
-                padding: 15px;
-            }
-
-            .demo-original,
-            .demo-filtered {
-                height: 500px;
-            }
-
-            
-            .telegram-header {
-                padding: 10px 16px;
-            }
-
-            .telegram-header-icon {
-                width: 30px;
-                height: 30px;
-                font-size: 15px;
-            }
-
-            .telegram-header h3 {
-                font-size: 16px;
-            }
-
-            .telegram-stats {
-                gap: 8px;
-                font-size: 11px;
-            }
-
-            .telegram-chat {
-                height: 420px;
-            }
-
-            .feed-item {
-                margin: 10px 12px;
-                max-width: 88%;
-            }
-
-            .scenario-btn {
-                font-size: 14px;
-                padding: 8px 16px;
-            }
-
-            .btn-large {
-                font-size: 13px;
-                padding: 11px 18px;
-            }
-
-            .problem-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .features-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        /* Desktop - 1024px and up */
-        @media (min-width: 1024px) {
-            .container {
-                max-width: 1024px;
-            }
-
-            h1 {
-                font-size: 40px;
-            }
-
-            h2 {
-                font-size: 32px;
-            }
-
-            .hero-stats {
-                gap: 80px;
-            }
-
-            .stat-number {
-                font-size: 32px;
-            }
-
-            .problem-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-
-            .features-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-
-            .steps {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 40px;
-            }
-
-            .step:not(:last-child)::after {
-                content: '→';
-                right: -20px;
-                top: 50%;
-                transform: translateY(-50%);
-                bottom: auto;
-                left: auto;
-            }
-
-            .testimonial-slide {
-                padding: 50px;
-            }
-        }
-
-        /* Loading animation */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(0,0,0,.1);
-            border-radius: 50%;
-            border-top-color: var(--primary);
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Smooth scroll behavior */
-        html {
-            scroll-behavior: smooth;
-        }
-
-        /* Focus styles for accessibility */
-        *:focus {
-            outline: 2px solid var(--primary);
-            outline-offset: 2px;
-        }
-
-        /* Button press effect */
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        /* Prevent text selection on buttons */
-        .btn, .cta-button {
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        /* Safe area insets for mobile */
-        .hero {
-            padding-top: env(safe-area-inset-top);
-        }
-
-        .final-cta {
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Без шелухи — открытая бета Telegram-фильтра</title>
+  <meta name="description" content="Бот уже принимает публичные Telegram-каналы и пересылает новые посты. В открытой бете мы добавляем оценку важности и фильтрацию рекламы.">
+  <meta name="theme-color" content="#f7f5f0">
+  <link rel="canonical" href="https://no-fluff.brandymint.ru/">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:title" content="Без шелухи — открытая бета Telegram-фильтра">
+  <meta property="og:description" content="Ранний продукт: подписки и пересылка уже работают, фильтр важности подключаем следующим этапом.">
+  <meta property="og:url" content="https://no-fluff.brandymint.ru/">
+  <meta property="og:image" content="https://no-fluff.brandymint.ru/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Без шелухи — открытая бета Telegram-фильтра">
+  <meta name="twitter:description" content="Ранний продукт: подписки и пересылка уже работают, фильтр важности подключаем следующим этапом.">
+  <meta name="twitter:image" content="https://no-fluff.brandymint.ru/og-image.png">
+  <style>
+    :root {
+      color-scheme: light;
+      --canvas: #f7f5f0;
+      --surface: #ffffff;
+      --surface-soft: #efede7;
+      --ink: #171b21;
+      --muted: #616871;
+      --line: #dcd8cf;
+      --accent: #168acd;
+      --accent-dark: #0873b2;
+      --accent-soft: #e7f4fb;
+      --success: #237a57;
+      --warning: #9a5b18;
+      --max: 1180px;
+      --radius: 14px;
+      --shadow: 0 18px 50px rgba(31, 38, 46, .09);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 17px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    :focus-visible { outline: 3px solid rgba(22, 138, 205, .35); outline-offset: 3px; }
+    .skip-link {
+      position: fixed;
+      left: 16px;
+      top: -60px;
+      z-index: 100;
+      background: var(--ink);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 8px;
+    }
+    .skip-link:focus { top: 16px; }
+    .container { width: min(calc(100% - 40px), var(--max)); margin-inline: auto; }
+    .eyebrow {
+      margin: 0 0 18px;
+      color: var(--accent-dark);
+      font-size: 13px;
+      font-weight: 750;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+    h1, h2, h3, p { text-wrap: pretty; }
+    h1, h2, h3 { margin-top: 0; letter-spacing: -.035em; line-height: 1.05; }
+    h1 { margin-bottom: 24px; font-size: clamp(46px, 6.4vw, 84px); font-weight: 720; }
+    h2 { margin-bottom: 18px; font-size: clamp(34px, 4vw, 56px); font-weight: 680; }
+    h3 { margin-bottom: 10px; font-size: 23px; font-weight: 650; }
+    p { margin: 0; }
+    .lead { color: var(--muted); font-size: clamp(19px, 2vw, 23px); line-height: 1.5; }
+    .muted { color: var(--muted); }
+
+    .site-header {
+      min-height: 78px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid rgba(220, 216, 207, .76);
+    }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 30px; }
+    .brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; font-weight: 740; letter-spacing: -.02em; }
+    .brand-mark {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      place-items: center;
+      border: 1px solid var(--ink);
+      border-radius: 10px;
+      background: var(--ink);
+      color: white;
+      font-size: 14px;
+      letter-spacing: -.05em;
+    }
+    .nav { display: flex; align-items: center; gap: 28px; }
+    .nav a { color: var(--muted); font-size: 15px; font-weight: 600; text-decoration: none; }
+    .nav a:hover { color: var(--ink); }
+    .nav .header-cta { color: white; }
+
+    .button {
+      display: inline-flex;
+      min-height: 50px;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px 20px;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      background: var(--accent);
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.2;
+      text-decoration: none;
+      transition: background-color .15s ease, transform .15s ease;
+    }
+    .button:hover { background: var(--accent-dark); transform: translateY(-1px); }
+    .button-secondary { border-color: var(--line); background: transparent; color: var(--ink); }
+    .button-secondary:hover { background: var(--surface); }
+    .button-small { min-height: 42px; padding: 10px 15px; font-size: 14px; }
+    .plane { width: 18px; height: 18px; fill: currentColor; flex: 0 0 auto; }
+
+    .hero { padding: clamp(64px, 8vw, 120px) 0 100px; }
+    .hero-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(420px, .95fr); align-items: center; gap: clamp(48px, 7vw, 96px); }
+    .hero-copy { max-width: 700px; }
+    .hero h1 span { color: var(--accent-dark); }
+    .hero-actions { display: flex; align-items: center; gap: 12px; margin-top: 34px; flex-wrap: wrap; }
+    .hero-note { margin-top: 17px; color: var(--muted); font-size: 14px; }
+    .beta-line { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; font-size: 14px; font-weight: 650; }
+    .beta-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 5px rgba(35, 122, 87, .12); }
+
+    .product-window {
+      overflow: hidden;
+      border: 1px solid #cfd6dc;
+      border-radius: 22px;
+      background: #e7eef3;
+      box-shadow: var(--shadow);
+      transform: rotate(1.2deg);
+    }
+    .product-bar { display: flex; align-items: center; justify-content: space-between; padding: 15px 18px; background: white; border-bottom: 1px solid #d8e0e6; }
+    .product-identity { display: flex; align-items: center; gap: 10px; }
+    .bot-avatar { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 50%; background: var(--accent); color: white; font-weight: 760; }
+    .bot-name { font-size: 14px; font-weight: 720; line-height: 1.2; }
+    .bot-status { color: var(--muted); font-size: 12px; }
+    .demo-label { color: var(--muted); font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: .08em; }
+    .chat { display: grid; gap: 12px; padding: 28px 24px 32px; }
+    .message { max-width: 90%; padding: 13px 15px; border-radius: 8px 16px 16px 16px; background: white; box-shadow: 0 1px 1px rgba(17, 27, 36, .08); font-size: 14px; line-height: 1.45; }
+    .message-user { justify-self: end; border-radius: 16px 8px 16px 16px; background: #d8f4c8; }
+    .message-title { display: block; margin-bottom: 5px; color: var(--accent-dark); font-size: 13px; font-weight: 750; }
+    .digest-item { display: grid; grid-template-columns: 28px 1fr; gap: 10px; margin-top: 11px; padding-top: 11px; border-top: 1px solid #edf0f2; }
+    .digest-number { color: var(--muted); font-size: 12px; font-weight: 720; }
+    .digest-text { font-size: 13px; }
+    .message-meta { display: block; margin-top: 8px; color: #707a83; font-size: 11px; text-align: right; }
+
+    .proof-strip { border-block: 1px solid var(--line); background: rgba(255, 255, 255, .35); }
+    .proof-grid { display: grid; grid-template-columns: repeat(3, 1fr); }
+    .proof-item { padding: 30px 34px; border-right: 1px solid var(--line); }
+    .proof-item:first-child { padding-left: 0; }
+    .proof-item:last-child { padding-right: 0; border-right: 0; }
+    .proof-kicker { display: block; margin-bottom: 5px; color: var(--muted); font-size: 13px; }
+    .proof-value { font-size: 17px; font-weight: 650; }
+
+    .section { padding: clamp(78px, 10vw, 132px) 0; }
+    .section-heading { max-width: 760px; margin-bottom: 58px; }
+    .section-heading .lead { max-width: 650px; }
+
+    .before-after { display: grid; grid-template-columns: 1fr 72px 1fr; align-items: stretch; }
+    .flow-card { padding: clamp(28px, 4vw, 48px); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+    .flow-card.after { background: var(--ink); color: white; border-color: var(--ink); }
+    .flow-label { margin-bottom: 25px; color: var(--muted); font-size: 13px; font-weight: 750; letter-spacing: .09em; text-transform: uppercase; }
+    .after .flow-label { color: #aab3bd; }
+    .feed-list { display: grid; gap: 12px; }
+    .feed-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+    .after .feed-row { border-color: #343b43; }
+    .feed-row:last-child { padding-bottom: 0; border-bottom: 0; }
+    .feed-channel { font-weight: 650; }
+    .feed-kind { color: var(--muted); font-size: 13px; }
+    .after .feed-kind { color: #aab3bd; }
+    .feed-score { flex: 0 0 auto; color: var(--warning); font-size: 13px; font-weight: 720; }
+    .after .feed-score { color: #75d8a9; }
+    .flow-arrow { display: grid; place-items: center; color: var(--accent); font-size: 30px; }
+    .example-note { margin-top: 18px; color: var(--muted); font-size: 13px; }
+
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; counter-reset: steps; }
+    .step { min-height: 240px; padding: 30px; border-top: 1px solid var(--ink); counter-increment: steps; }
+    .step::before { content: "0" counter(steps); display: block; margin-bottom: 58px; color: var(--accent-dark); font-size: 14px; font-weight: 740; }
+    .step p { color: var(--muted); }
+
+    .beta-section { background: var(--ink); color: white; }
+    .beta-section .eyebrow { color: #78c9f4; }
+    .beta-section .lead { color: #b8c0c9; }
+    .capability-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 22px; }
+    .capability-main, .capability-side { border: 1px solid #343b43; border-radius: var(--radius); }
+    .capability-main { padding: clamp(30px, 5vw, 56px); }
+    .capability-side { display: grid; align-content: start; }
+    .capability-row { padding: 24px 28px; border-bottom: 1px solid #343b43; }
+    .capability-row:last-child { border-bottom: 0; }
+    .capability-row span { display: block; margin-bottom: 4px; color: #83d2fa; font-size: 13px; font-weight: 720; }
+    .capability-row p { color: #bdc4cc; font-size: 15px; }
+    .status-list { display: grid; gap: 18px; margin: 32px 0 0; padding: 0; list-style: none; }
+    .status-list li { display: grid; grid-template-columns: 22px 1fr; gap: 12px; }
+    .check { color: #75d8a9; font-weight: 750; }
+
+    .privacy-grid { display: grid; grid-template-columns: .85fr 1.15fr; gap: clamp(50px, 9vw, 120px); align-items: start; }
+    .privacy-copy { position: sticky; top: 32px; }
+    .privacy-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+    .privacy-list li { padding: 25px 0; border-bottom: 1px solid var(--line); }
+    .privacy-list strong { display: block; margin-bottom: 5px; }
+    .privacy-list span { color: var(--muted); }
+
+    .founder { padding: clamp(40px, 6vw, 74px); border-radius: 18px; background: var(--surface-soft); }
+    .founder-grid { display: grid; grid-template-columns: 150px 1fr; gap: 46px; align-items: start; }
+    .founder-mark { display: grid; width: 126px; height: 126px; place-items: center; border-radius: 50%; background: var(--ink); color: white; font-size: 34px; font-weight: 720; }
+    .founder blockquote { margin: 0 0 26px; font-size: clamp(24px, 3vw, 38px); line-height: 1.23; letter-spacing: -.025em; }
+    .founder-meta { color: var(--muted); font-size: 15px; }
+
+    .faq-grid { display: grid; grid-template-columns: .75fr 1.25fr; gap: clamp(40px, 8vw, 110px); }
+    .faq-list { border-top: 1px solid var(--line); }
+    details { border-bottom: 1px solid var(--line); }
+    summary { display: grid; min-height: 78px; grid-template-columns: 1fr 28px; align-items: center; gap: 20px; cursor: pointer; font-weight: 650; list-style: none; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; color: var(--accent-dark); font-size: 25px; font-weight: 400; text-align: center; transition: transform .15s ease; }
+    details[open] summary::after { transform: rotate(45deg); }
+    details p { max-width: 700px; padding: 0 40px 24px 0; color: var(--muted); }
+
+    .final-cta { padding: clamp(72px, 10vw, 120px) 0; background: var(--accent); color: white; }
+    .final-grid { display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: end; }
+    .final-cta h2 { max-width: 760px; margin-bottom: 0; }
+    .final-cta .button { background: white; color: var(--accent-dark); }
+    .final-cta .button:hover { background: #f4fbff; }
+
+    .site-footer { padding: 35px 0; background: #11151a; color: #9fa8b2; }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 22px; }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { font-size: 14px; text-decoration: none; }
+    .footer-links a:hover { color: white; }
+
+    @media (max-width: 900px) {
+      .nav a:not(.header-cta) { display: none; }
+      .hero-grid { grid-template-columns: 1fr; }
+      .hero-copy { max-width: 760px; }
+      .product-window { width: min(100%, 620px); transform: none; }
+      .before-after { grid-template-columns: 1fr; gap: 16px; }
+      .flow-arrow { transform: rotate(90deg); }
+      .steps { grid-template-columns: 1fr; gap: 0; }
+      .step { min-height: auto; padding-inline: 0; }
+      .step::before { margin-bottom: 24px; }
+      .capability-grid, .privacy-grid, .faq-grid { grid-template-columns: 1fr; }
+      .privacy-copy { position: static; }
+      .final-grid { grid-template-columns: 1fr; align-items: start; }
+    }
+
+    @media (max-width: 640px) {
+      body { font-size: 16px; }
+      .container { width: min(calc(100% - 30px), var(--max)); }
+      .site-header { min-height: 68px; }
+      .brand-mark { width: 34px; height: 34px; }
+      .brand-name { font-size: 15px; }
+      .header-cta { min-height: 40px; padding: 9px 12px; }
+      .header-cta .button-label { display: none; }
+      .hero { padding: 58px 0 72px; }
+      h1 { font-size: clamp(43px, 13vw, 60px); }
+      .lead { font-size: 18px; }
+      .hero-actions { align-items: stretch; flex-direction: column; }
+      .hero-actions .button { width: 100%; }
+      .product-window { border-radius: 16px; }
+      .product-bar { padding: 12px 14px; }
+      .chat { padding: 20px 14px 24px; }
+      .message { max-width: 96%; }
+      .proof-grid { grid-template-columns: 1fr; }
+      .proof-item, .proof-item:first-child, .proof-item:last-child { padding: 20px 0; border-right: 0; border-bottom: 1px solid var(--line); }
+      .proof-item:last-child { border-bottom: 0; }
+      .section-heading { margin-bottom: 38px; }
+      .flow-card { padding: 24px 20px; }
+      .capability-main { padding: 28px 22px; }
+      .capability-row { padding: 21px 22px; }
+      .founder { padding: 30px 22px; }
+      .founder-grid { grid-template-columns: 1fr; gap: 25px; }
+      .founder-mark { width: 82px; height: 82px; font-size: 24px; }
+      .final-cta .button { width: 100%; }
+      .footer-inner { align-items: flex-start; flex-direction: column; }
+      .footer-links { flex-wrap: wrap; gap: 14px 22px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
 </head>
 <body>
-    <!-- Hero Section -->
-    <section class="hero" id="home">
-        <div class="container">
-            <div class="fade-in-up">
-                <h1>Читай из Telegram каналов<br>только важное</h1>
-                <p class="hero-subtitle">AI-ассистент экономит 40 минут в день,<br>фильтруя рекламу и "шелуху"</p>
+  <a class="skip-link" href="#main">К содержанию</a>
 
-                <div class="hero-stats">
-                    <div class="stat-item">
-                        <span class="stat-number" id="usersCount">1,247</span>
-                        <span class="stat-label">активных пользователей</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number" id="timeSaved">42 мин</span>
-                        <span class="stat-label">средняя экономия</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number" id="postsFiltered">87.4K</span>
-                        <span class="stat-label">постов отфильтровано</span>
-                    </div>
-                </div>
-
-                <a href="https://t.me/bez_sheluhi_bot" class="cta-button" id="mainCTA">
-                    🤖 Попробовать бесплатно
-                </a>
-
-                <div class="urgency-banner" style="background: rgba(255,215,0,0.2); border: 1px solid rgba(255,215,0,0.3); border-radius: 12px; padding: 12px 20px; margin-top: 20px; text-align: center; animation: pulse 2s infinite;">
-                <span style="font-size: 15px; font-weight: 600; color: #fff;">⚡ Ограниченное предложение: первые 100 пользователей получают PRO-доступ навсегда</span>
-            </div>
-
-            <div class="trust-badges" style="display: flex; justify-content: center; gap: 16px; margin-top: 24px; flex-wrap: wrap;">
-                <div class="trust-badge" style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 8px 16px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                    🔒 Защищено GDPR
-                </div>
-                <div class="trust-badge" style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 8px 16px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                    🤖 На базе GPT-4
-                </div>
-                <div class="trust-badge" style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 8px 16px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                    📈 95% точность
-                </div>
-            </div>
-
-            <style>
-                @keyframes pulse {
-                    0% { box-shadow: 0 0 0 0 rgba(255,215,0,0.4); }
-                    70% { box-shadow: 0 0 0 10px rgba(255,215,0,0); }
-                    100% { box-shadow: 0 0 0 0 rgba(255,215,0,0); }
-                }
-            </style>
-
-            <p style="margin-top: 24px; font-size: 14px; opacity: 0.9;">
-                До 10 каналов бесплатно • Без рекламы • Без привязки карты
-            </p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Problem Section -->
-    <section class="section problem" id="problem">
-        <div class="container">
-            <div class="section-title fade-in-up">
-                <h2>Устал от информационного шума?</h2>
-                <p>Ты не один. Большинство профессионалов сталкиваются с этой проблемой ежедневно</p>
-            </div>
-
-            <div class="problem-grid">
-                <div class="card problem-card fade-in-up">
-                    <span class="problem-icon">📱</span>
-                    <h3>Куча непрочитанных</h3>
-                    <p>Сотни сообщений в каналах каждый день</p>
-                </div>
-
-                <div class="card problem-card fade-in-up">
-                    <span class="problem-icon">⏰</span>
-                    <h3>Весь вечер</h3>
-                    <p>Уходит на просмотр и фильтрацию контента</p>
-                </div>
-
-                <div class="card problem-card fade-in-up">
-                    <span class="problem-icon">😩</span>
-                    <h3>FOMO синдром</h3>
-                    <p>Страх пропустить что-то важное</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- How it Works Section -->
-    <section class="section" id="how-it-works">
-        <div class="container">
-            <div class="section-title fade-in-up">
-                <h2>Как это работает?</h2>
-                <p>Начни экономить время за 3 простых шага</p>
-            </div>
-
-            <div class="steps">
-                <div class="step fade-in-up">
-                    <div class="step-number">1</div>
-                    <span class="step-icon">📱</span>
-                    <h3>Добавь каналы</h3>
-                    <p>Отправь ссылки на 5-10 Telegram каналов, которые читаешь сейчас</p>
-                </div>
-
-                <div class="step fade-in-up">
-                    <div class="step-number">2</div>
-                    <span class="step-icon">🤖</span>
-                    <h3>AI анализирует 24/7</h3>
-                    <p>Нейросеть фильтрует рекламу, дубликаты и оставляет только важное</p>
-                </div>
-
-                <div class="step fade-in-up">
-                    <div class="step-number">3</div>
-                    <span class="step-icon">⚡</span>
-                    <h3>Получай дайджест</h3>
-                    <p>3-5 самых важных постов в удобное время одним сообщением</p>
-                </div>
-            </div>
-
-            <div style="text-align: center; margin-top: 40px;">
-                <a href="https://t.me/bez_sheluhi_bot" class="btn btn-primary btn-block">
-                    🚀 Начать использовать
-                </a>
-            </div>
-        </div>
-    </section>
-
-    
-    <!-- Features Section -->
-    <section class="section" id="features">
-        <div class="container">
-            <div class="section-title fade-in-up">
-                <h2>Что умеет бот "Без Шелухи"?</h2>
-                <p>Интеллектуальная фильтрация на основе AI</p>
-            </div>
-
-            <div class="features-grid">
-                <div class="feature fade-in-up">
-                    <div class="feature-icon">🎯</div>
-                    <div class="feature-content">
-                        <h3>Умная фильтрация</h3>
-                        <p>AI определяет важность каждого поста и убирает рекламу</p>
-                    </div>
-                </div>
-
-                <div class="feature fade-in-up">
-                    <div class="feature-icon">🔄</div>
-                    <div class="feature-content">
-                        <h3>Удаление дубликатов</h3>
-                        <p>Одна и та же новость из разных каналов придет один раз</p>
-                    </div>
-                </div>
-
-                <div class="feature fade-in-up">
-                    <div class="feature-icon">⏰</div>
-                    <div class="feature-content">
-                        <h3>Удобное время</h3>
-                        <p>Настройте когда получать дайджест: утром, вечером или сразу</p>
-                    </div>
-                </div>
-
-                <div class="feature fade-in-up">
-                    <div class="feature-icon">📊</div>
-                    <div class="feature-content">
-                        <h3>Статистика</h3>
-                        <p>Смотрите сколько времени сэкономили и сколько постов отфильтровано</p>
-                    </div>
-                </div>
-
-                <div class="feature fade-in-up">
-                    <div class="feature-icon">🧠</div>
-                    <div class="feature-content">
-                        <h3>Обучение на предпочтениях</h3>
-                        <p>Бот учится на ваших лайках/дизлайках и становится точнее</p>
-                    </div>
-                </div>
-
-                <div class="feature fade-in-up">
-                    <div class="feature-icon">🔒</div>
-                    <div class="feature-content">
-                        <h3>Приватность</h3>
-                        <p>Ваши данные защищены. Мы не храним содержимое личных чатов</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Testimonials Section -->
-    <section class="section testimonials" id="testimonials">
-        <div class="container">
-            <div class="section-title fade-in-up">
-                <h2>Что говорят пользователи?</h2>
-                <p>Реальные отзывы от профессионалов</p>
-            </div>
-
-            <div class="testimonial-carousel">
-                <div class="testimonial-slide active">
-                    <div class="testimonial-avatar">💻</div>
-                    <div class="testimonial-text">
-                        "Экономлю 45 минут в день! Теперь читаю только 3 ключевые новости из 50+ каналов. За месяц сэкономлено ~22 часа. Бот стал незаменимым помощником для работы."
-                    </div>
-                    <div class="testimonial-author">Алексей К.</div>
-                    <div class="testimonial-role">Senior Developer, FinTech компания</div>
-                    <div class="testimonial-results">
-                        <span class="result">📊 Экономия: 22ч/мес</span>
-                        <span class="result">⚡ Эффективность: +35%</span>
-                    </div>
-                </div>
-
-                <div class="testimonial-slide">
-                    <div class="testimonial-avatar">👔</div>
-                    <div class="testimonial-text">
-                        "Отслеживаю 100+ постов в день, бот выдает 3-4 действительно важных. Время на анализ новостей сократилось с 1.5 до 15 минут. Качество контента значительно выросло."
-                    </div>
-                    <div class="testimonial-author">Мария В.</div>
-                    <div class="testimonial-role">Founder, EdTech стартап</div>
-                    <div class="testimonial-results">
-                        <span class="result">⏱ Экономия: 1ч 35мин/день</span>
-                        <span class="result">🎯 Точность: 94%</span>
-                    </div>
-                </div>
-
-                <div class="testimonial-slide">
-                    <div class="testimonial-avatar">📈</div>
-                    <div class="testimonial-text">
-                        "Бот отсекает 90% рекламы и дубликатов. Теперь я вижу только тренды и инсайты, которые реально влияют на бизнес. Принимаю стратегические решения на 2 дня быстрее."
-                    </div>
-                    <div class="testimonial-author">Дмитрий С.</div>
-                    <div class="testimonial-role">Product Manager, SaaS компания</div>
-                    <div class="testimonial-results">
-                        <span class="result">🎯 Скорость решений: +40%</span>
-                        <span class="result">📈 ROI: +127%</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="testimonial-nav">
-                <span class="nav-dot active" onclick="showTestimonial(0)"></span>
-                <span class="nav-dot" onclick="showTestimonial(1)"></span>
-                <span class="nav-dot" onclick="showTestimonial(2)"></span>
-            </div>
-        </div>
-    </section>
-
-    <!-- FAQ Section -->
-    <section class="section" id="faq" style="background: #f8f9fa;">
-        <div class="container">
-            <div class="section-title fade-in-up">
-                <h2>Часто задаваемые вопросы</h2>
-                <p>Ответы на главные сомнения о безопасности и эффективности</p>
-            </div>
-
-            <div class="faq-list" style="max-width: 700px; margin: 0 auto;">
-                <div class="faq-item card fade-in-up" style="margin-bottom: 16px; cursor: pointer;" onclick="toggleFAQ(this)">
-                    <div class="faq-question" style="display: flex; justify-content: space-between; align-items: center; padding: 20px;">
-                        <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: var(--dark);">🔒 Безопасно ли передавать доступ к каналам?</h3>
-                        <span class="faq-toggle" style="font-size: 20px; transition: transform 0.3s;">+</span>
-                    </div>
-                    <div class="faq-answer" style="padding: 0 20px 20px; display: none; color: var(--text-light); line-height: 1.6;">
-                        <p>Абсолютно безопасно! Бот работает в read-only режиме и имеет доступ только к public постам. Никаких личных сообщений, приватных чатов или данных не затрагивается.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item card fade-in-up" style="margin-bottom: 16px; cursor: pointer;" onclick="toggleFAQ(this)">
-                    <div class="faq-question" style="display: flex; justify-content: space-between; align-items: center; padding: 20px;">
-                        <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: var(--dark);">🎯 Насколько точно AI определяет важное?</h3>
-                        <span class="faq-toggle" style="font-size: 20px; transition: transform 0.3s;">+</span>
-                    </div>
-                    <div class="faq-answer" style="padding: 0 20px 20px; display: none; color: var(--text-light); line-height: 1.6;">
-                        <p>Точность составляет 95% на основе обучения на 100K+ примеров. Бот постоянно улучшается благодаря обратной связи от пользователей и адаптируется под ваши предпочтения.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item card fade-in-up" style="margin-bottom: 16px; cursor: pointer;" onclick="toggleFAQ(this)">
-                    <div class="faq-question" style="display: flex; justify-content: space-between; align-items: center; padding: 20px;">
-                        <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: var(--dark);">⚡ Сложно ли настроить бота?</h3>
-                        <span class="faq-toggle" style="font-size: 20px; transition: transform 0.3s;">+</span>
-                    </div>
-                    <div class="faq-answer" style="padding: 0 20px 20px; display: none; color: var(--text-light); line-height: 1.6;">
-                        <p>Настройка занимает всего 2 минуты! Просто отправьте ссылки на 5-10 каналов, выберите удобное время получения дайджеста и все готово. Никаких сложных настроек не требуется.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item card fade-in-up" style="margin-bottom: 16px; cursor: pointer;" onclick="toggleFAQ(this)">
-                    <div class="faq-question" style="display: flex; justify-content: space-between; align-items: center; padding: 20px;">
-                        <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: var(--dark);">💰 Что входит в бесплатную версию?</h3>
-                        <span class="faq-toggle" style="font-size: 20px; transition: transform 0.3s;">+</span>
-                    </div>
-                    <div class="faq-answer" style="padding: 0 20px 20px; display: none; color: var(--text-light); line-height: 1.6;">
-                        <p>Бесплатно можно подключить до 10 каналов и получать неограниченное количество дайджестов. Все основные функции фильтрации и персонализации доступны бесплатно.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item card fade-in-up" style="margin-bottom: 16px; cursor: pointer;" onclick="toggleFAQ(this)">
-                    <div class="faq-question" style="display: flex; justify-content: space-between; align-items: center; padding: 20px;">
-                        <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: var(--dark);">🔄 Можно ли отказаться от подписки?</h3>
-                        <span class="faq-toggle" style="font-size: 20px; transition: transform 0.3s;">+</span>
-                    </div>
-                    <div class="faq-answer" style="padding: 0 20px 20px; display: none; color: var(--text-light); line-height: 1.6;">
-                        <p>Да, вы можете остановить использование бота в любой момент без каких-либо комиссий или сложных процедур. Никаких привязок к картам не требуется.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item card fade-in-up" style="margin-bottom: 16px; cursor: pointer;" onclick="toggleFAQ(this)">
-                    <div class="faq-question" style="display: flex; justify-content: space-between; align-items: center; padding: 20px;">
-                        <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: var(--dark);">⏱️ Откуда бот знает сколько времени я сэкономил?</h3>
-                        <span class="faq-toggle" style="font-size: 20px; transition: transform 0.3s;">+</span>
-                    </div>
-                    <div class="faq-answer" style="padding: 0 20px 20px; display: none; color: var(--text-light); line-height: 1.6;">
-                        <p>Бот рассчитывает время на основе проверенных метрик чтения:</p>
-                        <ul style="margin: 10px 0; padding-left: 20px;">
-                            <li><strong>Отфильтрованные посты:</strong> 30 секунд на чтение обычного поста</li>
-                            <li><strong>Реклама и шелуха:</strong> 15 секунд на распознавание и пропуск</li>
-                            <li><strong>Дубликаты:</strong> 10 секунд на определение повтора</li>
-                        </ul>
-                        <p>📊 <strong>Пример расчета:</strong> Из 50 постов в день бот отфильтровал 35 (ушло бы ~17 минут) + 10 рекламы (~2.5 минуты) + 5 дубликатов (~0.5 минуты) = <strong>экономия ~20 минут ежедневно</strong>.</p>
-                        <p>🎯 Формула: <code>(отфильтрованные × 30с) + (реклама × 15с) + (дубликаты × 10с) = сэкономленное время</code></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <style>
-        .faq-item {
-            transition: all 0.3s ease;
-        }
-
-        .faq-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }
-
-        .faq-answer {
-            max-height: 0;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .faq-answer.show {
-            max-height: 500px;
-            padding: 0 20px 20px !important;
-            display: block !important;
-        }
-
-        .faq-toggle.rotate {
-            transform: rotate(45deg);
-        }
-    </style>
-
-    <script>
-        function toggleFAQ(element) {
-            const answer = element.querySelector('.faq-answer');
-            const toggle = element.querySelector('.faq-toggle');
-
-            // Закрываем другие открытые вопросы
-            document.querySelectorAll('.faq-answer.show').forEach(item => {
-                if (item !== answer) {
-                    item.classList.remove('show');
-                    item.closest('.faq-item').querySelector('.faq-toggle').classList.remove('rotate');
-                }
-            });
-
-            // Открываем/закрываем текущий вопрос
-            answer.classList.toggle('show');
-            toggle.classList.toggle('rotate');
-        }
-    </script>
-
-    
-                    tech: {
-                name: "IT и стартапы",
-                feeds: [
-                    { type: "important", channel: "TechCrunch", content: "OpenAI представила GPT-5 с возможностью обработки видео в реальном времени", time: "10:30", importance: 95 },
-                    { type: "ad", channel: "DevNews", content: "🚀 АКЦИЯ! Купите наш курс по React Native со скидкой 80% только сегодня!", time: "11:15", importance: 0 },
-                    { type: "important", channel: "Startup Digest", content: "Яндекс запустил новый AI сервис для автоматической обработки документов", time: "12:00", importance: 88 },
-                    { type: "duplicate", channel: "Tech Daily", content: "OpenAI представила GPT-5 с возможностью обработки видео в реальном времени", time: "12:45", importance: 0 },
-                    { type: "ad", channel: "Code Masters", content: "Подписывайтесь на наш Telegram канал @codemasters_pro", time: "13:20", importance: 0 },
-                    { type: "important", channel: "AI News", content: "GitHub Copilot теперь поддерживает 50+ языков программирования с точностью 94%", time: "14:30", importance: 82 },
-                    { type: "ad", channel: "Marketing Hub", content: "📊 Специалисты по SMM ждут вас! Запишитесь на бесплатную консультацию", time: "15:00", importance: 0 },
-                    { type: "important", channel: "Dev Weekly", content: "Вышел новый фреймворк Next.js 15 с улучшенной производительностью на 40%", time: "16:15", importance: 79 }
-                ],
-                filtered: [
-                    { channel: "TechCrunch", content: "OpenAI представила GPT-5 с возможностью обработки видео в реальном времени", summary: "Новая модель AI может анализировать видеопоток в реальном времени, открывая возможности для автоматического мониторинга и анализа событий.", importance: 95, time: "2 мин" },
-                    { channel: "Startup Digest", content: "Яндекс запустил новый AI сервис для автоматической обработки документов", summary: "Сервис использует нейросети для извлечения данных из документов с точностью 98%, сокращает время обработки на 80%.", importance: 88, time: "3 мин" },
-                    { channel: "AI News", content: "GitHub Copilot теперь поддерживает 50+ языков программирования с точностью 94%", summary: "Расширение поддержки языков включает Rust, Go, Kotlin и другие популярные языки для разработки.", importance: 82, time: "2 мин" }
-                ]
-            },
-            marketing: {
-                name: "Маркетинг",
-                feeds: [
-                    { type: "important", channel: "Marketing News", content: "Google анонсировал новые правила для рекламных кампаний 2024", time: "09:15", importance: 92 },
-                    { type: "ad", channel: "SMM Guru", content: "🎯 Успейте купить гайд по TikTok маркетингу! Осталось 3 дня!", time: "10:00", importance: 0 },
-                    { type: "important", channel: "Digital Trends", content: "Facebook запустил AI инструменты для создания рекламных креативов", time: "11:30", importance: 85 },
-                    { type: "ad", channel: "Ads Expert", content: "Запишитесь на бесплатный вебинар по настройке контекстной рекламы", time: "12:15", importance: 0 },
-                    { type: "important", channel: "Analytics Pro", content: " Яндекс.Метрика добавила предиктивную аналитику для прогнозирования конверсии", time: "14:00", importance: 87 },
-                    { type: "duplicate", channel: "Marketing Hub", content: "Facebook запустил AI инструменты для создания рекламных креативов", time: "14:45", importance: 0 },
-                    { type: "ad", channel: "Growth Hacking", content: "🚀 Наши кейсы по росту подписчиков уже доступны! Скидка 50%!", time: "15:30", importance: 0 }
-                ],
-                filtered: [
-                    { channel: "Marketing News", content: "Google анонсировал новые правила для рекламных кампаний 2024", summary: "Изменения касаются персонализации рекламы, privacy policies и требований к transparency. Ввод с 1 марта.", importance: 92, time: "3 мин" },
-                    { channel: "Digital Trends", content: "Facebook запустил AI инструменты для создания рекламных креативов", summary: "AI автоматически генерирует тексты, изображения и видео для рекламы на основе бренда и ЦА.", importance: 85, time: "2 мин" },
-                    { channel: "Analytics Pro", content: " Яндекс.Метрика добавила предиктивную аналитику для прогнозирования конверсии", summary: "Новые функции используют машинное обучение для прогнозирования конверсии с точностью 89%.", importance: 87, time: "2 мин" }
-                ]
-            },
-            business: {
-                name: "Бизнес",
-                feeds: [
-                    { type: "important", channel: "Business Daily", content: "Центробанк снизил ключевую ставку до 15%", time: "09:00", importance: 93 },
-                    { type: "ad", channel: "Business Coach", content: "📈 Индивидуальные консультации по развитию бизнеса! Запишитесь сейчас!", time: "09:45", importance: 0 },
-                    { type: "important", channel: "Finance News", content: "Сбер инвестирует 50 млрд рублей в развитие AI технологий", time: "11:00", importance: 88 },
-                    { type: "ad", channel: "Startup Academy", content: "🎓 Обучающий курс по запуску стартапа с нуля! Места ограничены!", time: "12:30", importance: 0 },
-                    { type: "important", channel: "Economy Today", content: "Росстат: рост экономики России составил 3.6% в III квартале", time: "14:15", importance: 84 },
-                    { type: "important", channel: "Investment Digest", content: "Венчурный фонд привлечет $200 млн для инвестиций в российские стартапы", time: "15:45", importance: 81 },
-                    { type: "ad", channel: "Business Tools", content: "🔧 Пользуйтесь нашим CRM-системой! Первый месяц бесплатно!", time: "16:30", importance: 0 },
-                    { type: "duplicate", channel: "Finance Weekly", content: "Сбер инвестирует 50 млрд рублей в развитие AI технологий", time: "17:00", importance: 0 }
-                ],
-                filtered: [
-                    { channel: "Business Daily", content: "Центробанк снизил ключевую ставку до 15%", summary: "Решение принято на фоне замедления инфляции до 7.5%. Следующее заседание через 6 недель.", importance: 93, time: "2 мин" },
-                    { channel: "Finance News", content: "Сбер инвестирует 50 млрд рублей в развитие AI технологий", summary: "Инвестиции направлены на разработку отечественных AI решений для банковского сектора и ритейла.", importance: 88, time: "3 мин" },
-                    { channel: "Investment Digest", content: "Венчурный фонд привлечет $200 млн для инвестиций в российские стартапы", summary: "Фокус на B2B SaaS, финтех и AI проекты. Минимальная инвестиция $1 млн.", importance: 81, time: "2 мин" }
-                ]
-            }
-        };
-
-  
-  
-      </script>
-
-    <!-- Final CTA Section -->
-    <section class="section final-cta" id="final-cta">
-        <div class="container">
-            <div class="fade-in-up">
-                <h2>Готов вернуть себе время?</h2>
-                <p>Присоединяйтесь к 500+ профессионалов, которые уже экономят до 40 минут ежедневно</p>
-
-                <a href="https://t.me/bez_sheluhi_bot" class="cta-button" id="finalCTA">
-                    🤖 Добавить в Telegram
-                </a>
-
-                <p style="margin-top: 20px;">
-                    <strong>Бесплатно до 10 каналов</strong><br>
-                    <span style="font-size: 14px; opacity: 0.8;">
-                        Никакой рекламы, привязки карты или сложной настройки
-                    </span>
-                </p>
-
-                <div style="margin-top: 30px; font-size: 14px; opacity: 0.8;">
-                    <p>🚀 Начало работы за 2 минуты</p>
-                    <p>📱 Работает на всех устройствах</p>
-                    <p>🔒 Полная конфиденциальность</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Floating CTA Button -->
-    <div class="floating-cta" id="floatingCTA">
-        <a href="https://t.me/bez_sheluhi_bot" class="cta-button">
-            🤖 Попробовать
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#top" aria-label="Без шелухи — наверх">
+        <span class="brand-mark" aria-hidden="true">БШ</span>
+        <span class="brand-name">Без шелухи</span>
+      </a>
+      <nav class="nav" aria-label="Основная навигация">
+        <a href="#how">Как работает</a>
+        <a href="#beta">Что в бете</a>
+        <a href="#privacy">Приватность</a>
+        <a class="button button-small header-cta" href="https://t.me/bez_sheluhi_bot?start=landing" target="_blank" rel="noopener" aria-label="Открыть бота Без шелухи в Telegram">
+          <svg class="plane" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.7 3.2 18.5 19c-.2 1.1-.8 1.4-1.7.9l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.2 12.8l-4.8-1.5c-1-.3-1-1 .2-1.5L20.4 2.6c.9-.3 1.6.2 1.3.6Z"/></svg>
+          <span class="button-label">Открыть бота</span>
         </a>
+      </nav>
     </div>
+  </header>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-links">
-                <a href="#how-it-works">Как работает</a>
-                <a href="#features">Функции</a>
-                <a href="https://t.me/bez_sheluhi_bot">Поддержка</a>
-            </div>
-            <p style="font-size: 14px; opacity: 0.8;">
-                © 2024 Без Шелухи. Сделано с ❤️ для экономии вашего времени
-            </p>
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <div class="beta-line"><span class="beta-dot" aria-hidden="true"></span>Ранний продукт · открытая бета</div>
+          <h1>Помоги отделить важное <span>от Telegram-ленты.</span></h1>
+          <p class="lead">Бот уже принимает публичные каналы и пересылает новые посты. Сейчас мы подключаем оценку важности и отсев рекламы — без выдуманных цифр и обещаний.</p>
+          <div class="hero-actions">
+            <a class="button" href="https://t.me/bez_sheluhi_bot?start=landing" target="_blank" rel="noopener">
+              <svg class="plane" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.7 3.2 18.5 19c-.2 1.1-.8 1.4-1.7.9l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.2 12.8l-4.8-1.5c-1-.3-1-1 .2-1.5L20.4 2.6c.9-.3 1.6.2 1.3.6Z"/></svg>
+              Войти в раннюю бету
+            </a>
+            <a class="button button-secondary" href="#example">Посмотреть пример</a>
+          </div>
+          <p class="hero-note">До 10 публичных каналов бесплатно · карта не нужна · фильтр ещё в разработке</p>
         </div>
-    </footer>
 
-    <script>
-        // ----- Testimonial carousel -----
-        let currentTestimonial = 0;
-        const testimonials = document.querySelectorAll('.testimonial-slide');
-        const dots = document.querySelectorAll('.nav-dot');
+        <div class="product-window" aria-label="Пример диалога с ботом">
+          <div class="product-bar">
+            <div class="product-identity">
+              <div class="bot-avatar" aria-hidden="true">БШ</div>
+              <div><div class="bot-name">Без шелухи</div><div class="bot-status">бот</div></div>
+            </div>
+            <span class="demo-label">Целевой сценарий</span>
+          </div>
+          <div class="chat">
+            <div class="message message-user">Добавь @channel_one, @channel_two и @channel_three<span class="message-meta">09:02</span></div>
+            <div class="message">Каналы добавлены. Новые публикации буду пересылать в этот чат.<span class="message-meta">09:02</span></div>
+            <div class="message">
+              <span class="message-title">Следующий этап беты</span>
+              Учим бот не пересылать всё подряд.
+              <div class="digest-item"><span class="digest-number">01</span><span class="digest-text">Оценивать важность публикации</span></div>
+              <div class="digest-item"><span class="digest-number">02</span><span class="digest-text">Отсекать рекламные сообщения</span></div>
+              <div class="digest-item"><span class="digest-number">03</span><span class="digest-text">Учитывать выбранный порог</span></div>
+              <span class="message-meta">09:00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-        function showTestimonial(index) {
-            testimonials.forEach(slide => slide.classList.remove('active'));
-            dots.forEach(dot => dot.classList.remove('active'));
+    <section class="proof-strip" aria-label="Условия беты">
+      <div class="container proof-grid">
+        <div class="proof-item"><span class="proof-kicker">Уже работает</span><span class="proof-value">Подписки на публичные каналы</span></div>
+        <div class="proof-item"><span class="proof-kicker">Уже работает</span><span class="proof-value">Пересылка оригинальных постов</span></div>
+        <div class="proof-item"><span class="proof-kicker">Следующий этап</span><span class="proof-value">Важность и отсев рекламы</span></div>
+      </div>
+    </section>
 
-            testimonials[index].classList.add('active');
-            dots[index].classList.add('active');
-            currentTestimonial = index;
-        }
+    <section class="section" id="example">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">Что строим</p>
+          <h2>Лента остаётся в Telegram. Ручной просмотр — нет.</h2>
+          <p class="lead">Целевой сценарий: оценивать новые публикации, не пропускать рекламу и сохранять ссылку на оригинальный пост.</p>
+        </div>
+        <div class="before-after">
+          <div class="flow-card">
+            <p class="flow-label">В каналах</p>
+            <div class="feed-list">
+              <div class="feed-row"><div><div class="feed-channel">Отраслевые новости</div><div class="feed-kind">важное обновление</div></div><span class="feed-score">проверить</span></div>
+              <div class="feed-row"><div><div class="feed-channel">Авторский блог</div><div class="feed-kind">рекламная интеграция</div></div><span class="feed-score">реклама</span></div>
+              <div class="feed-row"><div><div class="feed-channel">Продуктовый канал</div><div class="feed-kind">практический разбор</div></div><span class="feed-score">проверить</span></div>
+              <div class="feed-row"><div><div class="feed-channel">Новостной канал</div><div class="feed-kind">обычная сводка</div></div><span class="feed-score">ниже порога</span></div>
+            </div>
+          </div>
+          <div class="flow-arrow" aria-hidden="true">→</div>
+          <div class="flow-card after">
+            <p class="flow-label">У тебя</p>
+            <div class="feed-list">
+              <div class="feed-row"><div><div class="feed-channel">Отраслевые новости</div><div class="feed-kind">оригинальный пост</div></div><span class="feed-score">важное</span></div>
+              <div class="feed-row"><div><div class="feed-channel">Продуктовый канал</div><div class="feed-kind">оригинальный пост</div></div><span class="feed-score">важное</span></div>
+            </div>
+          </div>
+        </div>
+        <p class="example-note">Это целевой сценарий следующего этапа, а не описание уже работающего фильтра.</p>
+      </div>
+    </section>
 
-        // Auto-rotate testimonials
-        setInterval(() => {
-            currentTestimonial = (currentTestimonial + 1) % testimonials.length;
-            showTestimonial(currentTestimonial);
-        }, 5000);
+    <section class="section" id="how">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">Как работает</p>
+          <h2>Три шага ранней беты</h2>
+        </div>
+        <div class="steps">
+          <article class="step"><h3>Отправь каналы</h3><p>Пришли боту ссылки или имена публичных каналов. Можно отправить несколько сразу.</p></article>
+          <article class="step"><h3>Проверь пересылку</h3><p>Сейчас бот сохраняет подписки и пересылает новые оригинальные посты.</p></article>
+          <article class="step"><h3>Помоги настроить фильтр</h3><p>Следующий этап — важность, реклама и применение выбранного порога.</p></article>
+        </div>
+      </div>
+    </section>
 
-        // ----- Intersection Observer for animations -----
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
+    <section class="section beta-section" id="beta">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">Статус продукта</p>
+          <h2>Что уже работает. Что ещё нет.</h2>
+          <p class="lead">Страница не выдаёт roadmap за готовый продукт. Базовый контур запущен; фильтрация и персонализация идут следом.</p>
+        </div>
+        <div class="capability-grid">
+          <div class="capability-main">
+            <h3>Основной сценарий</h3>
+            <ul class="status-list">
+              <li><span class="check">✓</span><span>Добавление и удаление публичных каналов через Telegram</span></li>
+              <li><span class="check">✓</span><span>Получение и пересылка оригинальных постов</span></li>
+              <li><span class="check">✓</span><span>Сохранение пользовательских настроек</span></li>
+              <li><span class="check">✓</span><span>Бесплатный лимит до 10 каналов</span></li>
+            </ul>
+          </div>
+          <div class="capability-side">
+            <div class="capability-row"><span>В разработке</span><p>Оценка важности и фильтрация рекламы</p></div>
+            <div class="capability-row"><span>Следом</span><p>Применение порога и расписания доставки</p></div>
+            <div class="capability-row"><span>Позже</span><p>Саммари, персонализация и доказуемая статистика</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '0';
-                    entry.target.style.transform = 'translateY(30px)';
+    <section class="section" id="privacy">
+      <div class="container privacy-grid">
+        <div class="privacy-copy">
+          <p class="eyebrow">Приватность</p>
+          <h2>Бот не просит доступ к твоим личным чатам.</h2>
+          <p class="lead">Сценарий ограничен публикациями каналов, которые ты сам добавил.</p>
+        </div>
+        <ul class="privacy-list">
+          <li><strong>Что обрабатывается</strong><span>Публичные посты добавленных каналов и настройки фильтрации.</span></li>
+          <li><strong>Что не читается</strong><span>Личные сообщения, группы и другие диалоги твоего аккаунта.</span></li>
+          <li><strong>Что хранится</strong><span>Подписки, настройки и технические данные, нужные для доставки результата.</span></li>
+          <li><strong>Как остановить</strong><span>Канал можно удалить из бота в любой момент. Запрос на удаление данных можно отправить автору.</span></li>
+        </ul>
+      </div>
+    </section>
 
-                    setTimeout(() => {
-                        entry.target.style.transition = 'all 0.6s ease-out';
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                    }, 100);
+    <section class="section">
+      <div class="container founder">
+        <div class="founder-grid">
+          <div class="founder-mark" aria-hidden="true">ДП</div>
+          <div>
+            <blockquote>«Я сделал “Без шелухи”, потому что Telegram стал рабочим источником информации, но читать его целиком уже невозможно.»</blockquote>
+            <p class="founder-meta">Данил Письменный · автор продукта · открытая бета</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, observerOptions);
+    <section class="section" id="faq">
+      <div class="container faq-grid">
+        <div>
+          <p class="eyebrow">Вопросы</p>
+          <h2>До того, как добавить каналы</h2>
+        </div>
+        <div class="faq-list">
+          <details><summary>Какие каналы можно добавить?</summary><p>Сейчас продукт рассчитан на публичные Telegram-каналы. Отправь боту ссылку вида t.me/channelname или имя @channelname.</p></details>
+          <details><summary>Что значит «важное»?</summary><p>Это как раз предмет текущей беты. Мы добавляем оценку публикаций и проверяем, как выбранный порог должен влиять на пересылку.</p></details>
+          <details><summary>Бот уже фильтрует посты?</summary><p>Пока нет. Текущий production-контур принимает подписки и пересылает оригинальные публикации. Фильтрация важности и рекламы — следующий этап.</p></details>
+          <details><summary>Сколько это стоит?</summary><p>В бете можно добавить до 10 публичных каналов бесплатно. Банковская карта для старта не нужна.</p></details>
+        </div>
+      </div>
+    </section>
 
-        // Observe all elements with fade-in-up class
-        document.querySelectorAll('.fade-in-up').forEach(el => {
-            observer.observe(el);
-        });
+    <section class="final-cta">
+      <div class="container final-grid">
+        <h2>Готов к раннему продукту? Добавь каналы и помоги настроить фильтр.</h2>
+        <a class="button" href="https://t.me/bez_sheluhi_bot?start=landing" target="_blank" rel="noopener">
+          <svg class="plane" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.7 3.2 18.5 19c-.2 1.1-.8 1.4-1.7.9l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.2 12.8l-4.8-1.5c-1-.3-1-1 .2-1.5L20.4 2.6c.9-.3 1.6.2 1.3.6Z"/></svg>
+          Открыть бота
+        </a>
+      </div>
+    </section>
+  </main>
 
-        // ----- Counter animation for stats -----
-        function animateCounter(element, target, duration = 2000) {
-            const start = 0;
-            const increment = target / (duration / 16);
-            let current = start;
-
-            const timer = setInterval(() => {
-                current += increment;
-                if (current >= target) {
-                    current = target;
-                    clearInterval(timer);
-                }
-
-                if (element.id === 'usersCount') {
-                    element.textContent = Math.floor(current) + '+';
-                } else if (element.id === 'postsFiltered') {
-                    element.textContent = Math.floor(current) < 1000
-                        ? Math.floor(current)
-                        : (current / 1000).toFixed(0) + 'K+';
-                } else {
-                    element.textContent = Math.floor(current) + ' мин';
-                }
-            }, 16);
-        }
-
-        // ----- Animate counters when they come into view -----
-        const counters = [
-            { id: 'usersCount', target: 1247 },
-            { id: 'timeSaved', target: 42 },
-            { id: 'postsFiltered', target: 87400 }
-        ];
-
-        const counterObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting && !entry.target.dataset.animated) {
-                    const counterData = counters.find(c => c.id === entry.target.id);
-                    if (counterData) {
-                        animateCounter(entry.target, counterData.target);
-                        entry.target.dataset.animated = 'true';
-                    }
-                }
-            });
-        }, { threshold: 0.5 });
-
-        counters.forEach(counter => {
-            const element = document.getElementById(counter.id);
-            if (element) {
-                counterObserver.observe(element);
-            }
-        });
-
-        // ----- CTA button interactions -----
-        document.querySelectorAll('.cta-button, .btn-primary').forEach(button => {
-            button.addEventListener('click', function(e) {
-                // Add ripple effect
-                const ripple = document.createElement('span');
-                const rect = this.getBoundingClientRect();
-                const size = Math.max(rect.width, rect.height);
-                const x = e.clientX - rect.left - size / 2;
-                const y = e.clientY - rect.top - size / 2;
-
-                ripple.style.cssText = `
-                    position: absolute;
-                    width: ${size}px;
-                    height: ${size}px;
-                    border-radius: 50%;
-                    background: rgba(255,255,255,0.5);
-                    left: ${x}px;
-                    top: ${y}px;
-                    pointer-events: none;
-                    transform: scale(0);
-                    animation: ripple 0.6s ease-out;
-                `;
-
-                this.style.position = 'relative';
-                this.style.overflow = 'hidden';
-                this.appendChild(ripple);
-
-                setTimeout(() => ripple.remove(), 600);
-            });
-        });
-
-        // Add ripple animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes ripple {
-                to {
-                    transform: scale(4);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-
-        // ----- Mobile optimizations -----
-        // Prevent zoom on input focus (iOS Safari)
-        document.addEventListener('touchstart', function(e) {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-                document.querySelector('meta[name="viewport"]').setAttribute('content',
-                    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
-            }
-        });
-
-        document.addEventListener('touchend', function(e) {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-                setTimeout(() => {
-                    document.querySelector('meta[name="viewport"]').setAttribute('content',
-                        'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
-                }, 100);
-            }
-        });
-
-        // ----- Performance optimization -----
-        // Lazy load images if any are added later
-        if ('IntersectionObserver' in window) {
-            const imageObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const img = entry.target;
-                        if (img.dataset.src) {
-                            img.src = img.dataset.src;
-                            img.removeAttribute('data-src');
-                        }
-                        imageObserver.unobserve(img);
-                    }
-                });
-            });
-
-            document.querySelectorAll('img[data-src]').forEach(img => {
-                imageObserver.observe(img);
-            });
-        }
-
-        // ----- Analytics tracking (placeholder) -----
-        function trackEvent(eventName, properties = {}) {
-            // Replace with your analytics implementation
-            console.log('Analytics event:', eventName, properties);
-
-            // Example for Google Analytics 4:
-            if (typeof gtag !== 'undefined') {
-                gtag('event', eventName, properties);
-            }
-        }
-
-        // Track CTA clicks
-        document.querySelectorAll('.cta-button, .btn-primary').forEach(button => {
-            button.addEventListener('click', function() {
-                trackEvent('cta_click', {
-                    button_text: this.textContent.trim(),
-                    button_location: this.id || 'unknown'
-                });
-            });
-        });
-
-        // Track testimonial views
-        document.querySelectorAll('.testimonial-slide').forEach((slide, index) => {
-            const testimonialObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting && !entry.target.dataset.viewed) {
-                        trackEvent('testimonial_view', { testimonial_index: index });
-                        entry.target.dataset.viewed = 'true';
-                    }
-                });
-            }, { threshold: 0.8 });
-
-            testimonialObserver.observe(slide);
-        });
-
-        // ----- Error handling -----
-        window.addEventListener('error', function(e) {
-            console.error('JavaScript error:', e.error);
-            trackEvent('javascript_error', {
-                message: e.message,
-                filename: e.filename,
-                lineno: e.lineno,
-                colno: e.colno
-            });
-        });
-
-        // ----- Floating CTA Logic -----
-        let lastScrollTop = 0;
-        const floatingCTA = document.getElementById('floatingCTA');
-        const heroSection = document.getElementById('home');
-
-        function handleScroll() {
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            const heroHeight = heroSection.offsetHeight;
-
-            // Show floating CTA after scrolling past hero section
-            if (scrollTop > heroHeight / 2) {
-                floatingCTA.classList.add('show');
-            } else {
-                floatingCTA.classList.remove('show');
-            }
-
-            lastScrollTop = scrollTop;
-        }
-
-        window.addEventListener('scroll', handleScroll);
-        handleScroll(); // Initial check
-
-        // ----- Smooth scroll for navigation links -----
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-
-        // Console welcome message
-        console.log('%c🤖 Без Шелухи - AI-дайджестер для Telegram!', 'font-size: 16px; font-weight: bold; color: #0066aa;');
-        console.log('%cЭкономим время профессионалов с 2024 года', 'font-size: 12px; color: #4a5568;');
-        console.log('%c✅ Ребрендинг выполнен успешно!', 'font-size: 14px; color: #28a745;');
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span>© 2026 Без шелухи</span>
+      <div class="footer-links"><a href="#privacy">Приватность</a><a href="#faq">Вопросы</a><a href="https://t.me/pismenny" target="_blank" rel="noopener">Автор</a><a href="https://t.me/bez_sheluhi_bot" target="_blank" rel="noopener">Бот</a></div>
+    </div>
+  </footer>
 </body>
 </html>
