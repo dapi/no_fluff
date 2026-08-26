@@ -4,7 +4,7 @@
 
 [Спецификация 055](../Specs/055_Production_Mtproto_Delivery_Specification.md)
 
-## Статус: implemented
+## Статус: delivered
 
 ### Этап 1: Durable delivery ledger — RED-GREEN-REFACTOR
 
@@ -32,3 +32,4 @@
 - [x] 4.2 Запустить полный Rails suite, RuboCop, Brakeman и linux/amd64 Docker build.
 - [x] 4.3 Fetch/rebase `main`, проверить intended diff, commit и push.
 - [x] 4.4 Подготовить handoff parent agent для deploy/live verification; статус `delivered` не устанавливать до этого шага.
+- [x] 4.5 Развернуть immutable image на `goga-office` и проверить add → initial sync → recurring sync → ledger dedupe в production.

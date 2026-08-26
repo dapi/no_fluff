@@ -49,3 +49,7 @@ Channels::MtprotoChannelSyncJob.perform_later(
 ```
 
 Do not treat this one pilot as evidence for pool scaling, private-channel access, or long-term rate-limit behavior. Those remain separate gates.
+
+## Durable recurring delivery evidence — 2026-08-26
+
+Production image `188ee98d6230eb08fd8f4fb201cb8b48fa823341` adds a database-unique `Delivery` ledger, five-minute recurring MTProto synchronization, and the MTProto-backed public-channel add path used by the bot. A live `@problemhunt` add returned the localized success response, queued and completed initial sync, then completed the scheduler-driven recurring sync. Post count and ledger count both remained five, proving that the repeated pass produced neither duplicate posts nor duplicate deliveries; ready and failed queues were empty afterward.

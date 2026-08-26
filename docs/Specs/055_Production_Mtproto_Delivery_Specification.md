@@ -3,7 +3,7 @@
 ## Мета информация
 
 - **Номер:** 055
-- **Статус:** implemented
+- **Статус:** delivered
 - **Приоритет:** P0
 - **Связанные спецификации:** 003, 046, 051
 
@@ -47,15 +47,16 @@ Recurring task вызывает `Channels::RecurringMtprotoChannelSyncJob` в о
 
 ## Внедрение
 
-Изменение подготовлено к деплою, но деплой и live verification выполняются отдельно владельцем production. Поэтому статус остаётся `implemented`, а не `delivered`.
+Изменение развёрнуто на `goga-office` образом `188ee98d6230eb08fd8f4fb201cb8b48fa823341`. Live verification подтвердил Bot API add для `@problemhunt`, initial и recurring MTProto sync, отсутствие новых постов/доставок при повторном проходе и пустые ready/failed очереди.
 
-## Статус: implemented
+## Статус: delivered
 
 ## История workflow
 
 - 2026-08-26: `approved` → `in_progress` после явного approval пользователя.
 - 2026-08-26: `in_progress` → `testing` после завершения трёх RED-GREEN-REFACTOR срезов.
 - 2026-08-26: `testing` → `implemented` после полного test/lint/security/build набора.
+- 2026-08-26: `implemented` → `delivered` после rollout и production E2E.
 
 ## Связанные документы
 
