@@ -9,7 +9,11 @@ module Content
     TEXT
 
     def classify(post)
-      response = RubyLLM.chat.with_instructions(INSTRUCTIONS).ask(post.text.to_s)
+      response = RubyLLM.chat(
+        model: ApplicationConfig.llm_default_model,
+        provider: :deepseek,
+        assume_model_exists: true
+      ).with_instructions(INSTRUCTIONS).ask(post.text.to_s)
       data = JSON.parse(response.content).symbolize_keys
       {
         deliverable: ActiveModel::Type::Boolean.new.cast(data.fetch(:deliverable)),
