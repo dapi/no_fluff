@@ -14,6 +14,32 @@
 2. Создается социальная сеть через которую продвигаются интересные каналы на
    схожую тематику.
 
+## Локальная разработка через Dip
+
+Канонический локальный контур работает в Docker через
+[Dip](https://github.com/bibendi/dip). `mise` фиксирует версии Ruby, Node.js и
+Yarn на хосте, но Rails, PostgreSQL и тесты запускаются через Dip.
+
+```bash
+# Первый запуск или обновление зависимостей и баз
+dip provision
+
+# Полный тестовый набор
+dip test
+
+# Rails и инфраструктура
+dip rails s
+dip console
+dip jobs
+dip bot
+dip psql
+dip down
+```
+
+`dip provision` собирает dev-образ, поднимает PostgreSQL 17, устанавливает gems
+и Yarn-зависимости и выполняет `rails db:prepare`. `dip test` самостоятельно
+готовит test-базы перед запуском `rails test`.
+
 ## Переменные окружения
 
 Все переменные окружения имеют префикс `NO_FLUFF_`.
