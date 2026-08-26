@@ -1,61 +1,74 @@
-SEMVER_BIN=./bin/semver
-SEMVER=`${SEMVER_BIN}`
+INFRA ?= ../brandymint/infra
+STAGE ?= goga-infra
+APP ?= no_fluff
+DOMAIN ?= no-fluff.brandymint.ru
+REGISTRY ?= registry.brandymint.ru
+IMAGE := $(REGISTRY)/dapi/no_fluff
+TAG ?= $(shell git rev-parse HEAD)
+OCI_ARCHIVE := tmp/no-fluff-$(TAG).oci.tar
 
-# Default target
-release: patch-release 
+.PHONY: help provision test up down image-build image-push deploy-diff infra-deploy webhook-set webhook-info verify deploy
 
-patch-release-and-deploy: patch-release watch deploy sleep infra-watch
+help:
+	@echo "No Fluff"
+	@echo ""
+	@echo "Local:"
+	@echo "  make provision"
+	@echo "  make test"
+	@echo "  make up"
+	@echo "  make down"
+	@echo ""
+	@echo "Production (goga-office):"
+	@echo "  make image-build"
+	@echo "  make image-push"
+	@echo "  make deploy-diff"
+	@echo "  make deploy"
+	@echo "  make verify"
+	@echo "  make webhook-info"
 
-minor:
-	@${SEMVER_BIN} inc minor
+provision:
+	mise exec -- dip provision
 
-patch:
-	@${SEMVER_BIN} inc patch
-
-bump-patch: patch push-semver
-bump-minor: minor push-semver
-
-push-semver:
-	@echo "Increment version to ${SEMVER}"
-	@git add .semver
-	@git commit -m ${SEMVER}
-	@git push
-
-patch-release: bump-patch push-release
-minor-release: bump-minor push-release
-
-push-release:
-	@gh release create ${SEMVER} --generate-notes
-	@git pull --tags
-
-.PHONY: test
 test:
-	./bin/rails db:test:prepare test test:system
+	mise exec -- dip test
 
 up:
-	./bin/dev
+	mise exec -- dip rails s
 
-clean:
-	rm -fr tmp/postgres_data/
-	dropuser -h localhost -U postgres 
+down:
+	mise exec -- dip down
 
-create_user:
-	createuser -h localhost -U postgres -s
+image-build: test
+	@mkdir -p tmp
+	@rm -f $(OCI_ARCHIVE)
+	docker buildx build \
+		--platform linux/amd64 \
+		--output type=oci,dest=$(OCI_ARCHIVE) \
+		-t $(IMAGE):$(TAG) .
+	@echo "Built $(OCI_ARCHIVE)"
 
-deps:
-	brew install terminal-notifier
-	brew install oven-sh/bun/bun
-	bundle install
+image-push: image-build
+	direnv exec $(INFRA) $(INFRA)/scripts/publish-oci-to-goga-registry.sh \
+		$(OCI_ARCHIVE) $(IMAGE):$(TAG)
 
-watch:
-	@${GH} run watch ${LATEST_RUN_ID}
+deploy-diff:
+	direnv exec $(INFRA) $(MAKE) -C $(INFRA) app-diff STAGE=$(STAGE) APP=$(APP)
 
-infra-watch:
-	@${INFRA_GH} run watch ${LATEST_INFRA_RUN_ID}
+infra-deploy:
+	direnv exec $(INFRA) $(MAKE) -C $(INFRA) app-update STAGE=$(STAGE) APP=$(APP) TAG=$(TAG)
 
-infra-view:
-	@${INFRA_GH} run view ${LATEST_INFRA_RUN_ID} --log-failed
+webhook-set:
+	INFRA=$(INFRA) DOMAIN=$(DOMAIN) ./bin/telegram-webhook set
 
-list:
-	@${INFRA_GH} run list --workflow=${WORKFLOW} -L 3 -e workflow_dispatch
+webhook-info:
+	INFRA=$(INFRA) DOMAIN=$(DOMAIN) ./bin/telegram-webhook info
 
+verify:
+	direnv exec $(INFRA) kubectl --context=goga-office -n no-fluff-production \
+		rollout status deployment/no-fluff --timeout=180s
+	direnv exec $(INFRA) kubectl --context=goga-office -n no-fluff-production \
+		rollout status deployment/no-fluff-job-processing --timeout=180s
+	curl --fail --show-error https://$(DOMAIN)/up
+	$(MAKE) webhook-info
+
+deploy: image-push infra-deploy webhook-set verify

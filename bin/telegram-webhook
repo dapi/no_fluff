@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly action="${1:-}"
+readonly infra="${INFRA:-../brandymint/infra}"
+readonly domain="${DOMAIN:-no-fluff.brandymint.ru}"
+readonly namespace="no-fluff-production"
+
+[[ "$action" == "set" || "$action" == "info" ]] || {
+  echo "Usage: $0 <set|info>" >&2
+  exit 2
+}
+[[ "$domain" =~ ^[a-z0-9.-]+$ ]] || { echo "Invalid DOMAIN" >&2; exit 2; }
+[[ -d "$infra" ]] || { echo "INFRA directory not found: $infra" >&2; exit 1; }
+
+kubectl_cmd=(direnv exec "$infra" kubectl --context=goga-office -n "$namespace")
+
+if [[ "$action" == "set" ]]; then
+  # The quoted script is evaluated inside the production pod, not locally.
+  # shellcheck disable=SC2016
+  "${kubectl_cmd[@]}" exec deployment/no-fluff -c ror -- env WEBHOOK_DOMAIN="$domain" /bin/bash -lc '
+    set -euo pipefail
+    token="${NO_FLUFF_BOT_TOKEN:?NO_FLUFF_BOT_TOKEN is missing}"
+    hash="$(ruby -ropenssl -rbase64 -e '\''print Base64.urlsafe_encode64(OpenSSL::Digest::SHA1.digest(ENV.fetch("NO_FLUFF_BOT_TOKEN")), padding: false)'\'')"
+    webhook_url="https://${WEBHOOK_DOMAIN}/telegram/${hash}"
+    response="$(curl --fail --silent --show-error \
+      --request POST "https://api.telegram.org/bot${token}/setWebhook" \
+      --data-urlencode "url=${webhook_url}" \
+      --data-urlencode "drop_pending_updates=false")"
+    RESPONSE="$response" WEBHOOK_URL="$webhook_url" ruby -rjson -e '\''
+      data = JSON.parse(ENV.fetch("RESPONSE"))
+      abort(data.fetch("description", "setWebhook failed")) unless data["ok"]
+      puts JSON.generate(ok: true, url: ENV.fetch("WEBHOOK_URL"), description: data["description"])
+    '\''
+  '
+else
+  # The quoted script is evaluated inside the production pod, not locally.
+  # shellcheck disable=SC2016
+  "${kubectl_cmd[@]}" exec deployment/no-fluff -c ror -- /bin/bash -lc '
+    set -euo pipefail
+    token="${NO_FLUFF_BOT_TOKEN:?NO_FLUFF_BOT_TOKEN is missing}"
+    response="$(curl --fail --silent --show-error "https://api.telegram.org/bot${token}/getWebhookInfo")"
+    RESPONSE="$response" ruby -rjson -e '\''
+      data = JSON.parse(ENV.fetch("RESPONSE"))
+      abort(data.fetch("description", "getWebhookInfo failed")) unless data["ok"]
+      result = data.fetch("result")
+      puts JSON.pretty_generate(
+        ok: true,
+        url: result["url"],
+        pending_update_count: result["pending_update_count"],
+        last_error_date: result["last_error_date"],
+        last_error_message: result["last_error_message"],
+        max_connections: result["max_connections"]
+      )
+    '\''
+  '
+fi
