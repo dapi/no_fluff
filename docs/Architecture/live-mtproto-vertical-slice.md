@@ -1,16 +1,34 @@
 # Live MTProto channel vertical slice
 
-## Status: prepared, not production-proven
+## Status: production-proven
 
-The application-owned pilot path is `Channels::MtprotoChannelSyncJob`. It restores the encrypted `FollowerUser` StringSession for each Telethon request, uses the configured SOCKS5 proxy, resolves and joins a public channel, imports a bounded cursor-based batch, and queues `Content::ProcessPostJob` for new posts only.
+The application-owned path is `Channels::MtprotoChannelSyncJob`. It restores the encrypted `FollowerUser` StringSession for each Telethon request, uses the configured SOCKS5 proxy, resolves and joins a public channel, imports a bounded cursor-based batch, and queues `Content::ProcessPostJob` for new posts only.
 
-`Content::ProcessPostJob` performs the configured LLM classification and only queues `Content::DeliverPostsJob` when that result is deliverable. The sync path never calls the Bot API to join a channel and tests never contact Telegram or send a message.
+`Content::ProcessPostJob` performs the configured LLM classification and only queues `Content::DeliverPostsJob` when that result is deliverable. Imported MTProto posts are delivered as bot messages containing the source text and canonical `t.me/<channel>/<message>` link; the bot is not required to be a member of the source channel.
 
-This commit is not evidence of a live join, read, classification, or delivery. Production evidence must be collected separately by running one approved public pilot channel after deployment.
+## Production evidence — 2026-08-26
 
-Safe pilot invocation (replace only the public username):
+Pilot channel: `@problemhunt`. Test follower account: the authorized Kazakhstan development line recorded in the private telecom registry.
+
+Verified on `goga-office`:
+
+1. encrypted Telethon `StringSession` restored in a fresh process;
+2. public channel resolved and joined through the configured SOCKS5 proxy;
+3. five recent Telegram messages read and persisted;
+4. a second sync imported zero duplicates (`5 → 5` posts);
+5. all five posts received LLM classification;
+6. one deliverable post was sent by `@bez_sheluhi_bot` with source link `https://t.me/problemhunt/210` (delivery message ID `371944`);
+7. both web and worker pods were recreated; the session restored again and the post count remained unchanged.
+
+## Safe invocation
 
 ```ruby
 channel = Channel.find_by!(username: "PUBLIC_USERNAME")
-Channels::MtprotoChannelSyncJob.perform_later(channel.id, FollowerUser.authorized.find_by!(phone_number: ENV.fetch("NO_FLUFF_PILOT_FOLLOWER_PHONE")).id, 20)
+Channels::MtprotoChannelSyncJob.perform_later(
+  channel.id,
+  FollowerUser.authorized.find_by!(phone_number: ENV.fetch("NO_FLUFF_PILOT_FOLLOWER_PHONE")).id,
+  20
+)
 ```
+
+Do not treat this one pilot as evidence for pool scaling, private-channel access, or long-term rate-limit behavior. Those remain separate gates.
