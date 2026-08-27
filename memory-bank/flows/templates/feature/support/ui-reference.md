@@ -38,7 +38,7 @@ doc_function: reference
 purpose: "Interface reference для FT-XXX. Фиксирует screen map, interaction states, mockups и UI traceability без переопределения canonical problem или solution facts."
 derived_from:
   - ../brief.md
-  - ../../../engineering/ui-design-guide/README.md
+  - ../../../../engineering/ui-design-guide/README.md
   # Required only when design.md exists:
   # - ../design.md
 status: draft
@@ -66,7 +66,7 @@ must_not_define:
 
 ## Project UI Guide
 
-Сошлись на [`engineering/ui-design-guide/README.md`](../../../engineering/ui-design-guide/README.md) или на конкретный surface document внутри него. Укажи, какие existing components, helpers и examples переиспользует feature.
+Сошлись на [`engineering/ui-design-guide/README.md`](../../../../engineering/ui-design-guide/README.md) или на конкретный surface document внутри него. Укажи, какие existing components, helpers и examples переиспользует feature.
 
 ## Interface Scope
 

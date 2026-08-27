@@ -58,8 +58,8 @@ doc_kind: feature
 doc_function: canonical
 purpose: "Canonical brief для delivery-единицы. Фиксирует problem space, scope, validation profile и verify без смешения с solution space или execution plan."
 derived_from:
-  - ../../flows/feature.md
-  - ../../flows/feature-requirements.md
+  - ../../feature.md
+  - ../../feature-requirements.md
   # Optional:
   # - ../../product/context.md
   # - ../../domain/rules.md
@@ -82,7 +82,7 @@ must_not_define:
 
 ### Requirement applicability and classification
 
-For every baseline class in [Feature Requirements, Identifiers And Traceability](../../flows/feature-requirements.md#requirement-taxonomy-and-traceability), select `applicable`, `not-applicable` with rationale, or `covered-upstream` with reference. Do not create `FR-*`/`NFR-*`; record the class on `REQ-*`.
+For every baseline class in [Feature Requirements, Identifiers And Traceability](../../feature-requirements.md#requirement-taxonomy-and-traceability), select `applicable`, `not-applicable` with rationale, or `covered-upstream` with reference. Do not create `FR-*`/`NFR-*`; record the class on `REQ-*`.
 
 | Class | Decision | Trigger / rationale / upstream reference | Requirement IDs |
 | --- | --- | --- | --- |
@@ -159,7 +159,7 @@ failure modes или rollout/backout в `brief.md`.
 
 ## Validation Profile Decision
 
-Выбери один profile по [`../../engineering/validation-profiles.md`](../../engineering/validation-profiles.md). Эта секция — canonical owner решения; `implementation-plan.md` ссылается на неё и задаёт конкретные suites/checkpoints без повторного выбора profile.
+Выбери один profile по [`../../../engineering/validation-profiles.md`](../../../engineering/validation-profiles.md). Эта секция — canonical owner решения; `implementation-plan.md` ссылается на неё и задаёт конкретные suites/checkpoints без повторного выбора profile.
 
 | Profile | Triggers / rationale | Downgrade approval |
 | --- | --- | --- |
