@@ -18,15 +18,7 @@ require_command docker
 mise trust
 mise install
 
-if ! mise exec -- dip --version >/dev/null 2>&1; then
-  cat >&2 <<'EOF'
-Dip is required for No Fluff local development but is not available to the
-mise-managed Ruby. Install it explicitly, then rerun ./init.sh:
-
-  mise exec -- gem install dip
-EOF
-  exit 1
-fi
+mise exec -- dip --version >/dev/null
 
 if ! docker info >/dev/null 2>&1; then
   echo "Docker is installed but its daemon is not available." >&2

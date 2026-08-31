@@ -19,7 +19,7 @@ canonical_for:
 - macOS/Linux shell environment with `mise`, Docker daemon and Dip available to
   the mise-managed Ruby.
 - Tool versions from [`mise.toml`](../../mise.toml): Ruby 3.4.10, Node 20.11.1,
-  Yarn 1.22.19.
+  Yarn 1.22.19 and Dip 8.3.0.
 - No production credentials are required for documentation validation. Do not
   copy `.env` or secrets from another checkout.
 

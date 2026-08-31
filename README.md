@@ -17,8 +17,8 @@
 ## Локальная разработка через Dip
 
 Канонический локальный контур работает в Docker через
-[Dip](https://github.com/bibendi/dip). `mise` фиксирует версии Ruby, Node.js и
-Yarn на хосте, но Rails, PostgreSQL и тесты запускаются через Dip.
+[Dip](https://github.com/bibendi/dip). `mise` фиксирует версии Ruby, Node.js,
+Yarn и Dip на хосте, но Rails, PostgreSQL и тесты запускаются через Dip.
 
 ```bash
 # Первый запуск или обновление зависимостей и баз
