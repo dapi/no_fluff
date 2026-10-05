@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem 'rails', '~> 8.0.3'
+gem 'rails', '~> 8.1.4'
 # Use postgresql as the database for Active Record
 gem 'pg', '~> 1.1'
 # Use the Puma web server [https://github.com/puma/puma]
@@ -63,7 +63,7 @@ group :development, :test do
   gem 'database_rewinder'
 end
 
-gem 'telegram-bot', '~> 0.16.7'
+gem 'telegram-bot', '~> 0.17.0'
 
 gem 'ruby_llm', '~> 1.8'
 
