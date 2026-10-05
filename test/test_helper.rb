@@ -11,14 +11,11 @@ require 'minitest/mock'
 # Configure Mocha for mocking and stubbing
 require 'mocha/minitest'
 
-# Configure Telegram bot for testing
-Telegram.reset_bots
-Telegram::Bot::ClientStub.stub_all!
-
-# Configure default test bot
-Telegram.bots_config = {
-  default: 'test_token'
-}
+# The Telegram bot is stubbed for the test environment in
+# config/initializers/telegram.rb. Do not reset or reconfigure it here: in CI
+# routes are eager-loaded with the application, so the webhook route already
+# holds that bot instance, and a second reset would leave the controller
+# replying through one stub while tests inspect another.
 
 # Configure DatabaseRewinder
 require 'database_rewinder'
