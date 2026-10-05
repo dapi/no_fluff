@@ -14,7 +14,14 @@ fi
 
 # If running the rails server then create or migrate existing database
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
-  ./bin/rails db:prepare
+  # Migrations hold a session-level advisory lock, which a transaction-pooling
+  # PgBouncer cannot keep. When the app reaches PostgreSQL through a pooler,
+  # NO_FLUFF_DATABASE_MIGRATION_PORT sends db:prepare to the direct port.
+  if [ -n "${NO_FLUFF_DATABASE_MIGRATION_PORT:-}" ]; then
+    NO_FLUFF_DATABASE_PORT="$NO_FLUFF_DATABASE_MIGRATION_PORT" ./bin/rails db:prepare
+  else
+    ./bin/rails db:prepare
+  fi
 fi
 
 exec "${@}"
