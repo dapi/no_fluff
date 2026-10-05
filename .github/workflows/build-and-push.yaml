@@ -31,9 +31,6 @@ on:
 env:
   PIPELINE_VERSION: v0.1
   DEFAULT_REGISTRY: ghcr.io
-  INFRA_REPO: git@github.com:brandymint/infra.git
-  WORKFLOW: deploy-app.yml
-  STAGE: default
 
 jobs:
   build:
@@ -107,16 +104,3 @@ jobs:
           # https://github.com/crazy-max/ghaction-container-scan?tab=readme-ov-file#build-scan-and-push-your-image
           # severity_threshold: HIGH
           annotations: true
-
-  deploy:
-    runs-on: ubuntu-latest
-    name: Deploy
-    needs: [build]
-    steps:
-      - uses: actions/checkout@v5
-      - run: |
-          gh --repo ${{ env.INFRA_REPO }} workflow run ${{ env.WORKFLOW }} -F tag=${{ needs.build.outputs.version }} -F app=${{ github.event.repository.name }} -F stage=${{ env.STAGE }}
-          runId=$(gh --repo ${{ env.INFRA_REPO }} run list --workflow=${{ env.WORKFLOW }} --limit 1 --json databaseId -q '.[].databaseId')
-          gh --repo ${{ env.INFRA_REPO }} run watch --exit-status ${runId}
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
